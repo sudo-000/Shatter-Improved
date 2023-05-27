@@ -8,10 +8,10 @@ import common
 
 SH_MAX_STR_LEN = common.MAX_STRING_LENGTH
 bl_info = {
-	"name": "Smash Hit Blender Tools",
+	"name": "Shatter for Blender",
 	"description": "Blender-based tools for editing, saving and loading Smash Hit segments",
 	"author": "Smash Hit Lab",
-	"version": (2, 1, 7),
+	"version": (2023, 5, 27),
 	"blender": (3, 2, 0),
 	"location": "File > Import/Export and 3D View > Tools",
 	"warning": "",
@@ -152,7 +152,7 @@ class sh_export_auto(bpy.types.Operator):
 		return result
 
 def sh_draw_export_auto(self, context):
-	self.layout.operator("sh.export_auto", text="SHBT: Export to APK")
+	self.layout.operator("sh.export_auto", text="Shatter: Export to APK")
 
 class sh_export_test(Operator):
 	"""
@@ -182,7 +182,7 @@ class sh_export_test(Operator):
 		return result
 
 def sh_draw_export_test(self, context):
-	self.layout.operator("sh.export_test_server", text="SHBT: Quick Test Server")
+	self.layout.operator("sh.export_test_server", text="Shatter: Quick Test Server")
 
 class sh_export_binary(sh_ExportCommon):
 	"""
@@ -415,7 +415,7 @@ class sh_SceneProperties(PropertyGroup):
 	
 	sh_fog_colour_top: FloatVectorProperty(
 		name = "Top fog",
-		description = "Fog colour for Blender Tools quick test. While this does use the fogcolor xml attribute, this property cannot be inherited from templates or used like a normal property",
+		description = "Fog colour for quick test. While this does use the fogcolor xml attribute, this property cannot be inherited from templates or used like a normal property",
 		subtype = "COLOR_GAMMA",
 		default = (1.0, 1.0, 1.0), 
 		min = 0.0,
@@ -424,7 +424,7 @@ class sh_SceneProperties(PropertyGroup):
 	
 	sh_fog_colour_bottom: FloatVectorProperty(
 		name = "Bottom fog",
-		description = "Fog colour for Blender Tools quick test. While this does use the fogcolor xml attribute, this property cannot be inherited from templates or used like a normal property",
+		description = "Fog colour for quick test. While this does use the fogcolor xml attribute, this property cannot be inherited from templates or used like a normal property",
 		subtype = "COLOR_GAMMA",
 		default = (0.0, 0.0, 0.0), 
 		min = 0.0,
@@ -823,7 +823,7 @@ class sh_AddonPreferences(AddonPreferences):
 	
 	enable_auto_update: BoolProperty(
 		name = "Enable automatic updates",
-		description = "Automatically downloads and installs the newest version of Blender Tools",
+		description = "Automatically downloads and installs the newest version of the addon",
 		default = False,
 	)
 	
@@ -833,7 +833,7 @@ class sh_AddonPreferences(AddonPreferences):
 		items = [
 			('stable', "Stable", "Only gets new features sometimes, mostly bugfix updates"),
 			('prerelease', "Prerelease", "Prerelease version of the next stable version"),
-			('next', "Next", "Prerelease for the next major version of SHBT, likely has issues"),
+			('next', "Next", "Prerelease for the next major version of Shatter, likely has issues"),
 			('updatertest', "Updater test channel", "For developers to test if the updater is working properly. DO NOT USE THIS CHANNEL!!! .."),
 		],
 		default = "stable", ### Change this depending on release ZIP type. ###
@@ -874,7 +874,7 @@ class sh_AddonPreferences(AddonPreferences):
 			ui.prop(self, "enable_auto_update")
 			if (self.enable_auto_update):
 				box = ui.box()
-				box.label(icon = "ERROR", text = "Please note: If a bad update is released, it might break SHBT. Be careful!")
+				box.label(icon = "ERROR", text = "Please note: If a bad update is released, it might break Shatter. Be careful!")
 		ui.prop(self, "enable_quick_test_server")
 
 class sh_SegmentPanel(Panel):
@@ -1083,7 +1083,7 @@ class sh_ShowMessage(Operator):
 	"""
 	
 	bl_idname = "sh.show_message"
-	bl_label = "SHBT update message"
+	bl_label = "Shatter update message"
 	
 	message: StringProperty(
 		name = "Message to show",
@@ -1108,7 +1108,7 @@ def run_updater():
 		global bl_info
 		updater.check_for_updates(bl_info["version"])
 	except Exception as e:
-		print(f"Smash Hit Tools: updater.check_for_updates(): {e}")
+		print(f"Shatter for Blender: updater.check_for_updates(): {e}")
 
 classes = (
 	# Ignore the naming scheme for classes, please

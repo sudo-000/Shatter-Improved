@@ -1,5 +1,5 @@
 """
-Blender Tools Updater
+Shatter Updater
 """
 
 import common
@@ -177,16 +177,16 @@ def check_for_updates(current_version):
 	update = get_latest_version(current_version, bpy.context.preferences.addons["blender_tools"].preferences.updater_channel)
 	
 	if (update != None):
-		message = f"Smash Hit Tools v{update.version[0]}.{update.version[1]}.{update.version[2]} (for {update.release_channel} branch) has been released! Download the ZIP file here: {update.download}"
+		message = f"Shatter for Blender {update.version[0]}.{update.version[1]}.{update.version[2]} (for {update.release_channel} branch) has been released! Download the ZIP file here: {update.download}"
 		
 		if (bpy.context.preferences.addons["blender_tools"].preferences.enable_auto_update):
 			download_update(update.download)
-			message = f"Smash Hit Tools update to v{update.version[0]}.{update.version[1]}.{update.version[2]} (for {update.release_channel} branch) has been installed. Please restart Blender to see changes!"
+			message = f"Shatter for Blender update to {update.version[0]}.{update.version[1]}.{update.version[2]} (for {update.release_channel} branch) has been installed. Please restart Blender to see changes!"
 		
 		print("Smash Hit Tools: " + message)
 		
 		# HACK: Defer execution to when blender has actually loaded otherwise 
 		# we make it crash!
-		bpy.app.timers.register(functools.partial(show_message, "Smash Hit Tools Update", message), first_interval = 5.0)
+		bpy.app.timers.register(functools.partial(show_message, "Shatter for Blender Update", message), first_interval = 5.0)
 	else:
 		print("Smash Hit Tools: Up to date (or checker failed or disabled)!")

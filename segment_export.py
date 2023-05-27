@@ -1,5 +1,5 @@
 """
-Smash Hit Blender Tools segment export
+Shatter for Blender segment export
 """
 
 import common
@@ -395,7 +395,7 @@ def createSegmentText(context, params):
 		sh_add_object(level_root, scene, obj, params)
 	
 	# Add file header with version
-	file_header = "<!-- Exporter: Smash Hit Tools v" + str(common.BL_INFO["version"][0]) + "." + str(common.BL_INFO["version"][1]) + "." + str(common.BL_INFO["version"][2]) + " -->\n"
+	file_header = "<!-- Exporter: Shatter for Blender " + str(common.BL_INFO["version"][0]) + "." + str(common.BL_INFO["version"][1]) + "." + str(common.BL_INFO["version"][2]) + " -->\n"
 	
 	# Get final string
 	content = file_header + et.tostring(level_root, encoding = "unicode")
