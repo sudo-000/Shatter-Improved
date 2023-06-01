@@ -176,7 +176,7 @@ def sh_import_segment(fp, context, compressed = False):
 		properties = obj.attrib
 		
 		# Ignore obstacles exported with IMPORT_IGNORE="STONEHACK_IGNORE"
-		if (properties.get("IMPORT_IGNORE") == "STONEHACK_IGNORE" or properties.get("type") == "stone"):
+		if (properties.get("IMPORT_IGNORE") or properties.get("shbt-ignore") or properties.get("type") == "stone"):
 			continue
 		
 		# Object position
