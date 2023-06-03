@@ -4,6 +4,7 @@ Smash Hit segment export tool for Blender - main file
 This mostly handles UI stuff
 """
 
+import reporting
 import common
 
 SH_MAX_STR_LEN = common.MAX_STRING_LENGTH
@@ -845,6 +846,12 @@ class sh_AddonPreferences(AddonPreferences):
 		default = True,
 	)
 	
+	enable_telemetry: BoolProperty(
+		name = "Telemetry",
+		description = "This will enable crash reporting for Shatter. We store the timestamp and traceback for each error. Error reports are also written to your Shatter home folder",
+		default = False,
+	)
+	
 	## Mod Services (NOT COMPLETED) ##
 	shl_handle: StringProperty(
 		name = "Handle",
@@ -876,6 +883,7 @@ class sh_AddonPreferences(AddonPreferences):
 				box = ui.box()
 				box.label(icon = "ERROR", text = "Please note: If a bad update is released, it might break Shatter. Be careful!")
 		ui.prop(self, "enable_quick_test_server")
+		ui.prop(self, "enable_telemetry")
 
 class sh_SegmentPanel(Panel):
 	bl_label = "Smash Hit"

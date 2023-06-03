@@ -32,7 +32,12 @@ MAX_STRING_LENGTH = 512
 """
 Update info URL
 """
-UPDATE_INFO = "https://raw.githubusercontent.com/Smashing-Tech/SHBT-Meta/trunk/update.json"
+UPDATE_INFO = "https://raw.githubusercontent.com/Shatter-Team/Shatter-Meta/trunk/update.json"
+
+"""
+Telemetry capture URL
+"""
+TELEMETRY_ENDPOINT = "https://smashhitlab.000webhostapp.com/crash.php?action=report"
 
 """
 Enable logging
@@ -44,7 +49,7 @@ FILE_LOGGING = False
 Blender Tools configuration directory
 """
 HOME_FOLDER = str(pathlib.Path.home())
-TOOLS_HOME_FOLDER = HOME_FOLDER + "/Smash Hit Blender Tools"
+TOOLS_HOME_FOLDER = HOME_FOLDER + "/Shatter for Blender"
 
 # Create shbt folder if it does not exist
 os.makedirs(TOOLS_HOME_FOLDER, exist_ok = True)

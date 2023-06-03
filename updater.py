@@ -1,5 +1,8 @@
 """
 Shatter Updater
+
+TODO: (Important) Move to a better cryptography library for signing
+This looks better than Python-RSA imo: https://github.com/wbond/oscrypto
 """
 
 import common
@@ -182,8 +185,6 @@ def check_for_updates(current_version):
 		if (bpy.context.preferences.addons["blender_tools"].preferences.enable_auto_update):
 			download_update(update.download)
 			message = f"Shatter for Blender update to {update.version[0]}.{update.version[1]}.{update.version[2]} (for {update.release_channel} branch) has been installed. Please restart Blender to see changes!"
-		
-		print("Smash Hit Tools: " + message)
 		
 		# HACK: Defer execution to when blender has actually loaded otherwise 
 		# we make it crash!
