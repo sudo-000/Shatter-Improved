@@ -8,15 +8,15 @@ import common
 
 SH_MAX_STR_LEN = common.MAX_STRING_LENGTH
 bl_info = {
-	"name": "Shatter for Blender",
+	"name": "Shatter",
 	"description": "Blender-based tools for editing, saving and loading Smash Hit segments",
-	"author": "Smash Hit Lab",
-	"version": (2023, 5, 27),
+	"author": "Shatter Team",
+	"version": (2023, 6, 3),
 	"blender": (3, 2, 0),
 	"location": "File > Import/Export and 3D View > Tools",
 	"warning": "",
-	"wiki_url": "https://github.com/Smashing-Tech/Smash-Hit-Blender-Tools/wiki",
-	"tracker_url": "https://github.com/Smashing-Tech/Smash-Hit-Blender-Tools/issues",
+	"wiki_url": "https://github.com/Shatter-Team/Shatter/wiki",
+	"tracker_url": "https://github.com/Shatter-Team/Shatter-Team/issues",
 	"category": "Development",
 }
 
