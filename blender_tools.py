@@ -1163,6 +1163,9 @@ def register():
 	
 	# Check for updates
 	run_updater()
+	
+	# Reporting enabled
+	reporting.REPORTING_ENABLED = bpy.context.preferences.addons["blender_tools"].preferences.enable_telemetry
 
 def unregister():
 	from bpy.utils import unregister_class

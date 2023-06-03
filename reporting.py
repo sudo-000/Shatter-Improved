@@ -1,4 +1,3 @@
-import bpy
 import requests
 import common
 import time
@@ -6,8 +5,9 @@ import pathlib
 import traceback
 
 TEST_TB_MODULE = (__name__ == "__main__")
+REPORTING_ENABLED = True
 
-def report(message):
+def report(message, allowed = True):
 	"""
 	If the user has not opted out of reporting, send a report.
 	"""
@@ -18,7 +18,7 @@ def report(message):
 	pathlib.Path(common.TOOLS_HOME_FOLDER + "/Report " + str(int(time.time())) + ".txt").write_text(message)
 	
 	# Log to the server, if allowed by the user
-	if (TEST_TB_MODULE or bpy.context.preferences.addons["blender_tools"].preferences.enable_telemetry):
+	if (TEST_TB_MODULE or allowed):
 		try:
 			requests.post(common.TELEMETRY_ENDPOINT, {"info": message})
 		except:
@@ -34,7 +34,7 @@ def shbt_exception_handler(type, value, trace):
 	tmsg = "\n".join(traceback.format_tb(trace))
 	
 	# Report traceback
-	report(tmsg)
+	report(tmsg, REPORTING_ENABLED)
 	
 	# Call the old exception hook
 	old_exception_hook(type, value, trace)
