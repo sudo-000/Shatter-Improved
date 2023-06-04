@@ -3,6 +3,8 @@ Shatter Updater
 
 TODO: (Important) Move to a better cryptography library for signing
 This looks better than Python-RSA imo: https://github.com/wbond/oscrypto
+
+NOTE: Contact cddepppp256@gmail.com for sensitive security issues.
 """
 
 import common
@@ -25,6 +27,8 @@ BLENDER_TOOLS_PATH = common.BLENDER_TOOLS_PATH
 class Update():
 	"""
 	Class representing an update
+	
+	TODO This does not need to be a class, could just be a dict
 	"""
 	
 	def __init__(self, release_channel, version, download):
@@ -46,12 +50,13 @@ def download_update(source):
 	For now we do not install it until I learn how software signing works under
 	the hood (and until that is implemented)
 	
-	ALSO WE DON'T EVER EVER EVER EVER ENABLE THIS BY DEFAULT
+	**NOTE** ALSO WE DON'T EVER EVER EVER EVER ENABLE THIS BY DEFAULT
 	"""
 	
 	def update_downloader(url):
 		import shutil, pathlib, os
 		
+		# TODO Port to using util.http_get_signed()
 		# Download data and signature
 		data = requests.get(url).content
 		signature = requests.get(url + ".sig").content
@@ -82,15 +87,6 @@ def download_update(source):
 	
 	p.start()
 
-def download_component(source):
-	"""
-	Download a component of Blender Tools
-	"""
-	
-	import pathlib
-	
-	pathlib.Path(TOOLS_HOME_FOLDER + "/" + source.split("/")[-1]).write_bytes(requests.get(source).content)
-
 def show_message(title = "Info", message = "", icon = "INFO"):
 	"""
 	Show a message as a popup
@@ -107,6 +103,9 @@ def show_message(title = "Info", message = "", icon = "INFO"):
 def check_version_lt(new_version, current_version):
 	"""
 	Check if new_version > current_version
+	
+	TODO: This is a really bad way of doing this. Make it not a really bad way
+	of doing this.
 	"""
 	
 	if (new_version[0] > current_version[0]):
@@ -131,12 +130,38 @@ def check_version_lt(new_version, current_version):
 	
 	return False
 
+def version_compare_new(current, candidate):
+	"""
+	Return True if candidate is greater than current, otherwise return False.
+	
+	NOTE This is less dumb
+	TODO Switch to using this one now
+	"""
+	
+	min_len = min(len(current), len(candidate))
+	
+	for i in range(min_len):
+		# If the new version is bigger at this value, we can say it's new
+		if (candiate[i] > current[i]):
+			return True
+		# If the candidate version is less than the current, we can say it's less
+		elif (candiate[i] < current[i]):
+			return False
+	
+	# In the case that they both have the same start to the version but the
+	# candidate version has more array entries, we trust the new version.
+	if (len(current) < len(candidate)):
+		return True
+	
+	return False
+
 def get_latest_version(current_version, release_channel):
 	"""
 	Check the new version against the current version
 	"""
 	
 	try:
+		# TODO Require signature for update info
 		info = download_json(UPDATE_INFO).get(release_channel, None)
 		
 		# No info on release channel
@@ -188,6 +213,8 @@ def check_for_updates(current_version):
 		
 		# HACK: Defer execution to when blender has actually loaded otherwise 
 		# we make it crash!
+		# TODO: Look if there is some signal or event we can catch for Blender
+		# startup.
 		bpy.app.timers.register(functools.partial(show_message, "Shatter for Blender Update", message), first_interval = 5.0)
 	else:
 		print("Smash Hit Tools: Up to date (or checker failed or disabled)!")

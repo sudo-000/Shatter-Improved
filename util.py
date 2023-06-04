@@ -6,7 +6,10 @@ import tempfile
 import getpass
 import math
 import time
+import datetime
 import hashlib
+import requests
+import rsa # TODO Don't use RSA anymore
 import bpy
 
 def get_time():
@@ -16,7 +19,14 @@ def get_time():
 	
 	return math.floor(time.time())
 
-def get_hash(data):
+def get_timestamp():
+	"""
+	Get a human-formatted, file-safe time string in UTC of the current time
+	"""
+	
+	return datetime.datetime.utcnow().strftime("%Y-%m-%d %H%M%S")
+
+def get_sha1_hash(data):
 	"""
 	Compute the SHA1 hash of a utf8 string
 	"""
@@ -37,7 +47,7 @@ def get_trace():
 	
 	username = getpass.getuser()
 	
-	result = get_hash(username)[:2]
+	result = get_sha1_hash(username)[:2]
 	
 	return result
 
@@ -85,3 +95,41 @@ def find_apk():
 	print("Final apk path:", path)
 	
 	return path
+
+def http_get_signed(url):
+	"""
+	Get the file at the given url and verify its signature, then return it's
+	contents. Returns None if there is an error, like not found or invalid
+	signature.
+	
+	Right now this is mostly copied from the updater downloading function and
+	isn't used anywhere, but in the future it will replace any place where we
+	need to download signed files.
+	
+	The key should be the same as the one used for updates.
+	
+	TODO Actually use this
+	TODO Look into something that isn't RSA in 2023
+	"""
+	
+	# Download data and signature
+	data = requests.get(url)
+	signature = requests.get(url + ".sig")
+	
+	if (data.status_code != 200 or signature.status_code != 200):
+		return None
+	else:
+		data = data.content
+		signature = signature.content
+	
+	# Load the public key
+	public = eval(Path(common.BLENDER_TOOLS_PATH + "/shbt-public.key").read_text())
+	
+	# Verify the signature
+	try:
+		result = rsa.verify(data, signature, public)
+	except:
+		return None
+	
+	# Return the content of the file
+	return data

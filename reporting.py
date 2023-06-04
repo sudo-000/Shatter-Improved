@@ -3,6 +3,7 @@ import common
 import time
 import pathlib
 import traceback
+import util
 
 TEST_TB_MODULE = (__name__ == "__main__")
 REPORTING_ENABLED = True
@@ -15,7 +16,7 @@ def report(message, allowed = True):
 	message = str(message) # ... because maybe ...
 	
 	# Log locally
-	pathlib.Path(common.TOOLS_HOME_FOLDER + "/Report " + str(int(time.time())) + ".txt").write_text(message)
+	pathlib.Path(common.TOOLS_HOME_FOLDER + f"/Error report {util.get_timestamp()}.log").write_text(message)
 	
 	# Log to the server, if allowed by the user
 	if (TEST_TB_MODULE or allowed):

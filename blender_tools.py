@@ -12,7 +12,7 @@ bl_info = {
 	"name": "Shatter",
 	"description": "Blender-based tools for editing, saving and loading Smash Hit segments",
 	"author": "Shatter Team",
-	"version": (2023, 6, 3),
+	"version": (2023, 6, 4),
 	"blender": (3, 2, 0),
 	"location": "File > Import/Export and 3D View > Tools",
 	"warning": "",
@@ -848,7 +848,7 @@ class sh_AddonPreferences(AddonPreferences):
 	
 	enable_telemetry: BoolProperty(
 		name = "Telemetry",
-		description = "This will enable crash reporting for Shatter. We store the timestamp and traceback for each error. Error reports are also written to your Shatter home folder",
+		description = "This will enable crash reporting for Shatter. We store the timestamp and traceback for each error, but may store more info in the future. Please do not use this option if you are under the age of 16 as we are not allowed to process your data. This option requires restart to take effect",
 		default = False,
 	)
 	
