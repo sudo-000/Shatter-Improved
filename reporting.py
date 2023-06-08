@@ -7,8 +7,9 @@ import util
 
 TEST_TB_MODULE = (__name__ == "__main__")
 REPORTING_ENABLED = True
+SAVING_ENABLED = True
 
-def report(message, allowed = True):
+def report(message):
 	"""
 	If the user has not opted out of reporting, send a report.
 	"""
@@ -16,10 +17,11 @@ def report(message, allowed = True):
 	message = str(message) # ... because maybe ...
 	
 	# Log locally
-	pathlib.Path(common.TOOLS_HOME_FOLDER + f"/Error report {util.get_timestamp()}.log").write_text(message)
+	if (SAVING_ENABLED):
+		pathlib.Path(common.TOOLS_HOME_FOLDER + f"/Error report {util.get_timestamp()}.log").write_text(message)
 	
 	# Log to the server, if allowed by the user
-	if (TEST_TB_MODULE or allowed):
+	if (TEST_TB_MODULE or REPORTING_ENABLED):
 		try:
 			requests.post(common.TELEMETRY_ENDPOINT, {"info": message})
 		except:
@@ -35,7 +37,7 @@ def shbt_exception_handler(type, value, trace):
 	tmsg = "\n".join(traceback.format_tb(trace))
 	
 	# Report traceback
-	report(tmsg, REPORTING_ENABLED)
+	report(tmsg)
 	
 	# Call the old exception hook
 	old_exception_hook(type, value, trace)

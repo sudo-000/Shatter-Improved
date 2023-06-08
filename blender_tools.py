@@ -846,13 +846,25 @@ class sh_AddonPreferences(AddonPreferences):
 		default = True,
 	)
 	
+	enable_report_saving: BoolProperty(
+		name = "Save crash reports to local files",
+		description = "This will save log files of Blender exceptions to local files",
+		default = False,
+	)
+	
 	enable_telemetry: BoolProperty(
-		name = "Telemetry",
+		name = "Send reports to server",
 		description = "This will enable crash reporting for Shatter. We store the timestamp and traceback for each error, but may store more info in the future. Please do not use this option if you are under the age of 16 as we are not allowed to process your data. This option requires restart to take effect",
 		default = False,
 	)
 	
 	## Mod Services (NOT COMPLETED) ##
+	enable_shl_integration: BoolProperty(
+		name = "smash hit lab integration",
+		description = "beta",
+		default = False,
+	)
+	
 	shl_handle: StringProperty(
 		name = "Handle",
 		description = "Your Smash Hit Lab username",
@@ -866,15 +878,23 @@ class sh_AddonPreferences(AddonPreferences):
 		default = "",
 	)
 	
+	shl_session_token: StringProperty(
+		name = "Session token",
+		description = "Current session token. Blank if it's not valid. Format \"{{tk}}:{{lb}}\"",
+		default = "",
+	)
+	
 	def draw(self, context):
-		ui = self.layout
+		main = self.layout
 		
-		ui.label(text = "Segment export")
+		ui = main.box()
+		ui.label(text = "Segment export", icon = "MOD_WIREFRAME")
 		ui.prop(self, "enable_metadata")
 		ui.prop(self, "default_assets_path")
 		ui.prop(self, "creator")
 		
-		ui.label(text = "Network and privacy")
+		ui = main.box()
+		ui.label(text = "Features, network and privacy", icon = "WORLD")
 		ui.prop(self, "enable_update_notifier")
 		ui.prop(self, "updater_channel")
 		if (self.enable_update_notifier):
@@ -883,7 +903,16 @@ class sh_AddonPreferences(AddonPreferences):
 				box = ui.box()
 				box.label(icon = "ERROR", text = "Please note: If a bad update is released, it might break Shatter. Be careful!")
 		ui.prop(self, "enable_quick_test_server")
-		ui.prop(self, "enable_telemetry")
+		ui.prop(self, "enable_report_saving")
+		if (self.enable_report_saving):
+			ui.prop(self, "enable_telemetry")
+		
+		if (self.enable_shl_integration):
+			ui = main.box()
+			ui.label(text = "Smash Hit Lab", icon = "KEYINGSET")
+			ui.prop(self, "shl_handle")
+			ui.prop(self, "shl_password")
+			ui.operator("sh.lab_sign_in", text = "Log in")
 
 class sh_SegmentPanel(Panel):
 	bl_label = "Smash Hit"
@@ -1165,7 +1194,8 @@ def register():
 	run_updater()
 	
 	# Reporting enabled
-	reporting.REPORTING_ENABLED = bpy.context.preferences.addons["blender_tools"].preferences.enable_telemetry
+	reporting.SAVING_ENABLED = bpy.context.preferences.addons["blender_tools"].preferences.enable_telemetry
+	reporting.REPORTING_ENABLED = bpy.context.preferences.addons["blender_tools"].preferences.enable_report_saving
 
 def unregister():
 	from bpy.utils import unregister_class
