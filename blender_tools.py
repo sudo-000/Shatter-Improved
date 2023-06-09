@@ -12,7 +12,7 @@ bl_info = {
 	"name": "Shatter",
 	"description": "Blender-based tools for editing, saving and loading Smash Hit segments",
 	"author": "Shatter Team",
-	"version": (2023, 6, 8),
+	"version": (2023, 6, 9),
 	"blender": (3, 2, 0),
 	"location": "File > Import/Export and 3D View > Tools",
 	"warning": "",
@@ -30,6 +30,7 @@ import segment_export
 import segment_import
 import server
 import updater
+import util
 
 from bpy.props import (StringProperty, BoolProperty, IntProperty, IntVectorProperty, FloatProperty, FloatVectorProperty, EnumProperty, PointerProperty)
 from bpy.types import (Panel, Menu, Operator, PropertyGroup, AddonPreferences)
@@ -255,6 +256,17 @@ class sh_import_gz(bpy.types.Operator, segment_export.ExportHelper2):
 
 def sh_draw_import_gz(self, context):
 	self.layout.operator("sh.import_gz", text="Compressed Segment (.xml.gz.mp3)")
+
+class sh_shl_login(bpy.types.Operator):
+	"""
+	Log in to the online service
+	"""
+	
+	bl_idname = "sh.shl_login"
+	bl_label = "Log in to Shatter Online Service"
+	
+	def execute(self, context):
+		return {"FINISHED"}
 
 ## EDITOR
 ## The following things are more related to the editor and are not specifically
@@ -912,7 +924,7 @@ class sh_AddonPreferences(AddonPreferences):
 			ui.label(text = "Smash Hit Lab", icon = "KEYINGSET")
 			ui.prop(self, "shl_handle")
 			ui.prop(self, "shl_password")
-			ui.operator("sh.lab_sign_in", text = "Log in")
+			ui.operator("sh.shl_login", text = "Log in")
 
 class sh_SegmentPanel(Panel):
 	bl_label = "Smash Hit"
@@ -969,13 +981,15 @@ class sh_SegmentPanel(Panel):
 			sub.prop(sh_properties, "sh_ambient_occlusion")
 		
 		# Quick test
-		sub = layout.box()
-		sub.label(text = "Quick test", icon = "AUTO")
-		sub.prop(sh_properties, "sh_fog_colour_top")
-		sub.prop(sh_properties, "sh_fog_colour_bottom")
-		sub.prop(sh_properties, "sh_music")
-		sub.prop(sh_properties, "sh_reverb")
-		sub.prop(sh_properties, "sh_particles")
+		if (bpy.context.preferences.addons["blender_tools"].preferences.enable_quick_test_server):
+			sub = layout.box()
+			sub.label(text = "Quick test", icon = "AUTO")
+			sub.prop(sh_properties, "sh_fog_colour_top")
+			sub.prop(sh_properties, "sh_fog_colour_bottom")
+			sub.prop(sh_properties, "sh_music")
+			sub.prop(sh_properties, "sh_reverb")
+			sub.prop(sh_properties, "sh_particles")
+			sub.label(text = f"Your IP: {util.get_local_ip()}")
 		
 		# DRM
 		sub = layout.box()
@@ -1162,6 +1176,7 @@ classes = (
 	sh_export_test,
 	sh_import,
 	sh_import_gz,
+	sh_shl_login,
 )
 
 def register():

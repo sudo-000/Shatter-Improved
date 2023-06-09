@@ -219,7 +219,7 @@ def sh_add_object(level_root, scene, obj, params):
 		size = {"X": obj.dimensions[1] / 2, "Y": obj.dimensions[2] / 2, "Z": obj.dimensions[0] / 2}
 		
 		# VR Multiply setting
-		if (sh_vrmultiply != 1.0 and (abs(size["Z"]) > 2.0)):
+		if (sh_vrmultiply != 1.0):
 			size["Z"] = size["Z"] * sh_vrmultiply
 		
 		properties["size"] = str(size["X"]) + " " + str(size["Y"]) + " " + str(size["Z"])
@@ -266,7 +266,7 @@ def sh_add_object(level_root, scene, obj, params):
 	if (sh_type == "WAT"):
 		size = {"X": obj.dimensions[1] / 2, "Z": obj.dimensions[0] / 2}
 		
-		properties["size"] = str(size["X"]) + " " + str(size["Z"])
+		properties["size"] = str(size["X"]) + " " + str(size["Z"] * sh_vrmultiply)
 	
 	# Set each of the tweleve paramaters if they are needed.
 	if (sh_type == "OBS"):

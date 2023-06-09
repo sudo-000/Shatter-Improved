@@ -33,6 +33,30 @@ def get_sha1_hash(data):
 	
 	return hashlib.sha1(data.encode('utf-8')).hexdigest()
 
+gLocalIPAddressCache = ""
+
+def get_local_ip():
+	"""
+	Get this computer's local IP address
+	
+	https://stackoverflow.com/questions/166506/finding-local-ip-addresses-using-pythons-stdlib
+	"""
+	
+	global gLocalIPAddressCache
+	
+	if (not gLocalIPAddressCache):
+		import socket
+		
+		try:
+			s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+			s.connect(("8.8.8.8", 80))
+			gLocalIPAddressCache = s.getsockname()[0]
+			s.close()
+		except:
+			gLocalIPAddressCache = ""
+	
+	return gLocalIPAddressCache
+
 def get_trace():
 	"""
 	The user trace is the first two hex digits of the SHA1 hash of the user's
