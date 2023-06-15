@@ -12,6 +12,7 @@ import hashlib
 import requests
 import rsa # TODO Don't use RSA anymore
 import bpy
+import gzip
 
 def get_time():
 	"""
@@ -93,12 +94,61 @@ def set_file(path, data):
 	
 	pathlib.Path(path).write_text(data)
 
+def get_file_gzip(path):
+	"""
+	Read a gzipped file
+	"""
+	
+	f = gzip.open(path, "r")
+	data = f.read()
+	f.close()
+	
+	return data
+
+def set_file_gzip(path, data):
+	"""
+	Write a gzipped file
+	"""
+	
+	f = gzip.open(path, "w")
+	f.write(data)
+	f.close()
+
 def prepare_folders(path):
 	"""
 	Make the folders for the file of the given name
 	"""
 	
 	os.makedirs(pathlib.Path(path).parent, exist_ok = True)
+
+def list_folder(folder, full = True):
+	"""
+	List files in a folder. Full will make the paths the full file paths, false
+	makes them relative to the folder.
+	"""
+	
+	folder = absolute_path(folder)
+	
+	lst = []
+	outline = []
+	
+	for root, dirs, files in os.walk(folder):
+		root = str(root)
+		
+		for f in files:
+			f = str(f)
+			
+			base_file_name = absolute_path(root + "/" + f)
+			
+			if (full):
+				lst.append(base_file_name)
+			else:
+				lst.append(base_file_name[len(folder) + 1:])
+		
+		for d in dirs:
+			outline.append(root + "/" + str(d))
+	
+	return lst
 
 def find_apk():
 	"""
