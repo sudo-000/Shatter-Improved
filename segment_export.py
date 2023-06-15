@@ -169,7 +169,7 @@ def sh_create_root(scene, params):
 		
 		# Export user trace if the creator wasn't specified
 		if (not creator):
-			seg_props["shbt-meta-trace"] = util.get_trace()
+			seg_props["shbt-meta-uid"] = bpy.context.preferences.addons["blender_tools"].preferences.uid
 	
 	# Create main root and return it
 	level_root = et.Element("segment", seg_props)
@@ -459,6 +459,9 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 	# Set wait cursor
 	context.window.cursor_set('WAIT')
 	
+	# We need this later ...
+	uid = bpy.context.preferences.addons["blender_tools"].preferences.uid
+	
 	# If the filepath is None, then find it from the apk and force enable
 	# compression
 	if (filepath == None and params.get("auto_find_filepath", False)):
@@ -520,7 +523,7 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 			bake_mesh.BAKE_UNSEEN_FACES = params.get("bake_menu_segment", False)
 			bake_mesh.ABMIENT_OCCLUSION_ENABLED = params.get("bake_vertex_light", True)
 			bake_mesh.LIGHTING_ENABLED = params.get("lighting_enabled", False)
-			bake_mesh.bakeMeshToFile(content, tempdir + "/segment.mesh", templates, bake_mesh.BakeProgressInfo(MB_progress_update_callback))
+			bake_mesh.bakeMeshToFile(content, tempdir + "/segment.mesh", templates, bake_mesh.BakeProgressInfo(MB_progress_update_callback), uid)
 		
 		context.window_manager.progress_end()
 		
@@ -553,7 +556,7 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 		bake_mesh.LIGHTING_ENABLED = params.get("lighting_enabled", False)
 		
 		# Bake mesh
-		bake_mesh.bakeMeshToFile(content, meshfile, (params["sh_meshbake_template"] if params["sh_meshbake_template"] else None), bake_mesh.BakeProgressInfo(MB_progress_update_callback))
+		bake_mesh.bakeMeshToFile(content, meshfile, (params["sh_meshbake_template"] if params["sh_meshbake_template"] else None, uid), bake_mesh.BakeProgressInfo(MB_progress_update_callback))
 	
 	context.window_manager.progress_update(0.8)
 	

@@ -32,7 +32,12 @@ MAX_STRING_LENGTH = 512
 """
 Update info URL
 """
-UPDATE_INFO = "https://raw.githubusercontent.com/Shatter-Team/Shatter-Meta/trunk/update.json"
+UPDATE_INFO = "https://shatter-team.github.io/Shatter-Meta/update.json"
+
+"""
+Bad user info url
+"""
+BAD_USER_INFO = "https://shatter-team.github.io/Shatter-Meta/badusers.json"
 
 """
 Telemetry capture URL

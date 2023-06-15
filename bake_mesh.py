@@ -826,7 +826,7 @@ def meshPointBytes(x, y, z, u, v, r, g, b, a, gc, normal):
 	
 	return c
 
-def generateMeshData(data, seg = None, progress = None):
+def generateMeshData(data, seg = None, progress = None, extra_data = None):
 	"""
 	Generates mesh data bytes
 	"""
@@ -861,6 +861,9 @@ def generateMeshData(data, seg = None, progress = None):
 	outdata += struct.pack('I', index_count)
 	outdata += index
 	
+	if (extra_data):
+		outdata += encode(extra_data, 'utf-8')
+	
 	outdata = zlib.compress(outdata, -1)
 	
 	return outdata
@@ -869,7 +872,7 @@ def generateMeshData(data, seg = None, progress = None):
 ## =============================================================================
 ## =============================================================================
 
-def bakeMesh(data, templates_path = None, progress = None):
+def bakeMesh(data, templates_path = None, progress = None, extra_data = None):
 	"""
 	Bake a mesh from Smash Hit segment and return data
 	
@@ -892,15 +895,15 @@ def bakeMesh(data, templates_path = None, progress = None):
 		
 		meshData += box.bakeGeometry()
 	
-	return generateMeshData(meshData, seg, progress)
+	return generateMeshData(meshData, seg, progress, extra_data)
 
-def bakeMeshToFile(data, output_file, template_file = None, progress = None):
+def bakeMeshToFile(data, output_file, template_file = None, progress = None, extra_data = None):
 	"""
 	Given the segment data as a string, bake a mesh file, optionally using the
 	templates specififed.
 	"""
 	
-	mesh_data = bakeMesh(data, template_file, progress)
+	mesh_data = bakeMesh(data, template_file, progress, extra_data)
 	
 	f = open(output_file, "wb")
 	f.write(mesh_data)

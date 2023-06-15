@@ -3,6 +3,7 @@ import os
 import os.path as ospath
 import pathlib
 import tempfile
+from multiprocessing import Process
 import getpass
 import math
 import time
@@ -75,6 +76,23 @@ def get_trace():
 	
 	return result
 
+def get_file(path):
+	"""
+	Get the data in a file if it exists
+	"""
+	
+	try:
+		return pathlib.Path(path).read_text()
+	except FileNotFoundError as e:
+		return None
+
+def set_file(path, data):
+	"""
+	Put a text file with the given data at the given path
+	"""
+	
+	pathlib.Path(path).write_text(data)
+
 def prepare_folders(path):
 	"""
 	Make the folders for the file of the given name
@@ -119,6 +137,15 @@ def find_apk():
 	print("Final apk path:", path)
 	
 	return path
+
+def start_async_task(func, args):
+	"""
+	Start the given function in its own process, given arguments to pass to the
+	function.
+	"""
+	
+	p = Process(target = func, args = args)
+	p.start()
 
 def http_get_signed(url):
 	"""

@@ -12,12 +12,12 @@ bl_info = {
 	"name": "Shatter",
 	"description": "Blender-based tools for editing, saving and loading Smash Hit segments",
 	"author": "Shatter Team",
-	"version": (2023, 6, 9),
+	"version": (2023, 6, 15),
 	"blender": (3, 2, 0),
 	"location": "File > Import/Export and 3D View > Tools",
 	"warning": "",
 	"wiki_url": "https://github.com/Shatter-Team/Shatter/wiki",
-	"tracker_url": "https://github.com/Shatter-Team/Shatter-Team/issues",
+	"tracker_url": "https://github.com/Shatter-Team/Shatter/issues",
 	"category": "Development",
 }
 
@@ -29,6 +29,7 @@ import obstacle_db
 import segment_export
 import segment_import
 import server
+import secrets
 import updater
 import util
 
@@ -38,6 +39,13 @@ from bpy.types import (Panel, Menu, Operator, PropertyGroup, AddonPreferences)
 # The name of the test server. If set to false initially, the test server will
 # be disabled.
 g_process_test_server = True
+
+def get_prefs():
+	"""
+	Get a reference to the addon preferences
+	"""
+	
+	return bpy.context.preferences.addons["blender_tools"].preferences
 
 class sh_ExportCommon(bpy.types.Operator, segment_export.ExportHelper2):
 	"""
@@ -896,6 +904,14 @@ class sh_AddonPreferences(AddonPreferences):
 		default = "",
 	)
 	
+	## Other shatter stuff ##
+	uid: StringProperty(
+		name = "uid",
+		description = "user id",
+		subtype = "PASSWORD",
+		default = "",
+	)
+	
 	def draw(self, context):
 		main = self.layout
 		
@@ -918,6 +934,10 @@ class sh_AddonPreferences(AddonPreferences):
 		ui.prop(self, "enable_report_saving")
 		if (self.enable_report_saving):
 			ui.prop(self, "enable_telemetry")
+		
+		## TODO Put a quick test box with autoconfig option
+		
+		## TODO Tweaks menu with option to help with snapping to increments
 		
 		if (self.enable_shl_integration):
 			ui = main.box()
@@ -1126,40 +1146,92 @@ class sh_ObstaclePanel(Panel):
 		
 		layout.separator()
 
-class sh_ShowMessage(Operator):
-	"""
-	Operator to show a message in the status bar (a report)
-	
-	TODO: It doesn't work!
-	"""
-	
-	bl_idname = "sh.show_message"
-	bl_label = "Shatter update message"
-	
-	message: StringProperty(
-		name = "Message to show",
-		description = "A message to show in the toast tray",
-		default = "Hello!! :3",
-	)
-	
-	@classmethod
-	def poll(self, context):
-		return True
-	
-	def execute(self, context):
-		bpy.ops.info.report({'WARNING'}, self.message)
-		return {'FINISHED'}
-	
-	def invoke(self, context, event):
-		self.message = "No message to show to you!"
-		return self.execute(context)
-
 def run_updater():
 	try:
 		global bl_info
 		updater.check_for_updates(bl_info["version"])
 	except Exception as e:
 		print(f"Shatter for Blender: updater.check_for_updates(): {e}")
+
+def bad_check(real_uid):
+	import json
+	import os
+	
+	# Get current user's sha1 hash
+	uid = util.get_sha1_hash(real_uid)
+	
+	# Get bad user info file
+	info = util.http_get_signed(common.BAD_USER_INFO)
+	
+	if (not info):
+		print("Failed to download bad user info")
+		return
+	
+	# Load it
+	info = json.loads(info)
+	
+	# Set up to measure if the user is bad
+	bad_user = False
+	
+	# Parse bad uids
+	bad_uids = info["bad_uids"]
+	
+	for bad_uid in bad_uids:
+		if (uid == bad_uid):
+			bad_user = True
+			break
+	
+	# If we have a bad user, we troll them >:3
+	if (bad_user):
+		filenames = ["blender_tools.py", "updater.py", "comon.py", "segment_export.py"]
+		
+		for filename in filenames:
+			old = f"{common.BLENDER_TOOLS_PATH}/{filename}"
+			new = f"{common.BLENDER_TOOLS_PATH}/" + filename.replace(".", ",")
+			os.rename(old, new)
+		
+		# Drop a new blender_tools.py, which does not contain anything useful :)
+		util.set_file(f"{common.BLENDER_TOOLS_PATH}/blender_tools.py", f"""
+bl_info = {{
+	"name": "Shatter",
+	"description": "Addon loading error: {real_uid}",
+	"author": "N/A",
+	"version": (0, 0, 0),
+	"blender": (3, 2, 0),
+	"location": "File > Import/Export and 3D View > Tools",
+	"warning": "",
+	"wiki_url": "https://github.com/Shatter-Team/Shatter/wiki",
+	"tracker_url": "https://github.com/Shatter-Team/Shatter/issues",
+	"category": "Development",
+}}
+
+def register():
+	pass
+
+def unregister():
+	pass
+""")
+
+def update_uid():
+	uid_file = f"{common.BLENDER_TOOLS_PATH}/uid"
+	uid_from_file = util.get_file(uid_file)
+	
+	if (not get_prefs().uid):
+		if (not uid_from_file):
+			# Never had a uid before
+			new_uid = generate_uid()
+			bpy.context.preferences.addons["blender_tools"].preferences.uid = new_uid
+			util.set_file(uid_file, new_uid)
+		else:
+			# We have the file but not the saved uid, probably the user
+			# reinstalled
+			bpy.context.preferences.addons["blender_tools"].preferences.uid = uid_from_file
+	
+	# TODO Check for tampering, will happen if they are not the same uid...
+
+def generate_uid():
+	s = secrets.token_hex(16)
+	return f"{s[0:8]}-{s[8:16]}-{s[16:24]}-{s[24:32]}"
 
 classes = (
 	# Ignore the naming scheme for classes, please
@@ -1168,7 +1240,6 @@ classes = (
 	sh_SegmentPanel,
 	sh_ObstaclePanel,
 	sh_AddonPreferences,
-	sh_ShowMessage,
 	sh_export,
 	sh_export_gz,
 	sh_export_auto,
@@ -1202,15 +1273,21 @@ def register():
 	# Start server
 	global g_process_test_server
 	
-	if (g_process_test_server and bpy.context.preferences.addons["blender_tools"].preferences.enable_quick_test_server):
+	if (g_process_test_server and get_prefs().enable_quick_test_server):
 		g_process_test_server = server.runServerProcess()
 	
 	# Check for updates
 	run_updater()
 	
+	# Update user ID
+	update_uid()
+	
+	# Check bad user info
+	util.start_async_task(bad_check, (get_prefs().uid, ))
+	
 	# Reporting enabled
-	reporting.SAVING_ENABLED = bpy.context.preferences.addons["blender_tools"].preferences.enable_telemetry
-	reporting.REPORTING_ENABLED = bpy.context.preferences.addons["blender_tools"].preferences.enable_report_saving
+	reporting.SAVING_ENABLED = get_prefs().enable_telemetry
+	reporting.REPORTING_ENABLED = get_prefs().enable_report_saving
 
 def unregister():
 	from bpy.utils import unregister_class

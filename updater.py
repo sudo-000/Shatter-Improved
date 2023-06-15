@@ -4,7 +4,7 @@ Shatter Updater
 TODO: (Important) Move to a better cryptography library for signing
 This looks better than Python-RSA imo: https://github.com/wbond/oscrypto
 
-NOTE: Contact cddepppp256@gmail.com for sensitive security issues.
+NOTE: Contact cddepppp256<@]gmail(.}com for sensitive security issues.
 """
 
 import common
@@ -43,14 +43,11 @@ def download_json(source):
 	
 	return json.loads(requests.get(source).content)
 
-def download_update(source):
+def download_and_install_update(source):
 	"""
-	Download an update
+	Download and install an update
 	
-	For now we do not install it until I learn how software signing works under
-	the hood (and until that is implemented)
-	
-	**NOTE** ALSO WE DON'T EVER EVER EVER EVER ENABLE THIS BY DEFAULT
+	NOTE: WE DON'T EVER EVER EVER EVER ENABLE THIS BY DEFAULT!!!
 	"""
 	
 	def update_downloader(url):
@@ -208,7 +205,7 @@ def check_for_updates(current_version):
 		message = f"Shatter for Blender {update.version[0]}.{update.version[1]}.{update.version[2]} (for {update.release_channel} branch) has been released! Download the ZIP file here: {update.download}"
 		
 		if (bpy.context.preferences.addons["blender_tools"].preferences.enable_auto_update):
-			download_update(update.download)
+			download_and_install_update(update.download)
 			message = f"Shatter for Blender update to {update.version[0]}.{update.version[1]}.{update.version[2]} (for {update.release_channel} branch) has been installed. Please restart Blender to see changes!"
 		
 		# HACK: Defer execution to when blender has actually loaded otherwise 
