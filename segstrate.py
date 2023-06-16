@@ -7,6 +7,7 @@ with randomised strings.
 
 import xml.etree.ElementTree as et
 import os
+import os.path
 import sys
 import secrets
 import common
@@ -127,8 +128,12 @@ def convert_folder(path, replacements):
 		else:
 			continue
 		
+		print(f"Converting segment: {f} (compressed = {compressed})")
+		
 		# Load the file
 		data = util.get_file_gzip(f) if compressed else util.get_file(f)
+		
+		print(f"Content:\n\n{data}")
 		
 		# Convert it
 		data = replace_tags(data, replacements)
@@ -152,7 +157,7 @@ def setup_apk(path):
 	segments_folder = f"{path}/assets/segments"
 	
 	# If segstrate already seems enabled then we throw an error
-	if (os.exists(slk_path)):
+	if (os.path.exists(slk_path)):
 		raise Exception("It seems like segstrate is already set up for this APK.")
 	
 	# Generate the segment lock file

@@ -286,12 +286,16 @@ class sh_auto_setup_segstrate(bpy.types.Operator):
 	bl_label = "One-click setup segstrate protection"
 	
 	def execute(self, context):
+		context.window.cursor_set('WAIT')
+		
 		apk_path = util.find_apk()
 		
 		if (not apk_path):
 			raise Exception("Could not find an APK path to use for segstrate.")
 		
 		segstrate.setup_apk(util.absolute_path(f"{apk_path}/../"))
+		
+		context.window.cursor_set('DEFAULT')
 		
 		return {"FINISHED"}
 

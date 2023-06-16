@@ -143,6 +143,10 @@ def sh_import_segment(fp, context, compressed = False):
 			if (d == "NoImport"):
 				show_message("Import error", "The creator of this segment has requested that it not be imported. We encourage you to respect this request.")
 				return {"FINISHED"}
+			
+			if (d == "Segstrate"):
+				show_message("Import error", "This segment cannot be imported as it has structural issues that prevent importing it.")
+				return {"FINISHED"}
 	
 	# Segment length
 	seg_size = segattr.get("size", "12 10 0").split(" ")

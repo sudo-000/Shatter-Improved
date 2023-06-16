@@ -114,8 +114,8 @@ def get_file_gzip(path):
 	Read a gzipped file
 	"""
 	
-	f = gzip.open(path, "r")
-	data = f.read()
+	f = gzip.open(path, "rb")
+	data = f.read().decode('utf-8')
 	f.close()
 	
 	return data
@@ -125,8 +125,8 @@ def set_file_gzip(path, data):
 	Write a gzipped file
 	"""
 	
-	f = gzip.open(path, "w")
-	f.write(data)
+	f = gzip.open(path, "wb")
+	f.write(data.encode('utf-8'))
 	f.close()
 
 def prepare_folders(path):

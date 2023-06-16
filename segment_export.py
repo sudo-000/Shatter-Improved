@@ -479,7 +479,7 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 		if (not props.sh_level or not props.sh_room or not props.sh_segment):
 			raise FileNotFoundError("You have not set one of the level, room or segment name properties needed to use auto export to apk feature. Please set these in the scene tab and try again.")
 		
-		segstrate_path = filepath + "/shatter.slk" if os.exists(filepath + "/shatter.slk") else None
+		segstrate_path = filepath + "/shatter.slk" if ospath.exists(filepath + "/shatter.slk") else None
 		
 		# Real file path
 		filepath += "/segments/" + props.sh_level + "/" + props.sh_room + "/" + props.sh_segment + ".xml.gz.mp3"
