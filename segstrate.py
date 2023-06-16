@@ -141,7 +141,7 @@ def convert_folder(path, replacements):
 		# Save it again
 		util.set_file_gzip(f, data) if compressed else util.set_file(f, data)
 
-def setup_apk(path):
+def setup_apk(path, write_slk = True):
 	"""
 	Set up an apk given the path to it.
 	
@@ -163,8 +163,9 @@ def setup_apk(path):
 	# Generate the segment lock file
 	slk = random_replacements()
 	
-	# Write the segstrate info
-	util.set_file_json(slk_path, slk)
+	# Write the segstrate info, if we need to
+	if (write_slk):
+		util.set_file_json(slk_path, slk)
 	
 	# Patch libsmashhit.so
 	patch_libsmashhit(libsmashhit_path, slk)

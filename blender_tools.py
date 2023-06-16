@@ -36,6 +36,7 @@ import util
 
 from bpy.props import (StringProperty, BoolProperty, IntProperty, IntVectorProperty, FloatProperty, FloatVectorProperty, EnumProperty, PointerProperty)
 from bpy.types import (Panel, Menu, Operator, PropertyGroup, AddonPreferences)
+from bpy_extras.io_utils import ImportHelper
 
 # The name of the test server. If set to false initially, the test server will
 # be disabled.
@@ -282,7 +283,7 @@ class sh_auto_setup_segstrate(bpy.types.Operator):
 	Set up segstrate segment protection
 	"""
 	
-	bl_idname = "sh.auto_setup_segstrate"
+	bl_idname = "sh.segstrate_auto"
 	bl_label = "One-click setup segstrate protection"
 	
 	def execute(self, context):
@@ -296,6 +297,30 @@ class sh_auto_setup_segstrate(bpy.types.Operator):
 		segstrate.setup_apk(util.absolute_path(f"{apk_path}/../"))
 		
 		context.window.cursor_set('DEFAULT')
+		
+		return {"FINISHED"}
+
+class sh_static_segstrate(bpy.types.Operator, ImportHelper):
+	"""
+	Segstrate locking for when you have an APK you want to lock
+	"""
+	
+	bl_idname = "sh.segstrate_static"
+	bl_label = "Permanently lock APK with Segstrate"
+	
+	agreement: BoolProperty(
+		name = "I understand the conseqences of locking my APK permantently.",
+		description = "Locking your APK will make you unable to import or export any segments to the APK. Please only use this when you are making a copy of the APK that you want to distribute.",
+		default = False,
+	)
+	
+	def execute(self, context):
+		if (self.agreement):
+			context.window.cursor_set('WAIT')
+			segstrate.setup_apk(self.filepath, False)
+			context.window.cursor_set('DEFAULT')
+		else:
+			raise Exception("The agreement has not been accepted.")
 		
 		return {"FINISHED"}
 
@@ -1280,6 +1305,7 @@ classes = (
 	sh_import_gz,
 	sh_shl_login,
 	sh_auto_setup_segstrate,
+	sh_static_segstrate,
 )
 
 def register():
