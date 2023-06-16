@@ -11,6 +11,7 @@ import os.path as ospath
 import pathlib
 import tempfile
 import bake_mesh
+import segstrate
 import obstacle_db
 import util
 
@@ -153,7 +154,7 @@ def sh_create_root(scene, params):
 		seg_props["qt-particles"] = scene.sh_particles
 	
 	# Protection
-	if (scene.sh_drm_disallow_import):
+	if (scene.sh_drm_disallow_import or bpy.context.preferences.addons["blender_tools"].preferences.force_disallow_import):
 		seg_props["drm"] = "NoImport"
 	
 	# Creator information - always exported if available
@@ -462,8 +463,11 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 	# We need this later ...
 	uid = bpy.context.preferences.addons["blender_tools"].preferences.uid
 	
-	# If the filepath is None, then find it from the apk and force enable
-	# compression
+	# Marking for segstrate
+	segstrate_path = None
+	
+	# If the filepath is None, then find it from the apk, force enable
+	# compression and enable segstrate (if wanted)
 	if (filepath == None and params.get("auto_find_filepath", False)):
 		props = context.scene.sh_properties
 		
@@ -475,6 +479,9 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 		if (not props.sh_level or not props.sh_room or not props.sh_segment):
 			raise FileNotFoundError("You have not set one of the level, room or segment name properties needed to use auto export to apk feature. Please set these in the scene tab and try again.")
 		
+		segstrate_path = filepath + "/shatter.slk" if os.exists(filepath + "/shatter.slk") else None
+		
+		# Real file path
 		filepath += "/segments/" + props.sh_level + "/" + props.sh_room + "/" + props.sh_segment + ".xml.gz.mp3"
 		
 		util.prepare_folders(filepath)
@@ -556,9 +563,13 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 		bake_mesh.LIGHTING_ENABLED = params.get("lighting_enabled", False)
 		
 		# Bake mesh
-		bake_mesh.bakeMeshToFile(content, meshfile, (params["sh_meshbake_template"] if params["sh_meshbake_template"] else None, uid), bake_mesh.BakeProgressInfo(MB_progress_update_callback))
+		bake_mesh.bakeMeshToFile(content, meshfile, (params["sh_meshbake_template"] if params["sh_meshbake_template"] else None), bake_mesh.BakeProgressInfo(MB_progress_update_callback), uid)
 	
 	context.window_manager.progress_update(0.8)
+	
+	# Do segstrate protection if we need that
+	if (segstrate_path):
+		content = segstrate.replace_tags(content, util.get_file_json(segstrate_path))
 	
 	# Write out file
 	if (not compress):

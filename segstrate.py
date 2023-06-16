@@ -87,13 +87,20 @@ def patch_libsmashhit(path, replacements):
 def replace_tags(document, replacements):
 	"""
 	Replace standard xml tags with the preferred ones. This is not recursive and
-	it won't work for more than two layers of tags.
+	it won't work for more than two layers of tags. This will also set the
+	appropriate drm flags.
 	"""
 	
 	root = et.fromstring(document)
 	
 	# Replace the root tag
 	root.tag = replacements.get(root.tag, root.tag)
+	
+	# Add DRM tag
+	drm = root.attrib.get("drm", "").split(" ")
+	if (drm[0] == ""): drm = [] # fix stupid things
+	drm.append("Segstrate")
+	root.attrib["drm"] = " ".join(drm)
 	
 	# Replace each tag of the subnodes
 	for element in root:
@@ -129,3 +136,33 @@ def convert_folder(path, replacements):
 		# Save it again
 		util.set_file_gzip(f, data) if compressed else util.set_file(f, data)
 
+def setup_apk(path):
+	"""
+	Set up an apk given the path to it.
+	
+	Note: Using util.find_apk you need to do:
+	
+	util.absolute_path(f"{util.find_apk()}/../")
+	
+	because we need the real absolute path.
+	"""
+	
+	libsmashhit_path = f"{path}/lib/arm64-v8a/libsmashhit.so"
+	slk_path = f"{path}/assets/shatter.slk"
+	segments_folder = f"{path}/assets/segments"
+	
+	# If segstrate already seems enabled then we throw an error
+	if (os.exists(slk_path)):
+		raise Exception("It seems like segstrate is already set up for this APK.")
+	
+	# Generate the segment lock file
+	slk = random_replacements()
+	
+	# Write the segstrate info
+	util.set_file_json(slk_path, slk)
+	
+	# Patch libsmashhit.so
+	patch_libsmashhit(libsmashhit_path, slk)
+	
+	# Convert existing segments
+	convert_folder(segments_folder, slk)

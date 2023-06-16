@@ -28,6 +28,7 @@ import tempfile
 import obstacle_db
 import segment_export
 import segment_import
+import segstrate
 import server
 import secrets
 import updater
@@ -274,6 +275,24 @@ class sh_shl_login(bpy.types.Operator):
 	bl_label = "Log in to Shatter Online Service"
 	
 	def execute(self, context):
+		return {"FINISHED"}
+
+class sh_auto_setup_segstrate(bpy.types.Operator):
+	"""
+	Set up segstrate segment protection
+	"""
+	
+	bl_idname = "sh.auto_setup_segstrate"
+	bl_label = "One-click setup segstrate protection"
+	
+	def execute(self, context):
+		apk_path = util.find_apk()
+		
+		if (not apk_path):
+			raise Exception("Could not find an APK path to use for segstrate.")
+		
+		segstrate.setup_apk(util.absolute_path(f"{apk_path}/../"))
+		
 		return {"FINISHED"}
 
 ## EDITOR
@@ -822,6 +841,12 @@ class sh_AddonPreferences(AddonPreferences):
 		default = True,
 	)
 	
+	force_disallow_import: BoolProperty(
+		name = "Always disallow import",
+		description = "Enabling this option will force every segment to have the \"disallow import\" flag set, even if you did not configure it via the obstacle panel. Please note that marking segments with this flag does not prevent someone bypassing it",
+		default = False,
+	)
+	
 	default_assets_path: StringProperty(
 		name = "Default assets path",
 		description = "The path to your Smash Hit assets folder, if you want to override the default automatic APK finding",
@@ -918,6 +943,7 @@ class sh_AddonPreferences(AddonPreferences):
 		ui = main.box()
 		ui.label(text = "Segment export", icon = "MOD_WIREFRAME")
 		ui.prop(self, "enable_metadata")
+		ui.prop(self, "force_disallow_import")
 		ui.prop(self, "default_assets_path")
 		ui.prop(self, "creator")
 		
@@ -941,7 +967,7 @@ class sh_AddonPreferences(AddonPreferences):
 		
 		if (self.enable_shl_integration):
 			ui = main.box()
-			ui.label(text = "Smash Hit Lab", icon = "KEYINGSET")
+			ui.label(text = "Shatter Online Services", icon = "KEYINGSET")
 			ui.prop(self, "shl_handle")
 			ui.prop(self, "shl_password")
 			ui.operator("sh.shl_login", text = "Log in")
@@ -1012,9 +1038,10 @@ class sh_SegmentPanel(Panel):
 			sub.label(text = f"Your IP: {util.get_local_ip()}")
 		
 		# DRM
-		sub = layout.box()
-		sub.label(text = "Protection", icon = "LOCKED")
-		sub.prop(sh_properties, "sh_drm_disallow_import")
+		if (not bpy.context.preferences.addons["blender_tools"].preferences.force_disallow_import):
+			sub = layout.box()
+			sub.label(text = "Protection", icon = "LOCKED")
+			sub.prop(sh_properties, "sh_drm_disallow_import")
 		
 		layout.separator()
 
@@ -1153,6 +1180,7 @@ def run_updater():
 	except Exception as e:
 		print(f"Shatter for Blender: updater.check_for_updates(): {e}")
 
+""" ### Disabled for now ###
 def bad_check(real_uid):
 	import json
 	import os
@@ -1170,7 +1198,6 @@ def bad_check(real_uid):
 	# Load it
 	info = json.loads(info)
 	
-	# Set up to measure if the user is bad
 	bad_user = False
 	
 	# Parse bad uids
@@ -1191,7 +1218,7 @@ def bad_check(real_uid):
 			os.rename(old, new)
 		
 		# Drop a new blender_tools.py, which does not contain anything useful :)
-		util.set_file(f"{common.BLENDER_TOOLS_PATH}/blender_tools.py", f"""
+		util.set_file(f"{common.BLENDER_TOOLS_PATH}/blender_tools.py", f""\"
 bl_info = {{
 	"name": "Shatter",
 	"description": "Addon loading error: {real_uid}",
@@ -1210,7 +1237,7 @@ def register():
 
 def unregister():
 	pass
-""")
+""\")"""
 
 def update_uid():
 	uid_file = f"{common.BLENDER_TOOLS_PATH}/uid"
@@ -1248,6 +1275,7 @@ classes = (
 	sh_import,
 	sh_import_gz,
 	sh_shl_login,
+	sh_auto_setup_segstrate,
 )
 
 def register():
@@ -1283,7 +1311,7 @@ def register():
 	update_uid()
 	
 	# Check bad user info
-	util.start_async_task(bad_check, (get_prefs().uid, ))
+	# util.start_async_task(bad_check, (get_prefs().uid, ))
 	
 	# Reporting enabled
 	reporting.SAVING_ENABLED = get_prefs().enable_telemetry

@@ -7,6 +7,7 @@ from multiprocessing import Process
 import getpass
 import math
 import time
+import json
 import datetime
 import hashlib
 import requests
@@ -94,6 +95,20 @@ def set_file(path, data):
 	
 	pathlib.Path(path).write_text(data)
 
+def get_file_json(path):
+	"""
+	Get a json file's contents
+	"""
+	
+	return json.loads(get_file(path))
+
+def set_file_json(path, data):
+	"""
+	Set the contents of a json file
+	"""
+	
+	set_file(path, json.dumps(data))
+
 def get_file_gzip(path):
 	"""
 	Read a gzipped file
@@ -120,6 +135,9 @@ def prepare_folders(path):
 	"""
 	
 	os.makedirs(pathlib.Path(path).parent, exist_ok = True)
+
+def absolute_path(path):
+	return os.path.abspath(path)
 
 def list_folder(folder, full = True):
 	"""

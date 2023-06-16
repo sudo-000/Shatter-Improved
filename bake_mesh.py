@@ -862,7 +862,7 @@ def generateMeshData(data, seg = None, progress = None, extra_data = None):
 	outdata += index
 	
 	if (extra_data):
-		outdata += encode(extra_data, 'utf-8')
+		outdata += extra_data.encode('utf-8')
 	
 	outdata = zlib.compress(outdata, -1)
 	
