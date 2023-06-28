@@ -12,7 +12,7 @@ bl_info = {
 	"name": "Shatter",
 	"description": "Blender-based tools for editing, saving and loading Smash Hit segments",
 	"author": "Shatter Team",
-	"version": (2023, 6, 16),
+	"version": (2023, 6, 15),
 	"blender": (3, 2, 0),
 	"location": "File > Import/Export and 3D View > Tools",
 	"warning": "",
@@ -29,6 +29,7 @@ import obstacle_db
 import segment_export
 import segment_import
 import segstrate
+import misc_shatter_tools
 import server
 import secrets
 import updater
@@ -321,6 +322,23 @@ class sh_static_segstrate(bpy.types.Operator, ImportHelper):
 			context.window.cursor_set('DEFAULT')
 		else:
 			raise Exception("The agreement has not been accepted.")
+		
+		return {"FINISHED"}
+
+class sh_rebake_meshes(bpy.types.Operator, ImportHelper):
+	"""
+	Rebake many meshes from a folder
+	"""
+	
+	bl_idname = "sh.rebake_meshes"
+	bl_label = "Rebake multipule meshes"
+	
+	def execute(self, context):
+		assets = util.find_apk()
+		
+		context.window.cursor_set('WAIT')
+		misc_shatter_tools.rebake_all(self.filepath, f"{assets}/templates.xml.mp3" if assets else None)
+		context.window.cursor_set('DEFAULT')
 		
 		return {"FINISHED"}
 
@@ -1306,6 +1324,7 @@ classes = (
 	sh_shl_login,
 	sh_auto_setup_segstrate,
 	sh_static_segstrate,
+	sh_rebake_meshes,
 )
 
 def register():

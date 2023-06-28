@@ -530,7 +530,7 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 			bake_mesh.BAKE_UNSEEN_FACES = params.get("bake_menu_segment", False)
 			bake_mesh.ABMIENT_OCCLUSION_ENABLED = params.get("bake_vertex_light", True)
 			bake_mesh.LIGHTING_ENABLED = params.get("lighting_enabled", False)
-			bake_mesh.bakeMeshToFile(content, tempdir + "/segment.mesh", templates, bake_mesh.BakeProgressInfo(MB_progress_update_callback), uid)
+			bake_mesh.bakeMeshToFile(content, tempdir + "/segment.mesh", templates, bake_mesh.BakeProgressInfo(MB_progress_update_callback))
 		
 		context.window_manager.progress_end()
 		
@@ -563,7 +563,7 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 		bake_mesh.LIGHTING_ENABLED = params.get("lighting_enabled", False)
 		
 		# Bake mesh
-		bake_mesh.bakeMeshToFile(content, meshfile, (params["sh_meshbake_template"] if params["sh_meshbake_template"] else None), bake_mesh.BakeProgressInfo(MB_progress_update_callback), uid)
+		bake_mesh.bakeMeshToFile(content, meshfile, (params["sh_meshbake_template"] if params["sh_meshbake_template"] else None), bake_mesh.BakeProgressInfo(MB_progress_update_callback))
 	
 	context.window_manager.progress_update(0.8)
 	

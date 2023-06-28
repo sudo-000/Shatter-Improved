@@ -63,6 +63,20 @@ def getSegmentOptions(path):
 	
 	return {"fog": fog, "music": music, "particles": particles, "reverb": reverb}
 
+def fixupObstaclesForSegment(data, prefix = "obstacles/", midfix = ""):
+	"""
+	Fix the path to obstacles to be accurate. Prefix is what goes before the path
+	on QT 3.0+ and midfix goes between the type and the ".lua" part.
+	"""
+	
+	root = et.fromstring(data)
+	
+	for element in root:
+		if (element.tag == "obstacle"):
+			element.attrib["type"] = prefix + element.attrib["type"] + midfix
+	
+	return et.tostring(root, encoding = "unicode").encode()
+
 def generateRoomText(hostname, options):
 	"""
 	Generate the content for a room file
@@ -107,6 +121,8 @@ def doError(self):
 	self.end_headers()
 	self.wfile.write(data)
 
+gProtocolVersion = {}
+
 class AdServer(BaseHTTPRequestHandler):
 	"""
 	The request handler for the test server
@@ -130,6 +146,18 @@ class AdServer(BaseHTTPRequestHandler):
 		# Taking only the IP makes nonbugged clients (e.g. not SH) work.
 		host = self.headers["Host"].split(":")[0]
 		
+		# If we have the 'pv' parameter, then we need to set the protocol version
+		# to use.
+		global gProtocolVersion
+		protocol = params.get("pv", None)
+		
+		# If we are currently setting the protocol version
+		if (protocol != None):
+			gProtocolVersion[host] = int(protocol)
+		# If we need to get the protocol version (or use default)
+		else:
+			protocol = gProtocolVersion.get(host, 2)
+		
 		# Handle what data to return
 		try:
 			### LEVEL ###
@@ -144,6 +172,11 @@ class AdServer(BaseHTTPRequestHandler):
 			### SEGMENT ###
 			elif (path.endswith("segment") and (params["filetype"] == ".xml")):
 				data = loadFileBytes(TEMPDIR + "segment.xml")
+				
+				# If we are using protocol version >= 3, that means the client expects
+				# obstacle paths to be absolute.
+				if (protocol >= 3):
+					data = fixupObstaclesForSegment(data)
 			
 			### MESH ###
 			elif (path.endswith("segment") and (params["filetype"] == ".mesh")):
@@ -176,7 +209,7 @@ def makeTestFiles():
 	os.makedirs(TEMPDIR, exist_ok = True)
 	
 	# Make test segment
-	pathlib.Path(TEMPDIR + "segment.xml").write_text('<segment size="12 10 16"><box pos="0 -1 -1" size="0.5 0.5 0.5" visible="1" color="0.3 0.6 0.9" tile="63"/></segment>')
+	pathlib.Path(TEMPDIR + "segment.xml").write_text('<segment size="12 10 16"><box pos="0 -0.5 -8" size="1.0 0.5 1.0" visible="1" color="0.3 0.9 0.3" tile="20"/><obstacle type="scoretop" pos="0 0.5 -8"/></segment>')
 	
 	# Cook mesh for it
 	r = os.system(f"python3 ./bake_mesh.py {TEMPDIR + 'segment.xml'} {TEMPDIR + 'segment.mesh'}")
