@@ -318,7 +318,7 @@ def sh_import_segment(fp, context, compressed = False):
 			if (properties.get("hidden", "0") == "1"): o.sh_properties.sh_hidden = True
 			
 			# Size
-			o.sh_properties.sh_size = sh_parse_tile_size(properties.get("size", "1 1"))
+			o.sh_properties.sh_size = sh_parse_tile_size(properties.get("size", "1 1"))[0:2]
 		
 		# Power-ups
 		elif (kind == "powerup"):

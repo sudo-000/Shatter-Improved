@@ -10,9 +10,9 @@ import common
 SH_MAX_STR_LEN = common.MAX_STRING_LENGTH
 bl_info = {
 	"name": "Shatter",
-	"description": "Blender-based tools for editing, saving and loading Smash Hit segments",
+	"description": "Blender-based tools for editing, saving and loading Smash Hit segments.",
 	"author": "Shatter Team",
-	"version": (2023, 6, 28),
+	"version": (2023, 7, 15),
 	"blender": (3, 2, 0),
 	"location": "File > Import/Export and 3D View > Tools",
 	"warning": "",
@@ -543,14 +543,15 @@ class sh_EntityProperties(PropertyGroup):
 	sh_type: EnumProperty(
 		name = "Kind",
 		description = "The kind of object that the currently selected object should be treated as.",
-		items = [ ('BOX', "Box", ""),
-				  ('OBS', "Obstacle", ""),
-				  ('DEC', "Decal", ""),
-				  ('POW', "Power-up", ""),
-				  ('WAT', "Water", ""),
-				],
+		items = [
+			('BOX', "Box", ""),
+			('OBS', "Obstacle", ""),
+			('DEC', "Decal", ""),
+			('POW', "Power-up", ""),
+			('WAT', "Water", ""),
+		],
 		default = "BOX"
-		)
+	)
 	
 	sh_template: StringProperty(
 		name = "Template",
@@ -588,6 +589,7 @@ class sh_EntityProperties(PropertyGroup):
 			('nitroballs', "Nitro Balls", "Turns balls into exposlives for a short period of time"),
 			None,
 			('barrel', "Barrel", "Creates a large explosion which breaks glass (lefover from beta versions)"),
+			None,
 			('multiball', "Multi-ball", "Does not work anymore. Old power up that would enable five-ball multiball"),
 			('freebie', "Freebie", "Does not work anymore. Old power up found in binary strings but no known usage"),
 			('antigravity', "Anti-gravity", "Does not work anymore. Old power up that probably would have reversed gravity"),
@@ -817,7 +819,7 @@ class sh_EntityProperties(PropertyGroup):
 		name = "Colour",
 		description = "The colour to be used for tinting, colouring and mesh data",
 		subtype = "COLOR_GAMMA",
-		default = (0.5, 0.5, 0.5, 1.0), 
+		default = (1.0, 1.0, 1.0, 1.0), 
 		size = 4,
 		min = 0.0,
 		max = 1.0
@@ -827,7 +829,7 @@ class sh_EntityProperties(PropertyGroup):
 		name = "Right Left",
 		description = "The colour to be used for tinting, colouring and mesh data",
 		subtype = "COLOR_GAMMA",
-		default = (0.5, 0.5, 0.5, 1.0), 
+		default = (1.0, 1.0, 1.0, 1.0), 
 		size = 4,
 		min = 0.0,
 		max = 1.0
@@ -837,7 +839,7 @@ class sh_EntityProperties(PropertyGroup):
 		name = "Top Bottom",
 		description = "The colour to be used for tinting, colouring and mesh data",
 		subtype = "COLOR_GAMMA",
-		default = (0.5, 0.5, 0.5, 1.0), 
+		default = (1.0, 1.0, 1.0, 1.0), 
 		size = 4,
 		min = 0.0,
 		max = 1.0
@@ -847,7 +849,7 @@ class sh_EntityProperties(PropertyGroup):
 		name = "Front Back",
 		description = "The colour to be used for tinting, colouring and mesh data",
 		subtype = "COLOR_GAMMA",
-		default = (0.5, 0.5, 0.5, 1.0), 
+		default = (1.0, 1.0, 1.0, 1.0), 
 		size = 4,
 		min = 0.0,
 		max = 1.0
@@ -921,15 +923,13 @@ class sh_AddonPreferences(AddonPreferences):
 	)
 	
 	updater_channel: EnumProperty(
-		name = "Update channel",
-		description = "The update channel controls how frequently you will recieve updates and new features, though new features may be initially buggy or incomplete",
+		name = "Update freqency",
+		description = "This controls how frequently you will recieve updates, tweaks and new features. Faster updates might be buggier and break your workflow but contain better features, while slower updates will give a better exprience without newer features",
 		items = [
-			('stable', "Stable", "Only gets new features sometimes, mostly bugfix updates"),
-			('prerelease', "Prerelease", "Prerelease version of the next stable version"),
-			('next', "Next", "Prerelease for the next major version of Shatter, likely has issues"),
-			('updatertest', "Updater test channel", "For developers to test if the updater is working properly. DO NOT USE THIS CHANNEL!!! .."),
+			('stable', "Fast", "Contains new updates and features as soon as they are available, but might also break sometimes."),
+			('updatertest', "Updater test", "A testing channel. This doesn't get real updates."),
 		],
-		default = "stable", ### Change this depending on release ZIP type. ###
+		default = "stable",
 	)
 	
 	enable_quick_test_server: BoolProperty(
@@ -996,6 +996,8 @@ class sh_AddonPreferences(AddonPreferences):
 		
 		ui = main.box()
 		ui.label(text = "Features, network and privacy", icon = "WORLD")
+		ui.label(text = "If metadata is enabled, we might export your user ID alongside your segment.")
+		ui.label(text = f"Your user ID: {self.uid}")
 		ui.prop(self, "enable_update_notifier")
 		ui.prop(self, "updater_channel")
 		if (self.enable_update_notifier):
@@ -1227,7 +1229,6 @@ def run_updater():
 	except Exception as e:
 		print(f"Shatter for Blender: updater.check_for_updates(): {e}")
 
-""" ### Disabled for now ###
 def bad_check(real_uid):
 	import json
 	import os
@@ -1265,7 +1266,7 @@ def bad_check(real_uid):
 			os.rename(old, new)
 		
 		# Drop a new blender_tools.py, which does not contain anything useful :)
-		util.set_file(f"{common.BLENDER_TOOLS_PATH}/blender_tools.py", f""\"
+		util.set_file(f"{common.BLENDER_TOOLS_PATH}/blender_tools.py", f"""
 bl_info = {{
 	"name": "Shatter",
 	"description": "Addon loading error: {real_uid}",
@@ -1284,7 +1285,7 @@ def register():
 
 def unregister():
 	pass
-""\")"""
+""")
 
 def update_uid():
 	uid_file = f"{common.BLENDER_TOOLS_PATH}/uid"
@@ -1360,7 +1361,7 @@ def register():
 	update_uid()
 	
 	# Check bad user info
-	# util.start_async_task(bad_check, (get_prefs().uid, ))
+	util.start_async_task(bad_check, (get_prefs().uid, ))
 	
 	# Reporting enabled
 	reporting.SAVING_ENABLED = get_prefs().enable_telemetry
