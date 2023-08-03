@@ -12,7 +12,7 @@ bl_info = {
 	"name": "Shatter",
 	"description": "Blender-based tools for editing, saving and loading Smash Hit segments.",
 	"author": "Shatter Team",
-	"version": (2023, 7, 27),
+	"version": (2023, 8, 3),
 	"blender": (3, 2, 0),
 	"location": "File > Import/Export and 3D View > Tools",
 	"warning": "",
@@ -943,13 +943,7 @@ class sh_AddonPreferences(AddonPreferences):
 	enable_report_saving: BoolProperty(
 		name = "Save crash reports to local files",
 		description = "This will save log files of Blender exceptions to local files",
-		default = False,
-	)
-	
-	enable_telemetry: BoolProperty(
-		name = "Send reports to server",
-		description = "This will enable crash reporting for Shatter. We store the timestamp and traceback for each error, but may store more info in the future. Please do not use this option if you are under the age of 16 as we are not allowed to process your data. This option requires restart to take effect",
-		default = False,
+		default = True,
 	)
 	
 	## Mod Services (NOT COMPLETED) ##
@@ -1009,8 +1003,6 @@ class sh_AddonPreferences(AddonPreferences):
 				box.label(icon = "ERROR", text = "Please note: If a bad update is released, it might break Shatter. Be careful!")
 		ui.prop(self, "enable_quick_test_server")
 		ui.prop(self, "enable_report_saving")
-		if (self.enable_report_saving):
-			ui.prop(self, "enable_telemetry")
 		
 		## TODO Put a quick test box with autoconfig option
 		
@@ -1324,6 +1316,12 @@ class AutogenProperties(PropertyGroup):
 		#max = 4294967295,
 	)
 	
+	auto_randomise: BoolProperty(
+		name = "Auto randomise",
+		description = "",
+		default = False,
+	)
+	
 	type: EnumProperty(
 		name = "Type",
 		description = "",
@@ -1386,8 +1384,8 @@ class AutogenProperties(PropertyGroup):
 		size = 2,
 	)
 	
-	auto_randomise: BoolProperty(
-		name = "Auto randomise",
+	geometric_require_unique: BoolProperty(
+		name = "No repeating heights",
 		description = "",
 		default = False,
 	)
@@ -1425,6 +1423,7 @@ class AutogenPanel(Panel):
 		if (props.algorithm in ["UpAndDownPath", "GeometricProgressionSet"]):
 			sub.prop(props, "geometric_ratio")
 			sub.prop(props, "geometric_exponent_minmax")
+			sub.prop(props, "geometric_require_unique")
 		
 		sub.operator("sh.run_autogen", text = "Generate boxes")
 		
@@ -1511,9 +1510,10 @@ class RunAutogenAction(bpy.types.Operator):
 			"max_height": props.max_height,
 		}
 		
-		if (props.algorithm in ["UpAndDownPath", "GeometricProgressionSet"]):
+		if (props.algorithm in ["GeometricProgressionSet"]):
 			params["geometric_exponent_minmax"] = props.geometric_exponent_minmax
 			params["geometric_ratio"] = props.geometric_ratio
+			params["geometric_require_unique"] = props.geometric_require_unique
 		
 		autogen.generate(bbp, params)
 		
@@ -1528,12 +1528,10 @@ class RunAutogenAction(bpy.types.Operator):
 # Also WHY THE FUCK DO I HAVE TO DO THIS???
 classes = (
 	sh_SceneProperties,
-	AutogenProperties,
 	sh_EntityProperties,
 	sh_SegmentPanel,
 	sh_ItemPropertiesPanel,
 	sh_AddonPreferences,
-	AutogenPanel,
 	sh_export,
 	sh_export_gz,
 	sh_export_auto,
@@ -1545,6 +1543,8 @@ classes = (
 	sh_auto_setup_segstrate,
 	sh_static_segstrate,
 	sh_rebake_meshes,
+	AutogenProperties,
+	AutogenPanel,
 	RunRandomiseSeedAction,
 	RunAutogenAction,
 )
@@ -1586,17 +1586,21 @@ def register():
 	util.start_async_task(bad_check, (get_prefs().uid, ))
 	
 	# Reporting enabled
-	reporting.SAVING_ENABLED = get_prefs().enable_telemetry
 	reporting.REPORTING_ENABLED = get_prefs().enable_report_saving
 
 def unregister():
 	from bpy.utils import unregister_class
 	
-	for cls in reversed(classes):
-		unregister_class(cls)
-	
 	del bpy.types.Scene.sh_properties
 	del bpy.types.Scene.shatter_autogen
+	del bpy.types.Object.sh_properties
+	
+	for cls in reversed(classes):
+		# Blender decided it would be a piece of shit today 
+		try:
+			unregister_class(cls)
+		except RuntimeError as e:
+			reporting.report(f"Blender is being a little shit while unregistering class {cls}:\n\n{e}")
 	
 	# Shutdown server
 	global g_process_test_server

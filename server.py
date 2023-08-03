@@ -63,16 +63,25 @@ def getSegmentOptions(path):
 	
 	return {"fog": fog, "music": music, "particles": particles, "reverb": reverb}
 
-def fixupObstaclesForSegment(data, prefix = "obstacles/", midfix = ""):
+KNOWN_OBSTACLES = ["3dcross", "babytoy", "bar", "beatmill", "beatsweeper", "beatwindow", "bigcrank", "bigpendulum", "boss", "bowling", "box", "cactus", "credits1", "credits2", "creditssign", "cubeframe", "dna", "doors", "dropblock", "elevatorgrid", "elevator", "fence", "flycube", "foldwindow", "framedwindow", "gear", "grid", "gyro", "hitblock", "laser", "levicube", "ngon", "pyramid", "revolver", "rotor", "scorediamond", "scoremulti", "scorestar", "scoretop", "sidesweeper", "stone", "suspendbox", "suspendcube", "suspendcylinder", "suspendhollow", "suspendside", "suspendwindow", "sweeper", "test", "tree", "vs_door", "vs_sweeper", "vs_wall", "boss/cube", "boss/matryoshka", "boss/single", "boss/telecube", "boss/triple", "doors/45", "doors/basic", "doors/double", "fence/carousel", "fence/dna", "fence/slider"]
+
+def fixupObstaclesForSegment(data, remote_prefix, remote_midfix):
 	"""
 	Fix the path to obstacles to be accurate. Prefix is what goes before the path
 	on QT 3.0+ and midfix goes between the type and the ".lua" part.
 	"""
 	
+	global KNOWN_OBSTACLES
+	
 	root = et.fromstring(data)
 	
 	for element in root:
 		if (element.tag == "obstacle"):
+			known = element.attrib["type"] in KNOWN_OBSTACLES
+			
+			prefix = "obstacles/" if known else remote_prefix
+			midfix = "" if known else remote_midfix
+			
 			element.attrib["type"] = prefix + element.attrib["type"] + midfix
 	
 	return et.tostring(root, encoding = "unicode").encode()
@@ -133,7 +142,10 @@ class AdServer(BaseHTTPRequestHandler):
 	
 	def do_GET(self):
 		# Log the request
-		print(self.client_address[0] + ":" + str(self.client_address[1]), self.command, self.path)
+		client_ip = self.client_address[0]
+		client_port = self.client_address[1]
+		
+		print(f"{client_ip}:{client_port}", self.command, self.path)
 		
 		# Set data
 		data = b""
@@ -153,10 +165,10 @@ class AdServer(BaseHTTPRequestHandler):
 		
 		# If we are currently setting the protocol version
 		if (protocol != None):
-			gProtocolVersion[host] = int(protocol)
+			gProtocolVersion[client_ip] = int(protocol)
 		# If we need to get the protocol version (or use default)
 		else:
-			protocol = gProtocolVersion.get(host, 2)
+			protocol = gProtocolVersion.get(client_ip, 2)
 		
 		# Handle what data to return
 		try:

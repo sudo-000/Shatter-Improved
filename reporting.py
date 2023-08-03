@@ -6,7 +6,6 @@ import traceback
 import util
 
 TEST_TB_MODULE = (__name__ == "__main__")
-REPORTING_ENABLED = True
 SAVING_ENABLED = True
 
 def report(message):
@@ -19,13 +18,6 @@ def report(message):
 	# Log locally
 	if (SAVING_ENABLED):
 		pathlib.Path(common.TOOLS_HOME_FOLDER + f"/Error report {util.get_timestamp()}.log").write_text(message)
-	
-	# Log to the server, if allowed by the user
-	if (TEST_TB_MODULE or REPORTING_ENABLED):
-		try:
-			requests.post(common.TELEMETRY_ENDPOINT, {"info": message})
-		except:
-			print("Failed to report failure :P")
 
 # Inject the custom exception handler
 import sys
