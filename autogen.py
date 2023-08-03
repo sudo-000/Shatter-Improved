@@ -185,12 +185,34 @@ class UpAndDownPath(BasicSingleRow):
 		# Preform the step
 		return final_value
 
+class RoomWithBasicWalls:
+	"""
+	Really basic room with walls
+	"""
+	
+	def __init__(self, placer, params):
+		self.placer = placer
+		self.params = params
+		self.width = params["size"][0] / 2
+		self.height = params["size"][1] / 2
+		self.length = 16.0 / 2
+		self.current = True
+	
+	def next():
+		basePos = Vector3(0.0, 0.0, self.length)
+		
+		self.current = False
+	
+	def hasMore(self):
+		return current
+
 AUTOGEN_GENERATORS = {
 	"SingleRow": {
 		"ActualRandom": SingleRow_ActualRandom,
 		"UpAndDownPath": UpAndDownPath,
 		"GeometricProgressionSet": GeometricProgressionSet,
-	}
+	},
+	"BasicRoom": RoomWithBasicWalls,
 }
 
 def generate(placer, params):

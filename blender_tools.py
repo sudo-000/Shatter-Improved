@@ -381,7 +381,13 @@ class sh_SceneProperties(PropertyGroup):
 		default = (12.0, 10.0, 8.0), 
 		min = 0.0,
 		max = 1024.0,
-	) 
+	)
+	
+	sh_auto_length: BoolProperty(
+		name = "Auto length",
+		description = "Automatically determine the length of the segment based on the furthest object from the origin.",
+		default = False,
+	)
 	
 	sh_box_bake_mode: EnumProperty(
 		name = "Box bake mode",
@@ -1039,7 +1045,9 @@ class sh_SegmentPanel(Panel):
 		
 		sub = layout.box()
 		sub.label(text = "Segment data", icon = "SCENE_DATA")
-		sub.prop(sh_properties, "sh_len")
+		sub.prop(sh_properties, "sh_auto_length", toggle = 1)
+		if (not sh_properties.sh_auto_length):
+			sub.prop(sh_properties, "sh_len")
 		sub.prop(sh_properties, "sh_box_bake_mode")
 		sub.prop(sh_properties, "sh_template")
 		sub.prop(sh_properties, "sh_softshadow")
@@ -1319,25 +1327,25 @@ class AutogenProperties(PropertyGroup):
 	auto_randomise: BoolProperty(
 		name = "Auto randomise",
 		description = "",
-		default = False,
+		default = True,
 	)
 	
 	type: EnumProperty(
 		name = "Type",
-		description = "",
+		description = "Type of thing you would like to generate",
 		items = [
-			('SingleRow', "Single row", ""),
+			('SingleRow', "Row of boxes", "A single row of boxes, often used before and after chasms. Look at the first room of the game for an example of this"),
 		],
 		default = "SingleRow",
 	)
 	
 	algorithm: EnumProperty(
 		name = "Algorithm",
-		description = "",
+		description = "Algorithm to use to generate the thing",
 		items = [
-			('ActualRandom', "ActualRandom", ""),
+			('ActualRandom', "ActualRandom", "Purely random box heights"),
 			('UpAndDownPath', "UpAndDownPath", ""),
-			('GeometricProgressionSet', "GeometricProgressionSet", ""),
+			('GeometricProgressionSet', "GeometricProgressionSet", "Randomly selected from a subset of a geometric series/progression (ex: random of 1/2, 1/4, 1/8)"),
 			# ('PerlinNoise', "PerlinNoise", ""),
 		],
 		default = "ActualRandom",
@@ -1345,14 +1353,14 @@ class AutogenProperties(PropertyGroup):
 	
 	template: StringProperty(
 		name = "Template",
-		description = "",
+		description = "Template to use for these boxes. If not specified, this will inherit from the target box",
 		default = "",
 		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	size: FloatVectorProperty(
-		name = "Size",
-		description = "",
+		name = "Box size",
+		description = "First is width, second is depth. Height is the random part",
 		default = (1.0, 1.0), 
 		min = 0.25,
 		max = 4.0,
@@ -1366,6 +1374,35 @@ class AutogenProperties(PropertyGroup):
 		min = 0.0,
 		max = 16.0,
 	)
+	
+	### Up and down path options ###
+	
+	udpath_start: FloatProperty(
+		name = "Initial height",
+		description = "",
+		default = 0.25,
+		min = 0.0,
+		max = 1.0,
+	)
+	
+	udpath_step: FloatProperty(
+		name = "Step",
+		description = "",
+		default = 0.125,
+		min = 0.0,
+		max = 0.5,
+	)
+	
+	udpath_minmax: FloatVectorProperty(
+		name = "Min/max height",
+		description = "",
+		default = (0.125, 0.5), 
+		min = 0.0,
+		max = 1.0,
+		size = 2,
+	)
+	
+	### Geometric/Airthmetic progression generator options ###
 	
 	geometric_ratio: FloatProperty(
 		name = "Ratio",
@@ -1392,7 +1429,7 @@ class AutogenProperties(PropertyGroup):
 
 class AutogenPanel(Panel):
 	bl_label = "Shatter Autogen"
-	bl_idname = "OBJECT_PT_segment_panel"
+	bl_idname = "OBJECT_PT_autogen_panel"
 	bl_space_type = "VIEW_3D"
 	bl_region_type = "UI"
 	bl_category = "Tools"
@@ -1406,26 +1443,32 @@ class AutogenPanel(Panel):
 		props = context.scene.shatter_autogen
 		
 		sub = layout.box()
-		sub.label(text = "Seed", icon = "NODE")
+		sub.label(text = "Seed", icon = "GRAPH")
 		sub.prop(props, "auto_randomise")
 		if (not props.auto_randomise):
 			sub.prop(props, "seed")
 			sub.operator("sh.randomise_autogen_seed", text = "Randomise seed")
 		
 		sub = layout.box()
-		sub.label(text = "Autogen", icon = "NODE")
+		sub.label(text = "Generate", icon = "BRUSHES_ALL")
 		sub.prop(props, "type")
-		sub.prop(props, "algorithm")
+		if (props.type == "SingleRow"):
+			sub.prop(props, "algorithm")
 		sub.prop(props, "template")
 		sub.prop(props, "max_height")
 		sub.prop(props, "size")
 		
-		if (props.algorithm in ["UpAndDownPath", "GeometricProgressionSet"]):
+		if (props.algorithm in ["UpAndDownPath"]):
+			sub.prop(props, "udpath_start")
+			sub.prop(props, "udpath_step")
+			sub.prop(props, "udpath_minmax")
+		
+		if (props.algorithm in ["GeometricProgressionSet"]):
 			sub.prop(props, "geometric_ratio")
 			sub.prop(props, "geometric_exponent_minmax")
 			sub.prop(props, "geometric_require_unique")
 		
-		sub.operator("sh.run_autogen", text = "Generate boxes")
+		sub.operator("sh.run_autogen", text = "Generate")
 		
 		layout.separator()
 
@@ -1451,6 +1494,7 @@ class BlenderBoxPlacer:
 	def __init__(self, basePos, baseSize, template):
 		self.setBase(basePos, baseSize)
 		self.template = template
+		self.objects = []
 	
 	def setBase(self, basePos, baseSize):
 		"""
@@ -1471,9 +1515,25 @@ class BlenderBoxPlacer:
 		Add a box to the scene
 		"""
 		
+		# Add the mesh
 		bpy.ops.mesh.primitive_cube_add(size = 1.0, location = (box.pos.z, box.pos.x, box.pos.y), scale = (box.size.z * 2, box.size.x * 2, box.size.y * 2))
 		
-		bpy.context.active_object.sh_properties.sh_template = self.template
+		# The added mesh is always selected after, so we do this to get the object
+		box = bpy.context.active_object
+		
+		# Set the template
+		box.sh_properties.sh_template = self.template
+		
+		# Append the box to the list of objects we have made
+		self.objects.append(box)
+	
+	def selectAll(self):
+		"""
+		Select all objects that were part of this round
+		"""
+		
+		for o in self.objects:
+			o.select_set(True)
 
 class RunAutogenAction(bpy.types.Operator):
 	"""
@@ -1510,12 +1570,22 @@ class RunAutogenAction(bpy.types.Operator):
 			"max_height": props.max_height,
 		}
 		
+		# Geometric options
 		if (props.algorithm in ["GeometricProgressionSet"]):
 			params["geometric_exponent_minmax"] = props.geometric_exponent_minmax
 			params["geometric_ratio"] = props.geometric_ratio
 			params["geometric_require_unique"] = props.geometric_require_unique
 		
+		# UpDownPath options
+		if (props.algorithm in ["UpAndDownPath"]):
+			params["udpath_min"] = props.udpath_minmax[0]
+			params["udpath_max"] = props.udpath_minmax[1]
+			params["udpath_start"] = props.udpath_start
+			params["udpath_step"] = props.udpath_step
+		
 		autogen.generate(bbp, params)
+		
+		bbp.selectAll()
 		
 		return {'FINISHED'}
 

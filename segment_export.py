@@ -103,6 +103,22 @@ def sh_create_root(scene, params):
 	
 	size = {"X": scene.sh_len[0], "Y": scene.sh_len[1], "Z": scene.sh_len[2]}
 	
+	# Automatic length detection
+	if (scene.sh_auto_length):
+		sizeZ = 0.0
+		
+		for o in bpy.data.objects:
+			# Find backmost part
+			candZ = o.location[0] - (o.dimensions[0] / 2)
+			
+			# If it's lower that is the new semgent length
+			if (candZ < sizeZ):
+				sizeZ = candZ
+		
+		size["X"] = 12.0
+		size["Y"] = 10.0
+		size["Z"] = -sizeZ
+	
 	# VR Multiply setting
 	sh_vrmultiply = params.get("sh_vrmultiply", 1.0)
 	
