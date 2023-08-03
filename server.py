@@ -176,7 +176,7 @@ class AdServer(BaseHTTPRequestHandler):
 				# If we are using protocol version >= 3, that means the client expects
 				# obstacle paths to be absolute.
 				if (protocol >= 3):
-					data = fixupObstaclesForSegment(data)
+					data = fixupObstaclesForSegment(data, f"http://{host}:8000/obstacle?type=", "&ignore=")
 			
 			### MESH ###
 			elif (path.endswith("segment") and (params["filetype"] == ".mesh")):

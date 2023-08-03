@@ -261,6 +261,36 @@ def sh_import_segment(fp, context, compressed = False):
 			for i in range(3):
 				b.sh_properties.sh_tilerot[i] = tileRot[min(i, tileRotLen - 1)] % 4 # HACK: ... so I'm doing this :)
 			
+			# Parse older tile and colour info (e.g. the ones with X/Y/Z at the end)
+			# It looks like this: <box size="14.0 0.5 10.0" pos="0.0 -0.5 -10.0" hidden="0" tileY="3" colorY=".9 .9 .9" tileSize="2 2 2"/>
+			# These are mostly in the segments/[1-3] folder in 0.8.0
+			# It seems like these might still use the normal overloaded tileSize
+			# so I'm not having that for now
+			for t in "XYZ":
+				# TEH TILEZ
+				tile = properties.get(f"tile{t}", None)
+				
+				### tileX/Y/Z ###
+				if (tile):
+					# Set multitile mode if we have it
+					b.sh_properties.sh_use_multitile = True
+					
+					# Set the respective tile
+					n = str(ord(t) - ord("X") + 1)
+					setattr(b.sh_properties, f"sh_tile{n}", int(tile))
+				
+				### TEH COLOURZ ###
+				color = properties.get(f"color{t}", None)
+				
+				# colorX/Y/Z
+				if (color):
+					# Set multitint mode if we have it
+					b.sh_properties.sh_use_multitint = True
+					
+					# Set the respective colour
+					n = str(ord(t) - ord("X") + 1)
+					setattr(b.sh_properties, f"sh_tint{n}", sh_parse_colour(color))
+			
 			# Glow for lighting
 			b.sh_properties.sh_glow = float(properties.get("glow", "0"))
 		

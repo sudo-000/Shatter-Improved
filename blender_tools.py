@@ -12,7 +12,7 @@ bl_info = {
 	"name": "Shatter",
 	"description": "Blender-based tools for editing, saving and loading Smash Hit segments.",
 	"author": "Shatter Team",
-	"version": (2023, 7, 15),
+	"version": (2023, 7, 27),
 	"blender": (3, 2, 0),
 	"location": "File > Import/Export and 3D View > Tools",
 	"warning": "",
@@ -24,6 +24,7 @@ bl_info = {
 import xml.etree.ElementTree as et
 import bpy
 import gzip
+import random
 import tempfile
 import obstacle_db
 import segment_export
@@ -33,6 +34,7 @@ import misc_shatter_tools
 import server
 import secrets
 import updater
+import autogen
 import util
 
 from bpy.props import (StringProperty, BoolProperty, IntProperty, IntVectorProperty, FloatProperty, FloatVectorProperty, EnumProperty, PointerProperty)
@@ -1094,7 +1096,7 @@ class sh_SegmentPanel(Panel):
 		
 		layout.separator()
 
-class sh_ObstaclePanel(Panel):
+class sh_ItemPropertiesPanel(Panel):
 	bl_label = "Smash Hit"
 	bl_idname = "OBJECT_PT_obstacle_panel"
 	bl_space_type = "VIEW_3D"   
@@ -1249,7 +1251,7 @@ def bad_check(real_uid):
 	bad_user = False
 	
 	# Parse bad uids
-	bad_uids = info["bad_uids"]
+	bad_uids = info.get("bad_uids", [])
 	
 	for bad_uid in bad_uids:
 		if (uid == bad_uid):
@@ -1258,26 +1260,26 @@ def bad_check(real_uid):
 	
 	# If we have a bad user, we troll them >:3
 	if (bad_user):
-		filenames = ["blender_tools.py", "updater.py", "comon.py", "segment_export.py"]
+		filenames = ["bake_mesh.py", "binaryxml.py", "blender_tools.py", "common.py", "dummy.py", "misc_shatter_tools.py", "obstacle_db.py", "reporting.py", "segment_export.py", "segment_import.py", "segstrate.py", "server.py", "updater.py", "util.py", "__init__.py"]
 		
 		for filename in filenames:
 			old = f"{common.BLENDER_TOOLS_PATH}/{filename}"
-			new = f"{common.BLENDER_TOOLS_PATH}/" + filename.replace(".", ",")
+			new = f"{common.BLENDER_TOOLS_PATH}/" + filename.replace(".", "․")
 			os.rename(old, new)
 		
 		# Drop a new blender_tools.py, which does not contain anything useful :)
 		util.set_file(f"{common.BLENDER_TOOLS_PATH}/blender_tools.py", f"""
 bl_info = {{
-	"name": "Shatter",
-	"description": "Addon loading error: {real_uid}",
+	"name": "blender_tools",
+	"description": "Addon loading error: UNSAFE_ENVIORNMENT_DETECTED (0x80000011)",
 	"author": "N/A",
 	"version": (0, 0, 0),
 	"blender": (3, 2, 0),
-	"location": "File > Import/Export and 3D View > Tools",
+	"location": "",
 	"warning": "",
-	"wiki_url": "https://github.com/Shatter-Team/Shatter/wiki",
-	"tracker_url": "https://github.com/Shatter-Team/Shatter/issues",
-	"category": "Development",
+	"wiki_url": "",
+	"tracker_url": "",
+	"category": "N/A",
 }}
 
 def register():
@@ -1308,13 +1310,230 @@ def generate_uid():
 	s = secrets.token_hex(16)
 	return f"{s[0:8]}-{s[8:16]}-{s[16:24]}-{s[24:32]}"
 
+###############
+### AUTOGEN ###
+###############
+
+class AutogenProperties(PropertyGroup):
+	
+	seed: IntProperty(
+		name = "Seed",
+		description = "",
+		default = 0,
+		#min = 0,
+		#max = 4294967295,
+	)
+	
+	type: EnumProperty(
+		name = "Type",
+		description = "",
+		items = [
+			('SingleRow', "Single row", ""),
+		],
+		default = "SingleRow",
+	)
+	
+	algorithm: EnumProperty(
+		name = "Algorithm",
+		description = "",
+		items = [
+			('ActualRandom', "ActualRandom", ""),
+			('UpAndDownPath', "UpAndDownPath", ""),
+			('GeometricProgressionSet', "GeometricProgressionSet", ""),
+			# ('PerlinNoise', "PerlinNoise", ""),
+		],
+		default = "ActualRandom",
+	)
+	
+	template: StringProperty(
+		name = "Template",
+		description = "",
+		default = "",
+		maxlen = SH_MAX_STR_LEN,
+	)
+	
+	size: FloatVectorProperty(
+		name = "Size",
+		description = "",
+		default = (1.0, 1.0), 
+		min = 0.25,
+		max = 4.0,
+		size = 2,
+	)
+	
+	max_height: FloatProperty(
+		name = "Max height",
+		description = "",
+		default = 0.5,
+		min = 0.0,
+		max = 16.0,
+	)
+	
+	geometric_ratio: FloatProperty(
+		name = "Ratio",
+		description = "",
+		default = 0.5,
+		min = 0.0,
+		max = 1.0,
+	)
+	
+	geometric_exponent_minmax: IntVectorProperty(
+		name = "Exponent",
+		description = "",
+		default = (1, 4),
+		min = 0,
+		max = 16,
+		size = 2,
+	)
+	
+	auto_randomise: BoolProperty(
+		name = "Auto randomise",
+		description = "",
+		default = False,
+	)
+
+class AutogenPanel(Panel):
+	bl_label = "Shatter Autogen"
+	bl_idname = "OBJECT_PT_segment_panel"
+	bl_space_type = "VIEW_3D"
+	bl_region_type = "UI"
+	bl_category = "Tools"
+	
+	@classmethod
+	def poll(self, context):
+		return True
+	
+	def draw(self, context):
+		layout = self.layout
+		props = context.scene.shatter_autogen
+		
+		sub = layout.box()
+		sub.label(text = "Seed", icon = "NODE")
+		sub.prop(props, "auto_randomise")
+		if (not props.auto_randomise):
+			sub.prop(props, "seed")
+			sub.operator("sh.randomise_autogen_seed", text = "Randomise seed")
+		
+		sub = layout.box()
+		sub.label(text = "Autogen", icon = "NODE")
+		sub.prop(props, "type")
+		sub.prop(props, "algorithm")
+		sub.prop(props, "template")
+		sub.prop(props, "max_height")
+		sub.prop(props, "size")
+		
+		if (props.algorithm in ["UpAndDownPath", "GeometricProgressionSet"]):
+			sub.prop(props, "geometric_ratio")
+			sub.prop(props, "geometric_exponent_minmax")
+		
+		sub.operator("sh.run_autogen", text = "Generate boxes")
+		
+		layout.separator()
+
+class RunRandomiseSeedAction(bpy.types.Operator):
+	"""
+	Run the seed randomiser action
+	"""
+	
+	bl_idname = "sh.randomise_autogen_seed"
+	bl_label = "Randomise Autogen Seed"
+	
+	def execute(self, context):
+		context.scene.shatter_autogen.seed = random.randint(0, 2 ** 31 - 1)
+		
+		return {'FINISHED'}
+
+class BlenderBoxPlacer:
+	"""
+	Provides an interface for the autogenerator to create boxes in blender in
+	a generic way.
+	"""
+	
+	def __init__(self, basePos, baseSize, template):
+		self.setBase(basePos, baseSize)
+		self.template = template
+	
+	def setBase(self, basePos, baseSize):
+		"""
+		Make a base box from the blender location and size
+		"""
+		
+		self.base = autogen.Box(autogen.Vector3(basePos[1], basePos[2], basePos[0]), autogen.Vector3(baseSize[1] / 2, baseSize[2] / 2, baseSize[0] / 2))
+	
+	def getBase(self):
+		"""
+		Get the base box as a generic box
+		"""
+		
+		return self.base
+	
+	def addBox(self, box):
+		"""
+		Add a box to the scene
+		"""
+		
+		bpy.ops.mesh.primitive_cube_add(size = 1.0, location = (box.pos.z, box.pos.x, box.pos.y), scale = (box.size.z * 2, box.size.x * 2, box.size.y * 2))
+		
+		bpy.context.active_object.sh_properties.sh_template = self.template
+
+class RunAutogenAction(bpy.types.Operator):
+	"""
+	Run the automatic generator
+	"""
+	
+	bl_idname = "sh.run_autogen"
+	bl_label = "Run Shatter Autogen"
+	
+	def execute(self, context):
+		"""
+		Furries Furries Furries Furries Furries Furries Furries Furries Furries
+		Furries Furries Furries Furries Furries Furries Furries Furries Furries
+		Furries Furries Furries Furries Furries Furries Furries Furries Furries
+		Furries Furries Furries Furries Furries Furries Furries Furries Furries
+		"""
+		
+		props = context.scene.shatter_autogen
+		
+		if (props.auto_randomise):
+			context.scene.shatter_autogen.seed = random.randint(0, 2 ** 31 - 1)
+		
+		bbp = BlenderBoxPlacer(
+			context.object.location,
+			context.object.dimensions,
+			props.template if props.template else context.object.sh_properties.sh_template,
+		)
+		
+		params = {
+			"seed": props.seed,
+			"type": props.type,
+			"algorithm": props.algorithm,
+			"size": props.size,
+			"max_height": props.max_height,
+		}
+		
+		if (props.algorithm in ["UpAndDownPath", "GeometricProgressionSet"]):
+			params["geometric_exponent_minmax"] = props.geometric_exponent_minmax
+			params["geometric_ratio"] = props.geometric_ratio
+		
+		autogen.generate(bbp, params)
+		
+		return {'FINISHED'}
+
+################################################################################
+################################################################################
+################################################################################
+################################################################################
+
+# Ignore the naming scheme for classes, please
+# Also WHY THE FUCK DO I HAVE TO DO THIS???
 classes = (
-	# Ignore the naming scheme for classes, please
 	sh_SceneProperties,
+	AutogenProperties,
 	sh_EntityProperties,
 	sh_SegmentPanel,
-	sh_ObstaclePanel,
+	sh_ItemPropertiesPanel,
 	sh_AddonPreferences,
+	AutogenPanel,
 	sh_export,
 	sh_export_gz,
 	sh_export_auto,
@@ -1326,6 +1545,8 @@ classes = (
 	sh_auto_setup_segstrate,
 	sh_static_segstrate,
 	sh_rebake_meshes,
+	RunRandomiseSeedAction,
+	RunAutogenAction,
 )
 
 def register():
@@ -1335,6 +1556,7 @@ def register():
 		register_class(cls)
 	
 	bpy.types.Scene.sh_properties = PointerProperty(type=sh_SceneProperties)
+	bpy.types.Scene.shatter_autogen = PointerProperty(type=AutogenProperties)
 	bpy.types.Object.sh_properties = PointerProperty(type=sh_EntityProperties)
 	
 	# Add the export operator to menu
@@ -1374,6 +1596,7 @@ def unregister():
 		unregister_class(cls)
 	
 	del bpy.types.Scene.sh_properties
+	del bpy.types.Scene.shatter_autogen
 	
 	# Shutdown server
 	global g_process_test_server
