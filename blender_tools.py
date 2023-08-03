@@ -1334,6 +1334,7 @@ class AutogenProperties(PropertyGroup):
 		name = "Type",
 		description = "Type of thing you would like to generate",
 		items = [
+			('BasicRoom', "Room structure", ""),
 			('SingleRow', "Row of boxes", "A single row of boxes, often used before and after chasms. Look at the first room of the game for an example of this"),
 		],
 		default = "SingleRow",
@@ -1362,8 +1363,8 @@ class AutogenProperties(PropertyGroup):
 		name = "Box size",
 		description = "First is width, second is depth. Height is the random part",
 		default = (1.0, 1.0), 
-		min = 0.25,
-		max = 4.0,
+		min = 0.0625,
+		max = 16.0,
 		size = 2,
 	)
 	
@@ -1455,18 +1456,21 @@ class AutogenPanel(Panel):
 		if (props.type == "SingleRow"):
 			sub.prop(props, "algorithm")
 		sub.prop(props, "template")
-		sub.prop(props, "max_height")
+		if (props.type == "SingleRow"):
+			sub.prop(props, "max_height")
 		sub.prop(props, "size")
 		
-		if (props.algorithm in ["UpAndDownPath"]):
-			sub.prop(props, "udpath_start")
-			sub.prop(props, "udpath_step")
-			sub.prop(props, "udpath_minmax")
-		
-		if (props.algorithm in ["GeometricProgressionSet"]):
-			sub.prop(props, "geometric_ratio")
-			sub.prop(props, "geometric_exponent_minmax")
-			sub.prop(props, "geometric_require_unique")
+		# Single row options
+		if (props.type == "SingleRow"):
+			if (props.algorithm in ["UpAndDownPath"]):
+				sub.prop(props, "udpath_start")
+				sub.prop(props, "udpath_step")
+				sub.prop(props, "udpath_minmax")
+			
+			if (props.algorithm in ["GeometricProgressionSet"]):
+				sub.prop(props, "geometric_ratio")
+				sub.prop(props, "geometric_exponent_minmax")
+				sub.prop(props, "geometric_require_unique")
 		
 		sub.operator("sh.run_autogen", text = "Generate")
 		
@@ -1492,7 +1496,9 @@ class BlenderBoxPlacer:
 	"""
 	
 	def __init__(self, basePos, baseSize, template):
-		self.setBase(basePos, baseSize)
+		if (basePos and baseSize):
+			self.setBase(basePos, baseSize)
+		
 		self.template = template
 		self.objects = []
 	
@@ -1557,18 +1563,21 @@ class RunAutogenAction(bpy.types.Operator):
 			context.scene.shatter_autogen.seed = random.randint(0, 2 ** 31 - 1)
 		
 		bbp = BlenderBoxPlacer(
-			context.object.location,
-			context.object.dimensions,
-			props.template if props.template else context.object.sh_properties.sh_template,
+			context.object.location if context.object else None,
+			context.object.dimensions if context.object else None,
+			props.template if props.template or not context.object else context.object.sh_properties.sh_template,
 		)
 		
 		params = {
 			"seed": props.seed,
 			"type": props.type,
-			"algorithm": props.algorithm,
 			"size": props.size,
 			"max_height": props.max_height,
 		}
+		
+		# For all single row types
+		if (props.type == "SingleRow"):
+			params["algorithm"] = props.algorithm
 		
 		# Geometric options
 		if (props.algorithm in ["GeometricProgressionSet"]):

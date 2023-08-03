@@ -198,13 +198,27 @@ class RoomWithBasicWalls:
 		self.length = 16.0 / 2
 		self.current = True
 	
-	def next():
-		basePos = Vector3(0.0, 0.0, self.length)
+	def next(self):
+		basePos = Vector3(0.0, 0.0, -self.length)
+		
+		leftBoxPos = basePos - Vector3(x = self.width + 0.5)
+		rightBoxPos = basePos + Vector3(x = self.width + 0.5)
+		
+		topBoxPos = basePos + Vector3(y = self.height + 0.5)
+		bottomBoxPos = basePos - Vector3(y = self.height + 0.5)
+		
+		wallBoxSize = Vector3(0.5, self.height, self.length)
+		topAndBottomBoxSize = Vector3(self.width + 2 * 0.5, 0.5, self.length)
+		
+		self.placer.addBox(Box(leftBoxPos, wallBoxSize))
+		self.placer.addBox(Box(rightBoxPos, wallBoxSize))
+		self.placer.addBox(Box(topBoxPos, topAndBottomBoxSize))
+		self.placer.addBox(Box(bottomBoxPos, topAndBottomBoxSize))
 		
 		self.current = False
 	
 	def hasMore(self):
-		return current
+		return self.current
 
 AUTOGEN_GENERATORS = {
 	"SingleRow": {
