@@ -521,7 +521,7 @@ class sh_SceneProperties(PropertyGroup):
 		name = "Bottom fog",
 		description = "Fog colour for quick test. While this does use the fogcolor xml attribute, this property cannot be inherited from templates or used like a normal property",
 		subtype = "COLOR_GAMMA",
-		default = (0.0, 0.0, 0.0), 
+		default = (0.0, 0.0, 0.0),
 		min = 0.0,
 		max = 1.0,
 	)

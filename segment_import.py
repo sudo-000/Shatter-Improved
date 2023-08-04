@@ -166,6 +166,26 @@ def sh_import_segment(fp, context, compressed = False):
 	scene.sh_light_front = float(segattr.get("lightFront", "1"))
 	scene.sh_light_back = float(segattr.get("lightBack", "1"))
 	
+	# Fog color
+	fogcolor = segattr.get("fogcolor", None)
+	
+	if (fogcolor):
+		fog = fogcolor.split()
+		
+		no_gradient = (len(fog) == 3)
+		
+		scene.sh_fog_colour_bottom = (
+			float(fog[0]),
+			float(fog[1]),
+			float(fog[2]),
+		)
+		
+		scene.sh_fog_colour_top = (
+			float(fog[0]) if no_gradient else float(fog[3]),
+			float(fog[1]) if no_gradient else float(fog[4]),
+			float(fog[2]) if no_gradient else float(fog[5]),
+		)
+	
 	# ambient, if lighting is enabled
 	lighting_ambient = segattr.get("ambient", None)
 	
@@ -277,7 +297,11 @@ def sh_import_segment(fp, context, compressed = False):
 					
 					# Set the respective tile
 					n = str(ord(t) - ord("X") + 1)
-					setattr(b.sh_properties, f"sh_tile{n}", int(tile))
+					
+					# We need to split like this becuase ideas/city.xml has a
+					# really weird tileY that is the string "43 1". Maybe this
+					# happens elsewhere also.
+					setattr(b.sh_properties, f"sh_tile{n}", int(tile.split()[0]))
 				
 				### TEH COLOURZ ###
 				color = properties.get(f"color{t}", None)
@@ -289,6 +313,8 @@ def sh_import_segment(fp, context, compressed = False):
 					
 					# Set the respective colour
 					n = str(ord(t) - ord("X") + 1)
+					
+					# Parse the colours into a tuple of (r, g, b, a)
 					c = sh_parse_colour(color)[0]
 					if (len(c) == 3): c = (c[0], c[1], c[2], 1.0)
 					setattr(b.sh_properties, f"sh_tint{n}", c)
