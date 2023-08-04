@@ -1344,7 +1344,8 @@ class AutogenProperties(PropertyGroup):
 		items = [
 			('ActualRandom', "ActualRandom", "Purely random box heights"),
 			('UpAndDownPath', "UpAndDownPath", ""),
-			('GeometricProgressionSet', "GeometricProgressionSet", "Randomly selected from a subset of a geometric series/progression (ex: random of 1/2, 1/4, 1/8)"),
+			('ArithmeticProgressionSet', "ArithmeticProgressionSet", "Randomly selected from a subset of a arithmetic series (ex: random of 1/2, 1/4, 1/6)"),
+			('GeometricProgressionSet', "GeometricProgressionSet", "Randomly selected from a subset of a geometric series (ex: random of 1/2, 1/4, 1/8)"),
 			# ('PerlinNoise', "PerlinNoise", ""),
 		],
 		default = "ActualRandom",
@@ -1470,7 +1471,7 @@ class AutogenPanel(Panel):
 		if (props.type == "SingleRow"):
 			sub.prop(props, "algorithm")
 		sub.prop(props, "template")
-		if (props.type == "SingleRow"):
+		if (props.type == "SingleRow" and props.algorithm != "ArithmeticProgressionSet"):
 			sub.prop(props, "max_height")
 		sub.prop(props, "size")
 		
@@ -1481,9 +1482,9 @@ class AutogenPanel(Panel):
 				sub.prop(props, "udpath_step")
 				sub.prop(props, "udpath_minmax")
 			
-			if (props.algorithm in ["GeometricProgressionSet"]):
+			if (props.algorithm in ["GeometricProgressionSet", "ArithmeticProgressionSet"]):
 				sub.prop(props, "geometric_ratio")
-				sub.prop(props, "geometric_exponent_minmax")
+				sub.prop(props, "geometric_exponent_minmax", text = "Exponent" if props.algorithm.startswith("G") else "Scalar")
 				sub.prop(props, "geometric_require_unique")
 		
 		# Room options
@@ -1639,7 +1640,7 @@ class RunAutogenAction(bpy.types.Operator):
 			params["algorithm"] = props.algorithm
 			
 			# Geometric options
-			if (props.algorithm in ["GeometricProgressionSet"]):
+			if (props.algorithm in ["GeometricProgressionSet", "ArithmeticProgressionSet"]):
 				params["geometric_exponent_minmax"] = props.geometric_exponent_minmax
 				params["geometric_ratio"] = props.geometric_ratio
 				params["geometric_require_unique"] = props.geometric_require_unique

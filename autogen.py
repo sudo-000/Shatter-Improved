@@ -190,6 +190,32 @@ class GeometricProgressionSet(BasicSingleRow):
 		
 		return self.maxheight * self.params["geometric_ratio"] ** ratio
 
+class ArithmeticProgressionSet(BasicSingleRow):
+	"""
+	OwO what's this? Another hack!?
+	"""
+	
+	def getNextHeight(self):
+		# When in unique mode we need the size of the previous part
+		if (not hasattr(self, "prev_part")):
+			self.prev_part = None
+		
+		# Enumerate possible values
+		possible_values = [x for x in range(self.params["geometric_exponent_minmax"][0], self.params["geometric_exponent_minmax"][1])]
+		
+		# If we are unique and the prev_part is defined (e.g. we're not first)
+		# then we need to remove the one that's the same as the prev part
+		if (self.params.get("geometric_require_unique", False) and self.prev_part):
+			possible_values.remove(self.prev_part)
+		
+		# Choose the ratio
+		ratio = self.random.choice(possible_values)
+		
+		# Set it as the chosen one for next time
+		self.prev_part = ratio
+		
+		return self.params["geometric_ratio"] * ratio
+
 class UpAndDownPath(BasicSingleRow):
 	"""
 	Another hack ^w^
@@ -297,6 +323,7 @@ AUTOGEN_GENERATORS = {
 	"SingleRow": {
 		"ActualRandom": SingleRow_ActualRandom,
 		"UpAndDownPath": UpAndDownPath,
+		"ArithmeticProgressionSet": ArithmeticProgressionSet,
 		"GeometricProgressionSet": GeometricProgressionSet,
 	},
 	"BasicRoom": RoomWithBasicWalls,
