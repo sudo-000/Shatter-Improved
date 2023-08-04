@@ -72,6 +72,7 @@ def getSegmentOptions():
 	length = attrib.get("length", 90)
 	gravity = attrib.get("gravity", 1.0)
 	code = attrib.get("code", "")
+	assets = attrib.get("assets", None)
 	
 	return {
 		"fog": fog,
@@ -80,7 +81,8 @@ def getSegmentOptions():
 		"reverb": reverb,
 		"length": length,
 		"gravity": gravity,
-		"code": code
+		"code": code,
+		"assets": assets,
 	}
 
 KNOWN_OBSTACLES = ["3dcross", "babytoy", "bar", "beatmill", "beatsweeper", "beatwindow", "bigcrank", "bigpendulum", "boss", "bowling", "box", "cactus", "credits1", "credits2", "creditssign", "cubeframe", "dna", "doors", "dropblock", "elevatorgrid", "elevator", "fence", "flycube", "foldwindow", "framedwindow", "gear", "grid", "gyro", "hitblock", "laser", "levicube", "ngon", "pyramid", "revolver", "rotor", "scorediamond", "scoremulti", "scorestar", "scoretop", "sidesweeper", "stone", "suspendbox", "suspendcube", "suspendcylinder", "suspendhollow", "suspendside", "suspendwindow", "sweeper", "test", "tree", "vs_door", "vs_sweeper", "vs_wall", "boss/cube", "boss/matryoshka", "boss/single", "boss/telecube", "boss/triple", "doors/45", "doors/basic", "doors/double", "fence/carousel", "fence/dna", "fence/slider"]
@@ -194,6 +196,9 @@ class AdServer(BaseHTTPRequestHandler):
 		else:
 			protocol = gProtocolVersion.get(client_ip, 2)
 		
+		# Get segment and assets options
+		options = getSegmentOptions()
+		
 		# Handle what data to return
 		try:
 			### LEVEL ###
@@ -202,7 +207,7 @@ class AdServer(BaseHTTPRequestHandler):
 			
 			### ROOM ###
 			elif (path.endswith("room")):
-				data = generateRoomText(host, getSegmentOptions())
+				data = generateRoomText(host, options)
 				contenttype = "text/plain"
 			
 			### SEGMENT ###
@@ -218,6 +223,14 @@ class AdServer(BaseHTTPRequestHandler):
 			elif (path.endswith("segment") and (params["filetype"] == ".mesh")):
 				data = loadFileBytes(TEMPDIR + "segment.mesh")
 				contenttype = "application/octet-stream"
+			
+			### OBSTACLE ###
+			elif (path.endswith("obstacle") and options["assets"]):
+				obs_path = options["assets"] + "/obstacles/" + params["type"].replace("..", "") + ".lua.mp3"
+				
+				if (os.path.exists(obs_path)):
+					data = loadFileBytes(obs_path)
+					contenttype = "text/plain"
 			
 			### MENU UI ###
 			elif (path.endswith("menu")):

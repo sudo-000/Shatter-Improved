@@ -12,7 +12,7 @@ bl_info = {
 	"name": "Shatter",
 	"description": "Blender-based tools for editing, saving and loading Smash Hit segments.",
 	"author": "Shatter Team",
-	"version": (2023, 8, 3),
+	"version": (2023, 8, 4),
 	"blender": (3, 2, 0),
 	"location": "File > Import/Export and 3D View > Tools",
 	"warning": "",

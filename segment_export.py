@@ -474,6 +474,12 @@ def writeQuicktestInfo(tempdir, scene):
 	if (scene.sh_extra_code):
 		info["code"] = scene.sh_extra_code
 	
+	# Try to find where to load remote obstacles from
+	apk_path = util.find_apk()
+	
+	if (apk_path):
+		info["assets"] = apk_path
+	
 	pathlib.Path(tempdir + "/room.json").write_text(json.dumps(info))
 
 def MB_progress_update_callback(value):
