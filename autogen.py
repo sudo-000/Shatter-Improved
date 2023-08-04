@@ -56,6 +56,7 @@ class Box:
 		"""
 		
 		self.pos = box.getTop() + Vector3(y = self.size.y)
+		return self
 	
 	def countFittingForWidth(self, width):
 		"""
@@ -64,6 +65,40 @@ class Box:
 		"""
 		
 		return math.ceil(self.size.x / width)
+
+class Obstacle:
+	"""
+	Represents an obstacle
+	"""
+	
+	def __init__(self, pos, type):
+		"""
+		Initalise an obstacle
+		"""
+		
+		self.pos = pos
+		self.type = type
+	
+	def placeOnTopOf(self, box):
+		self.pos = box.getTop()
+		return self
+
+class Decal:
+	"""
+	Represents a decal
+	"""
+	
+	def __init__(self, pos, id):
+		self.pos = pos
+		self.id = id
+	
+	def placeOnTopOf(self, box):
+		self.pos = box.getTop() + Vector3(y = 1.0)
+		return self
+	
+	def placeOnTopFrontOf(self, box):
+		self.pos = box.getTop() + Vector3(z = box.size.z) + Vector3(y = 1.0)
+		return self
 
 class BasicSingleRow:
 	"""
@@ -195,17 +230,21 @@ class RoomWithBasicWalls:
 		self.params = params
 		self.width = params["size"][0] / 2
 		self.height = params["size"][1] / 2
-		self.length = 16.0 / 2
-		self.current = True
+		self.length = params["room_length"] / 2
+		self.door_part = params["room_door_part"]
+		self.running = True
 	
 	def next(self):
 		basePos = Vector3(0.0, 0.0, -self.length)
 		
-		leftBoxPos = basePos - Vector3(x = self.width + 0.5)
-		rightBoxPos = basePos + Vector3(x = self.width + 0.5)
+		offset = Vector3(0.0, 1.0, 0.0)
 		
-		topBoxPos = basePos + Vector3(y = self.height + 0.5)
-		bottomBoxPos = basePos - Vector3(y = self.height + 0.5)
+		# Walls
+		leftBoxPos = basePos - Vector3(x = self.width + 0.5) + offset
+		rightBoxPos = basePos + Vector3(x = self.width + 0.5) + offset
+		
+		topBoxPos = basePos + Vector3(y = self.height + 0.5) + offset
+		bottomBoxPos = basePos - Vector3(y = self.height + 0.5) + offset
 		
 		wallBoxSize = Vector3(0.5, self.height, self.length)
 		topAndBottomBoxSize = Vector3(self.width + 2 * 0.5, 0.5, self.length)
@@ -215,10 +254,44 @@ class RoomWithBasicWalls:
 		self.placer.addBox(Box(topBoxPos, topAndBottomBoxSize))
 		self.placer.addBox(Box(bottomBoxPos, topAndBottomBoxSize))
 		
-		self.current = False
+		# Door part
+		if (self.door_part):
+			zPos = 2 * -self.length + 0.5
+			
+			# We essentially need to create two boxes for the top and bottom:
+			# One that has its top at y=0 and another that is a bottom at y=2
+			# TIP: Drawing this out is helpful!
+			
+			# Top box
+			topBoxPos = Vector3(0.0, 2.0 + (self.height / 2) - 0.5, zPos)
+			topBoxSize = Vector3(1.0, (self.height - 1) / 2, 0.5)
+			topBox = Box(topBoxPos, topBoxSize)
+			
+			self.placer.addBox(topBox)
+			
+			# Bottom box
+			bottomBoxPos = Vector3(0.0, -(self.height / 2) + 0.5, zPos)
+			bottomBoxSize = Vector3(1.0, (self.height - 1) / 2, 0.5)
+			bottomBox = Box(bottomBoxPos, bottomBoxSize)
+			
+			self.placer.addBox(bottomBox)
+			
+			# Left and right box
+			leftAndRightBoxSize = Vector3((self.width / 2) - 0.5, self.height, 0.5)
+			leftBoxPos = Vector3(-(self.width / 2) - 0.5, 1.0, zPos)
+			rightBoxPos = Vector3((self.width / 2) + 0.5, 1.0, zPos)
+			
+			self.placer.addBox(Box(leftBoxPos, leftAndRightBoxSize))
+			self.placer.addBox(Box(rightBoxPos, leftAndRightBoxSize))
+			
+			# Door and decal
+			self.placer.addDecal(Decal(Vector3(), -1).placeOnTopFrontOf(bottomBox))
+			self.placer.addObstacle(Obstacle(Vector3(), "doors/basic").placeOnTopOf(bottomBox))
+		
+		self.running = False
 	
 	def hasMore(self):
-		return self.current
+		return self.running
 
 AUTOGEN_GENERATORS = {
 	"SingleRow": {

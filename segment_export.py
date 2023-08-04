@@ -456,7 +456,7 @@ def solveTemplates(segment_text, templates = {}):
 		template = e.attrib.get("template", None)
 		
 		# If the template exists then we combine
-		if (template):
+		if (template and templates.get(template, None) != None):
 			# This takes the templates, puts them in a dict, then overwrites
 			# anything in that dict with what is in the attributes.
 			# http://stackoverflow.com/questions/38987/ddg#26853961

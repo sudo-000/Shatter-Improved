@@ -1320,8 +1320,6 @@ class AutogenProperties(PropertyGroup):
 		name = "Seed",
 		description = "",
 		default = 0,
-		#min = 0,
-		#max = 4294967295,
 	)
 	
 	auto_randomise: BoolProperty(
@@ -1427,6 +1425,22 @@ class AutogenProperties(PropertyGroup):
 		description = "",
 		default = False,
 	)
+	
+	### Room ###
+	
+	room_length: FloatProperty(
+		name = "Length",
+		description = "",
+		default = 16.0,
+		min = 1.0,
+		max = 1024.0,
+	)
+	
+	room_door_part: BoolProperty(
+		name = "Door part",
+		description = "",
+		default = False,
+	)
 
 class AutogenPanel(Panel):
 	bl_label = "Shatter Autogen"
@@ -1471,6 +1485,11 @@ class AutogenPanel(Panel):
 				sub.prop(props, "geometric_ratio")
 				sub.prop(props, "geometric_exponent_minmax")
 				sub.prop(props, "geometric_require_unique")
+		
+		# Room options
+		if (props.type == "BasicRoom"):
+			sub.prop(props, "room_length")
+			sub.prop(props, "room_door_part")
 		
 		sub.operator("sh.run_autogen", text = "Generate")
 		
@@ -1533,6 +1552,46 @@ class BlenderBoxPlacer:
 		# Append the box to the list of objects we have made
 		self.objects.append(box)
 	
+	def addObstacle(self, obs):
+		"""
+		Add an obstacle to the scene
+		"""
+		
+		o = bpy.data.objects.new("empty", None)
+		
+		bpy.context.scene.collection.objects.link(o)
+		
+		o.empty_display_size = 1
+		o.empty_display_type = "PLAIN_AXES"
+		
+		o.location = (obs.pos.z, obs.pos.x, obs.pos.y)
+		
+		o.sh_properties.sh_type = "OBS"
+		o.sh_properties.sh_obstacle = obs.type
+		o.sh_properties.sh_template = f"{self.template}_glass"
+		
+		self.objects.append(o)
+	
+	def addDecal(self, dec):
+		"""
+		Add a new decal to the scene
+		"""
+		
+		o = bpy.data.objects.new("empty", None)
+		
+		bpy.context.scene.collection.objects.link(o)
+		
+		o.empty_display_size = 1
+		o.empty_display_type = "PLAIN_AXES"
+		
+		o.location = (dec.pos.z, dec.pos.x, dec.pos.y)
+		
+		o.sh_properties.sh_type = "DEC"
+		o.sh_properties.sh_template = self.template
+		o.sh_properties.sh_decal = dec.id
+		
+		self.objects.append(o)
+	
 	def selectAll(self):
 		"""
 		Select all objects that were part of this round
@@ -1578,19 +1637,24 @@ class RunAutogenAction(bpy.types.Operator):
 		# For all single row types
 		if (props.type == "SingleRow"):
 			params["algorithm"] = props.algorithm
+			
+			# Geometric options
+			if (props.algorithm in ["GeometricProgressionSet"]):
+				params["geometric_exponent_minmax"] = props.geometric_exponent_minmax
+				params["geometric_ratio"] = props.geometric_ratio
+				params["geometric_require_unique"] = props.geometric_require_unique
+			
+			# UpDownPath options
+			if (props.algorithm in ["UpAndDownPath"]):
+				params["udpath_min"] = props.udpath_minmax[0]
+				params["udpath_max"] = props.udpath_minmax[1]
+				params["udpath_start"] = props.udpath_start
+				params["udpath_step"] = props.udpath_step
 		
-		# Geometric options
-		if (props.algorithm in ["GeometricProgressionSet"]):
-			params["geometric_exponent_minmax"] = props.geometric_exponent_minmax
-			params["geometric_ratio"] = props.geometric_ratio
-			params["geometric_require_unique"] = props.geometric_require_unique
-		
-		# UpDownPath options
-		if (props.algorithm in ["UpAndDownPath"]):
-			params["udpath_min"] = props.udpath_minmax[0]
-			params["udpath_max"] = props.udpath_minmax[1]
-			params["udpath_start"] = props.udpath_start
-			params["udpath_step"] = props.udpath_step
+		# Room options
+		if (props.type == "BasicRoom"):
+			params["room_length"] = props.room_length
+			params["room_door_part"] = props.room_door_part
 		
 		autogen.generate(bbp, params)
 		
