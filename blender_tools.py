@@ -543,6 +543,28 @@ class sh_SceneProperties(PropertyGroup):
 		description = "The particles that appear when looking at the stage in quick test",
 		default = "",
 	)
+	
+	sh_gravity: FloatProperty(
+		name = "Gravity",
+		description = "The amount of gravity to use in quick test",
+		default = 1.0,
+		min = -1.0,
+		max = 3.0,
+	)
+	
+	sh_extra_code: StringProperty(
+		name = "Extra code",
+		description = "Extra code to include the in room file. Multipule statements can be seperated by ';'.",
+		default = "",
+	)
+	
+	sh_room_length: IntProperty(
+		name = "Room length",
+		description = "The length of the room in quick test",
+		default = 90,
+		min = 50,
+		max = 250,
+	)
 
 # Object (box/obstacle/powerup/decal/water) properties
 
@@ -949,7 +971,7 @@ class sh_AddonPreferences(AddonPreferences):
 	enable_report_saving: BoolProperty(
 		name = "Save crash reports to local files",
 		description = "This will save log files of Blender exceptions to local files",
-		default = True,
+		default = False,
 	)
 	
 	## Mod Services (NOT COMPLETED) ##
@@ -1083,9 +1105,12 @@ class sh_SegmentPanel(Panel):
 			sub.label(text = "Quick test", icon = "AUTO")
 			sub.prop(sh_properties, "sh_fog_colour_top")
 			sub.prop(sh_properties, "sh_fog_colour_bottom")
+			sub.prop(sh_properties, "sh_room_length")
+			sub.prop(sh_properties, "sh_gravity")
 			sub.prop(sh_properties, "sh_music")
 			sub.prop(sh_properties, "sh_reverb")
 			sub.prop(sh_properties, "sh_particles")
+			sub.prop(sh_properties, "sh_extra_code")
 			sub.label(text = f"Your IP: {util.get_local_ip()}")
 		
 		# DRM

@@ -17,6 +17,7 @@ from urllib.parse import parse_qs
 import pathlib
 import os
 import os.path
+import json
 
 CONTENT_LEVEL = """<level>
 	<room type="http://{}:8000/room?ignore=" distance="1000" start="true" end="true" />
@@ -47,21 +48,40 @@ def loadFileBytes(path):
 	
 	return pathlib.Path(path).read_bytes()
 
-def getSegmentOptions(path):
+def loadJsonFile(path):
+	"""
+	Load a JSON file
+	"""
+	
+	return json.loads(pathlib.Path(path).read_text())
+
+def toCommaArray(string):
+	return ", ".join(string.split())
+
+def getSegmentOptions():
 	"""
 	Get the segment fog colour, music, particles, reverb strings
-	
-	TODO: This would break if there are spacing errors. Unlikely, but maybe fix that?
 	"""
 	
-	root = et.fromstring(loadFileBytes(path).decode("utf-8"))
+	attrib = loadJsonFile(TEMPDIR + "/room.json")
 	
-	fog = root.attrib.get("fogcolor", "0 0 0 1 1 1").replace(" ", ", ")
-	music = root.attrib.get("qt-music", None)
-	particles = root.attrib.get("qt-particles", None)
-	reverb = root.attrib.get("qt-reverb", "").replace(" ", ", ")
+	fog = toCommaArray(attrib.get("fog", "0 0 0 1 1 1"))
+	music = attrib.get("music", None)
+	particles = attrib.get("particles", None)
+	reverb = toCommaArray(attrib.get("reverb", ""))
+	length = attrib.get("length", 90)
+	gravity = attrib.get("gravity", 1.0)
+	code = attrib.get("code", "")
 	
-	return {"fog": fog, "music": music, "particles": particles, "reverb": reverb}
+	return {
+		"fog": fog,
+		"music": music,
+		"particles": particles,
+		"reverb": reverb,
+		"length": length,
+		"gravity": gravity,
+		"code": code
+	}
 
 KNOWN_OBSTACLES = ["3dcross", "babytoy", "bar", "beatmill", "beatsweeper", "beatwindow", "bigcrank", "bigpendulum", "boss", "bowling", "box", "cactus", "credits1", "credits2", "creditssign", "cubeframe", "dna", "doors", "dropblock", "elevatorgrid", "elevator", "fence", "flycube", "foldwindow", "framedwindow", "gear", "grid", "gyro", "hitblock", "laser", "levicube", "ngon", "pyramid", "revolver", "rotor", "scorediamond", "scoremulti", "scorestar", "scoretop", "sidesweeper", "stone", "suspendbox", "suspendcube", "suspendcylinder", "suspendhollow", "suspendside", "suspendwindow", "sweeper", "test", "tree", "vs_door", "vs_sweeper", "vs_wall", "boss/cube", "boss/matryoshka", "boss/single", "boss/telecube", "boss/triple", "doors/45", "doors/basic", "doors/double", "fence/carousel", "fence/dna", "fence/slider"]
 
@@ -94,15 +114,19 @@ def generateRoomText(hostname, options):
 	music = options["music"]
 	particles = options["particles"]
 	reverb = options["reverb"]
+	gravity = options["gravity"]
+	length = options["length"]
+	code = options["code"]
 	
 	music = ("\"" + music + "\"") if music else "tostring(math.random(0, 28))"
 	particles = (f"\n\tmgParticles(\"{particles}\")") if particles else ""
 	reverb = (f"\n\tmgReverb({reverb})") if reverb else ""
-	length = 90
 	
 	room = f"""function init()
 	mgMusic({music})
 	mgFogColor({options["fog"]}){reverb}{particles}
+	mgGravity({gravity})
+	{code}
 	
 	confSegment("http://{hostname}:8000/segment?filetype=", 1)
 	
@@ -122,8 +146,8 @@ end"""
 	
 	return bytes(room, "utf-8")
 
-def doError(self):
-	data = bytes("404 File Not Found", "utf-8")
+def doError(self, s = ""):
+	data = bytes(f"404 File Not Found\n\n{s}", "utf-8")
 	self.send_response(404)
 	self.send_header("Content-Length", str(len(data)))
 	self.send_header("Content-Type", "text/plain")
@@ -178,7 +202,7 @@ class AdServer(BaseHTTPRequestHandler):
 			
 			### ROOM ###
 			elif (path.endswith("room")):
-				data = generateRoomText(host, getSegmentOptions(TEMPDIR + "segment.xml"))
+				data = generateRoomText(host, getSegmentOptions())
 				contenttype = "text/plain"
 			
 			### SEGMENT ###
@@ -198,9 +222,10 @@ class AdServer(BaseHTTPRequestHandler):
 			### MENU UI ###
 			elif (path.endswith("menu")):
 				data = bytes(f'''<ui texture="menu/start.png" selected="menu/button_select.png"><rect coords="0 0 294 384" cmd="level.start level:http://{host}:8000/level?ignore="/></ui>''', "utf-8")
-		except:
+		except Exception as e:
 			# Error on other files
-			doError(self)
+			import traceback
+			doError(self, traceback.format_exc())
 			return
 		
 		# Send response

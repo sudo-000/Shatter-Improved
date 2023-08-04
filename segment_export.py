@@ -14,6 +14,8 @@ import bake_mesh
 import segstrate
 import obstacle_db
 import util
+import json
+import pathlib
 
 from bpy.props import (StringProperty, BoolProperty, IntProperty, IntVectorProperty, FloatProperty, FloatVectorProperty, EnumProperty, PointerProperty)
 from bpy.types import (Panel, Menu, Operator, PropertyGroup)
@@ -152,22 +154,6 @@ def sh_create_root(scene, params):
 	# Add ambient lighting if enabled
 	if (scene.sh_lighting):
 		seg_props["ambient"] = str(scene.sh_lighting_ambient[0]) + " " + str(scene.sh_lighting_ambient[1]) + " " + str(scene.sh_lighting_ambient[2])
-	
-	# Add fog colour if not default
-	if (scene.sh_fog_colour_bottom[0] != 0.0 or scene.sh_fog_colour_bottom[1] != 0.0 or scene.sh_fog_colour_bottom[2] != 0.0 or scene.sh_fog_colour_top[0] != 1.0 or scene.sh_fog_colour_top[1] != 1.0 or scene.sh_fog_colour_top[2] != 1.0):
-		seg_props["fogcolor"] = str(scene.sh_fog_colour_bottom[0]) + " " + str(scene.sh_fog_colour_bottom[1]) + " " + str(scene.sh_fog_colour_bottom[2]) + " " + str(scene.sh_fog_colour_top[0]) + " " + str(scene.sh_fog_colour_top[1]) + " " + str(scene.sh_fog_colour_top[2])
-	
-	# Music track
-	if (scene.sh_music):
-		seg_props["qt-music"] = scene.sh_music
-	
-	# Reverb options
-	if (scene.sh_reverb):
-		seg_props["qt-reverb"] = scene.sh_reverb
-	
-	# Particle effect
-	if (scene.sh_particles):
-		seg_props["qt-particles"] = scene.sh_particles
 	
 	# Protection
 	if (scene.sh_drm_disallow_import or bpy.context.preferences.addons["blender_tools"].preferences.force_disallow_import):
@@ -465,6 +451,31 @@ def solveTemplates(segment_text, templates = {}):
 	# Back to a string!
 	return et.tostring(root).decode('utf-8')
 
+def writeQuicktestInfo(tempdir, scene):
+	"""
+	Write the quick test `room.json` file
+	"""
+	
+	fb = scene.sh_fog_colour_bottom
+	ft = scene.sh_fog_colour_top
+	
+	info = {
+		"fog": f"{fb[0]} {fb[1]} {fb[2]} {ft[0]} {ft[1]} {ft[2]}",
+		"length": scene.sh_room_length,
+		"gravity": scene.sh_gravity,
+	}
+	
+	if (scene.sh_music):
+		info["music"] = scene.sh_music
+	
+	if (scene.sh_reverb):
+		info["reverb"] = scene.sh_reverb
+	
+	if (scene.sh_extra_code):
+		info["code"] = scene.sh_extra_code
+	
+	pathlib.Path(tempdir + "/room.json").write_text(json.dumps(info))
+
 def MB_progress_update_callback(value):
 	bpy.context.window_manager.progress_update(value)
 
@@ -553,6 +564,9 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 		# Write XML
 		with open(tempdir + "/segment.xml", "w") as f:
 			f.write(content)
+		
+		# Write quick test JSON room info file
+		writeQuicktestInfo(tempdir, context.scene.sh_properties)
 		
 		context.window.cursor_set('DEFAULT')
 		

@@ -65,7 +65,7 @@ def sh_parse_tile(s):
 	Parse tile strings
 	"""
 	
-	string = s.split(" ")
+	string = s.split()
 	final = []
 	
 	for i in range(len(string)):
@@ -78,7 +78,7 @@ def sh_parse_tile_size(s):
 	Parse tile strings
 	"""
 	
-	string = s.split(" ")
+	string = s.split()
 	final = []
 	
 	for i in range(len(string)):
@@ -91,7 +91,7 @@ def sh_parse_colour(s):
 	Parse colour strings
 	"""
 	
-	a = removeEverythingEqualTo(s.split(" "), "")
+	a = s.split()
 	
 	# Remove remaining space strings
 	a = [i for i in a if i != " "]
@@ -137,7 +137,7 @@ def sh_import_segment(fp, context, compressed = False):
 	drm = segattr.get("drm", None)
 	
 	if (drm):
-		drm = drm.split(" ")
+		drm = drm.split()
 		
 		for d in drm:
 			if (d == "NoImport"):
@@ -149,7 +149,7 @@ def sh_import_segment(fp, context, compressed = False):
 				return {"FINISHED"}
 	
 	# Segment length
-	seg_size = segattr.get("size", "12 10 0").split(" ")
+	seg_size = segattr.get("size", "12 10 0").split()
 	scene.sh_len = (float(seg_size[0]), float(seg_size[1]), float(seg_size[2]))
 	
 	# Segment template
@@ -184,17 +184,17 @@ def sh_import_segment(fp, context, compressed = False):
 			continue
 		
 		# Object position
-		pos = properties.get("pos", "0 0 0").split(" ")
+		pos = properties.get("pos", "0 0 0").split()
 		pos = (float(pos[2]), float(pos[0]), float(pos[1]))
 		
 		# Object rotation
-		rot = properties.get("rot", "0 0 0").split(" ")
+		rot = properties.get("rot", "0 0 0").split()
 		rot = (float(rot[2]), float(rot[0]), float(rot[1]))
 		
 		# Boxes
 		if (kind == "box"):
 			# Size for boxes
-			size = properties.get("size", "0.5 0.5 0.5").split(" ")
+			size = properties.get("size", "0.5 0.5 0.5").split()
 			size = (float(size[2]), float(size[0]), float(size[1]))
 			
 			# Add the box; zero size boxes are treated as points
@@ -289,7 +289,9 @@ def sh_import_segment(fp, context, compressed = False):
 					
 					# Set the respective colour
 					n = str(ord(t) - ord("X") + 1)
-					setattr(b.sh_properties, f"sh_tint{n}", sh_parse_colour(color))
+					c = sh_parse_colour(color)[0]
+					if (len(c) == 3): c = (c[0], c[1], c[2], 1.0)
+					setattr(b.sh_properties, f"sh_tint{n}", c)
 			
 			# Glow for lighting
 			b.sh_properties.sh_glow = float(properties.get("glow", "0"))
@@ -335,7 +337,7 @@ def sh_import_segment(fp, context, compressed = False):
 			colour = properties.get("color", None)
 			if (colour):
 				o.sh_properties.sh_havetint = True
-				colour = colour.split(" ")
+				colour = colour.split()
 				colour = (float(colour[0]), float(colour[1]), float(colour[2]), float(colour[3]) if len(colour) == 4 else 1.0)
 				o.sh_properties.sh_tint = colour
 			else:
@@ -366,7 +368,7 @@ def sh_import_segment(fp, context, compressed = False):
 		# Water
 		elif (kind == "water"):
 			# Create obstacle and set pos
-			size = properties.get("size", "1 1").split(" ")
+			size = properties.get("size", "1 1").split()
 			size = (float(size[1]), float(size[0]), 0.0)
 			
 			o = sh_add_box(pos, size)
