@@ -1343,13 +1343,13 @@ class AutogenProperties(PropertyGroup):
 	
 	seed: IntProperty(
 		name = "Seed",
-		description = "",
+		description = "The seed to feed to the randomiser. Knowing the seed that you will run with allows you to recreate the exact results later",
 		default = 0,
 	)
 	
 	auto_randomise: BoolProperty(
 		name = "Auto randomise",
-		description = "",
+		description = "Automatically generate a new, random seed every time a generation action is run",
 		default = True,
 	)
 	
@@ -1357,8 +1357,9 @@ class AutogenProperties(PropertyGroup):
 		name = "Type",
 		description = "Type of thing you would like to generate",
 		items = [
-			('BasicRoom', "Room structure", ""),
+			('BasicRoom', "Room structure", "Adds a basic room-like structure, optionally including a door area"),
 			('SingleRow', "Row of boxes", "A single row of boxes, often used before and after chasms. Look at the first room of the game for an example of this"),
+			('ArchWay', "Archway", "Creates an arch-like structure with bumps and floor parts"),
 		],
 		default = "SingleRow",
 	)
@@ -1559,7 +1560,7 @@ class BlenderBoxPlacer:
 		Get the base box as a generic box
 		"""
 		
-		return self.base
+		return self.base if hasattr(self, "base") else None
 	
 	def addBox(self, box):
 		"""

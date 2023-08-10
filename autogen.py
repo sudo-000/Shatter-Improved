@@ -6,6 +6,11 @@ import math
 from random import Random
 
 class Vector3:
+	"""
+	A very standard vector3 class, with addition, subtraction and scalar
+	multiplication. Other operations are not really needed for SH.
+	"""
+	
 	def __init__(self, x = 0.0, y = 0.0, z = 0.0):
 		self.x = x
 		self.y = y
@@ -55,7 +60,15 @@ class Box:
 		The the position for another place a box on top of this
 		"""
 		
-		self.pos = box.getTop() + Vector3(y = self.size.y)
+		self.pos = (box.getTop() if type(box) != Vector3 else box) + Vector3(y = self.size.y)
+		return self
+	
+	def move(self, by):
+		"""
+		Move the box by the given amount
+		"""
+		
+		self.pos += by
 		return self
 	
 	def countFittingForWidth(self, width):
@@ -319,6 +332,45 @@ class RoomWithBasicWalls:
 	def hasMore(self):
 		return self.running
 
+class ArchWay:
+	"""
+	An arch you can pass under
+	"""
+	
+	def __init__(self, placer, params):
+		self.placer = placer
+		self.origin = placer.getBase().getTop() if placer.getBase() else Vector3()
+		self.params = params
+		# Height and width are of the inner part
+		# We also devide by two so we can just use them
+		self.width = params["size"][0] / 2
+		self.height = params["size"][1] / 2
+		self.top_parts = params.get("top_parts", False)
+		self.bottom_parts = params.get("bottom_parts", False)
+		self.running = True
+	
+	def next(self):
+		sideBoxSize = Vector3(0.5, self.height + 0.5, 0.5)
+		
+		# Create the left and right boxes, place them atop the origin, then
+		# move them to the left and right sides
+		leftBox = Box(Vector3(), sideBoxSize).placeOnTopOf(self.origin).move(Vector3(x = -(self.width + 0.5)))
+		rightBox = Box(Vector3(), sideBoxSize).placeOnTopOf(self.origin).move(Vector3(x = (self.width + 0.5)))
+		
+		# Create the top box
+		topBox = Box(Vector3(), Vector3(self.width, 0.5, 0.5)).placeOnTopOf(self.origin).move(Vector3(y = 2.0 * self.height))
+		
+		# Add the boxes to the scene
+		self.placer.addBox(leftBox)
+		self.placer.addBox(rightBox)
+		self.placer.addBox(topBox)
+		
+		# Done!
+		self.running = False
+	
+	def hasMore(self):
+		return self.running
+
 AUTOGEN_GENERATORS = {
 	"SingleRow": {
 		"ActualRandom": SingleRow_ActualRandom,
@@ -327,6 +379,7 @@ AUTOGEN_GENERATORS = {
 		"GeometricProgressionSet": GeometricProgressionSet,
 	},
 	"BasicRoom": RoomWithBasicWalls,
+	"ArchWay": ArchWay,
 }
 
 def generate(placer, params):
