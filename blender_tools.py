@@ -57,6 +57,14 @@ class sh_ExportCommon(bpy.types.Operator, segment_export.ExportHelper2):
 	Common code and values between export types
 	"""
 	
+	sh_meshbake_template: StringProperty(
+		name = "Template",
+		description = "A relitive or full path to the template file used for baking meshes. If you use APK Editor Studio and the Smash Hit APK is open, the path to the file will be pre-filled",
+		default = "",
+		subtype = "FILE_PATH",
+		maxlen = SH_MAX_STR_LEN,
+	)
+	
 	def __init__(self):
 		"""
 		Automatic templates.xml detection
@@ -64,14 +72,6 @@ class sh_ExportCommon(bpy.types.Operator, segment_export.ExportHelper2):
 		
 		if (not self.sh_meshbake_template):
 			self.sh_meshbake_template = segment_export.tryTemplatesPath()
-	
-	sh_meshbake_template: StringProperty(
-		name = "Template",
-		description = "A relitive or full path to the template file used for baking meshes. If you use APK Editor Studio and the Smash Hit APK is open, the path to the file will be pre-filled",
-		default = "",
-		subtype = "FILE_PATH",
-		maxlen = SH_MAX_STR_LEN,
-		)
 
 class sh_export(sh_ExportCommon):
 	"""
@@ -98,7 +98,7 @@ class sh_export(sh_ExportCommon):
 				"bake_vertex_light": sh_properties.sh_ambient_occlusion,
 				"lighting_enabled": sh_properties.sh_lighting,
 			}
-		)
+	)
 		
 		return result
 
@@ -131,7 +131,7 @@ class sh_export_gz(sh_ExportCommon):
 				"bake_vertex_light": sh_properties.sh_ambient_occlusion,
 				"lighting_enabled": sh_properties.sh_lighting,
 			}
-		)
+	)
 		
 		return result
 
@@ -162,7 +162,7 @@ class sh_export_auto(bpy.types.Operator):
 				"lighting_enabled": sh_properties.sh_lighting,
 				"auto_find_filepath": True,
 			}
-		)
+	)
 		
 		return result
 
@@ -192,7 +192,7 @@ class sh_export_test(Operator):
 				"sh_test_server": True,
 				"sh_meshbake_template": segment_export.tryTemplatesPath()
 			}
-		)
+	)
 		
 		return result
 
@@ -225,7 +225,7 @@ class sh_export_binary(sh_ExportCommon):
 				"lighting_enabled": sh_properties.sh_lighting,
 				"binary": True,
 			}
-		)
+	)
 		
 		return result
 
@@ -234,7 +234,7 @@ def sh_draw_export_binary(self, context):
 
 # UI-related
 
-class sh_import(bpy.types.Operator, segment_export.ExportHelper2):
+class sh_import(bpy.types.Operator, ImportHelper):
 	"""
 	Import for uncompressed segments
 	"""
@@ -252,7 +252,7 @@ class sh_import(bpy.types.Operator, segment_export.ExportHelper2):
 def sh_draw_import(self, context):
 	self.layout.operator("sh.import", text="Segment (.xml.mp3)")
 
-class sh_import_gz(bpy.types.Operator, segment_export.ExportHelper2):
+class sh_import_gz(bpy.types.Operator, ImportHelper):
 	"""
 	Import for compressed segments
 	"""
@@ -354,25 +354,25 @@ class sh_SceneProperties(PropertyGroup):
 	"""
 	
 	sh_level: StringProperty(
-		name = "Level name",
+		name = "Level",
 		description = "The name of the checkpoint that this segment belongs to.",
 		default = "",
 		maxlen = SH_MAX_STR_LEN,
-		)
+	)
 	
 	sh_room: StringProperty(
-		name = "Room name",
+		name = "Room",
 		description = "The name of the room that this segment belongs to.",
 		default = "",
 		maxlen = SH_MAX_STR_LEN,
-		)
+	)
 	
 	sh_segment: StringProperty(
-		name = "Segment name",
+		name = "Segment",
 		description = "The name of this segment",
 		default = "",
 		maxlen = SH_MAX_STR_LEN,
-		)
+	)
 	
 	sh_len: FloatVectorProperty(
 		name = "Size",
@@ -588,27 +588,27 @@ class sh_EntityProperties(PropertyGroup):
 		description = "The template for the obstacle/box (see templates.xml), remember that this can be easily overridden per obstacle/box",
 		default = "",
 		maxlen = SH_MAX_STR_LEN,
-		)
+	)
 	
 	sh_use_chooser: BoolProperty(
 		name = "Use obstacle chooser",
 		description = "Use the obstacle chooser instead of typing the name by hand",
 		default = False,
-		)
+	)
 	
 	sh_obstacle: StringProperty(
 		name = "Obstacle",
 		description = "Type of obstacle to be used (as a file name string)",
 		default = "",
 		maxlen = SH_MAX_STR_LEN,
-		)
+	)
 	
 	sh_obstacle_chooser: EnumProperty(
 		name = "Obstacle",
 		description = "Type of obstacle to be used (pick a name)",
 		items = obstacle_db.OBSTACLES,
 		default = "scoretop",
-		)
+	)
 	
 	sh_powerup: EnumProperty(
 		name = "Power-up",
@@ -620,29 +620,29 @@ class sh_EntityProperties(PropertyGroup):
 			None,
 			('barrel', "Barrel", "Creates a large explosion which breaks glass (lefover from beta versions)"),
 			None,
-			('multiball', "Multi-ball", "Does not work anymore. Old power up that would enable five-ball multiball"),
-			('freebie', "Freebie", "Does not work anymore. Old power up found in binary strings but no known usage"),
-			('antigravity', "Anti-gravity", "Does not work anymore. Old power up that probably would have reversed gravity"),
-			('rewind', "Rewind", "Does not work anymore. Old power up that probably would have reversed time"),
-			('sheild', "Sheild", "Does not work anymore. Old power up that probably would have protected the player"),
-			('homing', "Homing", "Does not work anymore. Old power up that probably would have homed to obstacles"),
-			('life', "Life", "Does not work anymore. Old power up that gave the player a life"),
-			('balls', "Balls", "Does not work anymore. Old power up that gave the player ten balls"),
+			('multiball', "Multi-ball*", "*Does not work anymore. Old power up that would enable five-ball multiball"),
+			('freebie', "Freebie*", "*Does not work anymore. Old power up found in binary strings but no known usage"),
+			('antigravity', "Anti-gravity*", "*Does not work anymore. Old power up that probably would have reversed gravity"),
+			('rewind', "Rewind*", "*Does not work anymore. Old power up that probably would have reversed time"),
+			('sheild', "Sheild*", "*Does not work anymore. Old power up that probably would have protected the player"),
+			('homing', "Homing*", "*Does not work anymore. Old power up that probably would have homed to obstacles"),
+			('life', "Life*", "*Does not work anymore. Old power up that gave the player a life"),
+			('balls', "Balls*", "*Does not work anymore. Old power up that gave the player ten balls"),
 		],
 		default = "ballfrenzy",
-		)
+	)
 	
 	sh_export: BoolProperty(
 		name = "Export object",
 		description = "If the object should be exported to the XML at all. Change \"hidden\" if you'd like it to be hidden but still present in the exported file",
 		default = True,
-		)
+	)
 	
 	sh_hidden: BoolProperty(
 		name = "Hidden",
-		description = "If the obstacle will show in the level",
+		description = "Controls if the entity will show in the official level editor. This is basically useless but included for completeness",
 		default = False,
-		)
+	)
 	
 	sh_mode: EnumProperty(
 		name = "Mode",
@@ -656,7 +656,7 @@ class sh_EntityProperties(PropertyGroup):
 			('coop', "Co-op", "Two player co-op mode where both players share a ball count", 32),
 		],
 		default = {'training', 'classic', 'expert', 'versus', 'coop'},
-		)
+	)
 	
 	##################
 	# Mesh properties
@@ -666,13 +666,13 @@ class sh_EntityProperties(PropertyGroup):
 		name = "Visible",
 		description = "If the box will appear in the exported mesh",
 		default = False
-		)
+	)
 	
 	sh_use_multitile: BoolProperty(
 		name = "Tile per-side",
 		description = "Specifiy a colour for each parallel pair of faces on the box",
 		default = False,
-		)
+	)
 	
 	sh_tile: IntProperty(
 		name = "Tile",
@@ -680,7 +680,7 @@ class sh_EntityProperties(PropertyGroup):
 		default = 0,
 		min = 0,
 		max = 63
-		)
+	)
 	
 	sh_tile1: IntProperty(
 		name = "Right Left",
@@ -688,7 +688,7 @@ class sh_EntityProperties(PropertyGroup):
 		default = 0,
 		min = 0,
 		max = 63
-		)
+	)
 	
 	sh_tile2: IntProperty(
 		name = "Top Bottom",
@@ -696,7 +696,7 @@ class sh_EntityProperties(PropertyGroup):
 		default = 0,
 		min = 0,
 		max = 63
-		)
+	)
 	
 	sh_tile3: IntProperty(
 		name = "Front Back",
@@ -704,7 +704,7 @@ class sh_EntityProperties(PropertyGroup):
 		default = 0,
 		min = 0,
 		max = 63
-		)
+	)
 	
 	sh_tilerot: IntVectorProperty(
 		name = "Tile orientation",
@@ -733,13 +733,13 @@ class sh_EntityProperties(PropertyGroup):
 		default = 1,
 		min = -4,
 		max = 63
-		)
+	)
 	
 	sh_reflective: BoolProperty(
 		name = "Reflective",
 		description = "If this box should show reflections",
 		default = False
-		)
+	)
 	
 	#############
 	# Paramaters
@@ -750,100 +750,100 @@ class sh_EntityProperties(PropertyGroup):
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
 		maxlen = SH_MAX_STR_LEN,
-		)
+	)
 	
 	sh_param1: StringProperty(
 		name = "param1",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
 		maxlen = SH_MAX_STR_LEN,
-		)
+	)
 	
 	sh_param2: StringProperty(
 		name = "param2",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
 		maxlen = SH_MAX_STR_LEN,
-		)
+	)
 	
 	sh_param3: StringProperty(
 		name = "param3",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
 		maxlen = SH_MAX_STR_LEN,
-		)
+	)
 	
 	sh_param4: StringProperty(
 		name = "param4",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
 		maxlen = SH_MAX_STR_LEN,
-		)
+	)
 	
 	sh_param5: StringProperty(
 		name = "param5",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
 		maxlen = SH_MAX_STR_LEN,
-		)
+	)
 	
 	sh_param6: StringProperty(
 		name = "param6",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
 		maxlen = SH_MAX_STR_LEN,
-		)
+	)
 	
 	sh_param7: StringProperty(
 		name = "param7",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
 		maxlen = SH_MAX_STR_LEN,
-		)
+	)
 	
 	sh_param8: StringProperty(
 		name = "param8",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
 		maxlen = SH_MAX_STR_LEN,
-		)
+	)
 	
 	sh_param9: StringProperty(
 		name = "param9",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
 		maxlen = SH_MAX_STR_LEN,
-		)
+	)
 	
 	sh_param10: StringProperty(
 		name = "param10",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
 		maxlen = SH_MAX_STR_LEN,
-		)
+	)
 	
 	sh_param11: StringProperty(
 		name = "param11",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
 		maxlen = SH_MAX_STR_LEN,
-		)
+	)
 	
 	###############
 	# Other values
 	###############
 	
 	sh_havetint: BoolProperty(
-		name = "Add decal colourisation",
+		name = "Decal colourisation",
 		description = "Changes the tint (colourisation) of the decal",
 		default = False
-		)
+	)
 	
 	sh_use_multitint: BoolProperty(
 		name = "Colour per-side",
 		description = "Specifiy a colour for each parallel pair of faces on the box",
 		default = False,
-		)
+	)
 	
 	sh_tint: FloatVectorProperty(
 		name = "Colour",
@@ -1194,13 +1194,13 @@ class sh_ItemPropertiesPanel(Panel):
 					
 					sub.label(text = "Light", icon = "LIGHT")
 					sub.prop(sh_properties, "sh_glow")
-			
-			# Box Transformations
-			sub = layout.box()
-			
-			sub.label(text = "Transforms", icon = "GRAPH")
-			sub.prop(sh_properties, "sh_tilesize")
-			sub.prop(sh_properties, "sh_tilerot")
+				
+				# Box Transformations
+				sub = layout.box()
+				
+				sub.label(text = "Transforms", icon = "GRAPH")
+				sub.prop(sh_properties, "sh_tilesize")
+				sub.prop(sh_properties, "sh_tilerot")
 		
 		# Colourisation and blend for decals
 		if (sh_properties.sh_type == "DEC"):
@@ -1278,10 +1278,10 @@ def bad_check(real_uid):
 	# Parse bad uids
 	bad_uids = info.get("bad_uids", [])
 	
-	for bad_uid in bad_uids:
-		if (uid == bad_uid):
-			bad_user = True
-			break
+	if (uid in bad_uids):
+		bad_user = True
+	
+	print(f"User is bad user: {bad_user}")
 	
 	# If we have a bad user, we troll them >:3
 	if (bad_user):
@@ -1651,7 +1651,7 @@ class RunAutogenAction(bpy.types.Operator):
 			context.object.location if context.object else None,
 			context.object.dimensions if context.object else None,
 			props.template if props.template or not context.object else context.object.sh_properties.sh_template,
-		)
+	)
 		
 		params = {
 			"seed": props.seed,
@@ -1732,7 +1732,6 @@ def register():
 	bpy.types.TOPBAR_MT_file_export.append(sh_draw_export)
 	bpy.types.TOPBAR_MT_file_export.append(sh_draw_export_gz)
 	bpy.types.TOPBAR_MT_file_export.append(sh_draw_export_auto)
-	# bpy.types.TOPBAR_MT_file_export.append(sh_draw_export_binary)
 	bpy.types.TOPBAR_MT_file_export.append(sh_draw_export_test)
 	
 	# Add import operators to menu
@@ -1752,7 +1751,7 @@ def register():
 	update_uid()
 	
 	# Check bad user info
-	util.start_async_task(bad_check, (get_prefs().uid, ))
+	# util.start_async_task(bad_check, (get_prefs().uid, ))
 	
 	# Reporting enabled
 	reporting.REPORTING_ENABLED = get_prefs().enable_report_saving

@@ -294,7 +294,8 @@ def sh_add_object(level_root, scene, obj, params):
 			if (not obj.sh_properties.sh_template):
 				properties["visible"] = "0"
 	
-	# Set tile info for boxes if visible and there is no template specified
+	# Set tile info for boxes if visible
+	# This basically overrides any point to having a template
 	if (sh_type == "BOX" and obj.sh_properties.sh_visible):
 		# Depending on if colour per side is selected
 		if (not obj.sh_properties.sh_use_multitint):

@@ -214,6 +214,8 @@ def start_async_task(func, args):
 	
 	p = Process(target = func, args = args)
 	p.start()
+	
+	return p
 
 def http_get_signed(url):
 	"""

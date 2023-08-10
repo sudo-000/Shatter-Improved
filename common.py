@@ -12,10 +12,9 @@ Addon info
 HACK Blender only parses the AST for bl_info so we can't just define it here if it's
 not already cached, which it isn't for new installs
 """
-import dummy
 
 # Get the path
-BLENDER_TOOLS_PATH = os.path.abspath(dummy.__file__)[:-8]
+BLENDER_TOOLS_PATH = os.path.abspath(__file__)[:-9]
 
 # Read main file
 BL_INFO = pathlib.Path(BLENDER_TOOLS_PATH + "/blender_tools.py").read_text()
