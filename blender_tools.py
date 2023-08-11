@@ -1335,13 +1335,13 @@ class sh_Shatter3DViewportMenu(Menu):
 		
 		self.layout.separator()
 		
-		for t in ["box", "obstacle", "decal", "powerup", "water"]:
-			self.layout.operator(f"sh.create_{t}")
+		for t in [("box", "MESH_CUBE"), ("obstacle", "MESH_CONE"), ("decal", "TEXTURE"), ("powerup", "SOLO_OFF"), ("water", "MATFLUID")]:
+			self.layout.operator(f"sh.create_{t[0]}", icon = t[1])
 		
 		self.layout.separator()
 		
-		self.layout.operator("sh.export_auto")
-		self.layout.operator("sh.export_test_server")
+		self.layout.operator("sh.export_auto", icon = "MOD_BEVEL")
+		self.layout.operator("sh.export_test_server", icon = "AUTO")
 
 def sh_Shatter3DViewportMenu_draw(self, context):
 	self.layout.menu("sh_Shatter3DViewportMenu")
