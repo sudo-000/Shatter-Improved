@@ -206,6 +206,48 @@ def find_apk():
 	
 	return path
 
+def set_active(obj):
+	"""
+	Set an object as the only active, selected object
+	"""
+	
+	# Unselect all objects
+	for o in bpy.data.objects:
+		o.select_set(False)
+	
+	# Set selected
+	obj.select_set(True)
+	
+	# Set active
+	bpy.context.view_layer.objects.active = obj
+
+def sh_add_box(pos, size):
+	"""
+	Add a box to the scene and return reference to it
+	
+	See: https://blender.stackexchange.com/questions/2285/how-to-get-reference-to-objects-added-by-an-operator
+	"""
+	
+	bpy.ops.mesh.primitive_cube_add(size = 1.0, location = (pos[0], pos[1], pos[2]), scale = (size[0] * 2, size[1] * 2, size[2] * 2))
+	
+	return bpy.context.active_object
+
+def sh_add_empty():
+	"""
+	Add an empty object and return a reference to it
+	"""
+	
+	o = bpy.data.objects.new("empty", None)
+	
+	bpy.context.scene.collection.objects.link(o)
+	
+	o.empty_display_size = 1
+	o.empty_display_type = "PLAIN_AXES"
+	
+	set_active(o)
+	
+	return o
+
 def start_async_task(func, args):
 	"""
 	Start the given function in its own process, given arguments to pass to the

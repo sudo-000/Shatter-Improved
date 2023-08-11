@@ -6,6 +6,7 @@ import common
 import xml.etree.ElementTree as et
 import bpy
 import gzip
+import util
 
 ## IMPORT
 ## The following things are related to the importer, which is not complete.
@@ -21,31 +22,6 @@ def removeEverythingEqualTo(array, value):
 		except ValueError:
 			return array
 
-def sh_add_box(pos, size):
-	"""
-	Add a box to the scene and return reference to it
-	
-	See: https://blender.stackexchange.com/questions/2285/how-to-get-reference-to-objects-added-by-an-operator
-	"""
-	
-	bpy.ops.mesh.primitive_cube_add(size = 1.0, location = (pos[0], pos[1], pos[2]), scale = (size[0] * 2, size[1] * 2, size[2] * 2))
-	
-	return bpy.context.active_object
-
-def sh_add_empty():
-	"""
-	Add an empty object and return a reference to it
-	"""
-	
-	o = bpy.data.objects.new("empty", None)
-	
-	bpy.context.scene.collection.objects.link(o)
-	
-	o.empty_display_size = 1
-	o.empty_display_type = "PLAIN_AXES"
-	
-	return o
-
 def sh_import_modes(s):
 	"""
 	Import a mode string
@@ -59,6 +35,9 @@ def sh_import_modes(s):
 			res.add(v[0])
 	
 	return res
+
+sh_add_box = util.sh_add_box
+sh_add_empty = util.sh_add_empty
 
 def sh_parse_tile(s):
 	"""

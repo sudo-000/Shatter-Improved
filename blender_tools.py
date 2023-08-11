@@ -98,7 +98,7 @@ class sh_export(sh_ExportCommon):
 				"bake_vertex_light": sh_properties.sh_ambient_occlusion,
 				"lighting_enabled": sh_properties.sh_lighting,
 			}
-	)
+		)
 		
 		return result
 
@@ -131,7 +131,7 @@ class sh_export_gz(sh_ExportCommon):
 				"bake_vertex_light": sh_properties.sh_ambient_occlusion,
 				"lighting_enabled": sh_properties.sh_lighting,
 			}
-	)
+		)
 		
 		return result
 
@@ -162,7 +162,7 @@ class sh_export_auto(bpy.types.Operator):
 				"lighting_enabled": sh_properties.sh_lighting,
 				"auto_find_filepath": True,
 			}
-	)
+		)
 		
 		return result
 
@@ -192,7 +192,7 @@ class sh_export_test(Operator):
 				"sh_test_server": True,
 				"sh_meshbake_template": segment_export.tryTemplatesPath()
 			}
-	)
+		)
 		
 		return result
 
@@ -225,7 +225,7 @@ class sh_export_binary(sh_ExportCommon):
 				"lighting_enabled": sh_properties.sh_lighting,
 				"binary": True,
 			}
-	)
+		)
 		
 		return result
 
@@ -1249,6 +1249,107 @@ class sh_ItemPropertiesPanel(Panel):
 		
 		layout.separator()
 
+class sh_CreateBox(Operator):
+	"""
+	Operator to create a box
+	"""
+	
+	bl_idname = "sh.create_box"
+	bl_label = "Create box"
+	
+	def execute(self, context):
+		o = util.sh_add_box((0,0,0), (1,1,1))
+		
+		return {"FINISHED"}
+
+class sh_CreateObstacle(Operator):
+	"""
+	Operator to create a obstacle
+	"""
+	
+	bl_idname = "sh.create_obstacle"
+	bl_label = "Create obstacle"
+	
+	def execute(self, context):
+		o = util.sh_add_empty()
+		o.sh_properties.sh_type = "OBS"
+		
+		return {"FINISHED"}
+
+class sh_CreateDecal(Operator):
+	"""
+	Operator to create a decal
+	"""
+	
+	bl_idname = "sh.create_decal"
+	bl_label = "Create decal"
+	
+	def execute(self, context):
+		o = util.sh_add_empty()
+		o.sh_properties.sh_type = "DEC"
+		
+		return {"FINISHED"}
+
+class sh_CreatePowerup(Operator):
+	"""
+	Operator to create a powerup
+	"""
+	
+	bl_idname = "sh.create_powerup"
+	bl_label = "Create powerup"
+	
+	def execute(self, context):
+		o = util.sh_add_empty()
+		o.sh_properties.sh_type = "POW"
+		
+		return {"FINISHED"}
+
+class sh_CreateWater(Operator):
+	"""
+	Operator to create a water
+	"""
+	
+	bl_idname = "sh.create_water"
+	bl_label = "Create water"
+	
+	def execute(self, context):
+		o = util.sh_add_box((0,0,0), (1,1,0))
+		o.sh_properties.sh_type = "WAT"
+		
+		return {"FINISHED"}
+
+class sh_Shatter3DViewportMenuExtras(Menu):
+	bl_label = "Extra features"
+	
+	def draw(self, context):
+		self.layout.operator("sh.rebake_meshes")
+		self.layout.separator()
+		self.layout.operator("sh.segstrate_auto")
+		self.layout.operator("sh.segstrate_static")
+
+class sh_Shatter3DViewportMenu(Menu):
+	bl_label = "Shatter"
+	
+	def draw(self, context):
+		self.layout.menu("sh_Shatter3DViewportMenuExtras")
+		
+		self.layout.separator()
+		
+		for t in ["box", "obstacle", "decal", "powerup", "water"]:
+			self.layout.operator(f"sh.create_{t}")
+		
+		self.layout.separator()
+		
+		self.layout.operator("sh.export_auto")
+		self.layout.operator("sh.export_test_server")
+
+def sh_Shatter3DViewportMenu_draw(self, context):
+	self.layout.menu("sh_Shatter3DViewportMenu")
+
+################################################################################
+# UTILITIES AND STUFF
+################################################################################
+
 def run_updater():
 	try:
 		global bl_info
@@ -1713,11 +1814,30 @@ classes = (
 	sh_auto_setup_segstrate,
 	sh_static_segstrate,
 	sh_rebake_meshes,
+	sh_Shatter3DViewportMenuExtras,
+	sh_Shatter3DViewportMenu,
+	sh_CreateBox,
+	sh_CreateObstacle,
+	sh_CreateDecal,
+	sh_CreatePowerup,
+	sh_CreateWater,
 	AutogenProperties,
 	AutogenPanel,
 	RunRandomiseSeedAction,
 	RunAutogenAction,
 )
+
+keymaps = {
+	"D": "sh.create_box",
+	"F": "sh.create_obstacle",
+	"X": "sh.create_decal",
+	"C": "sh.create_powerup",
+	"V": "sh.create_water",
+	"R": "sh.export_auto",
+	"E": "sh.export_test_server",
+}
+
+keymaps_registered = []
 
 def register():
 	from bpy.utils import register_class
@@ -1738,6 +1858,18 @@ def register():
 	# Add import operators to menu
 	bpy.types.TOPBAR_MT_file_import.append(sh_draw_import)
 	bpy.types.TOPBAR_MT_file_import.append(sh_draw_import_gz)
+	
+	# Add Shatter menu in 3D viewport
+	bpy.types.VIEW3D_MT_editor_menus.append(sh_Shatter3DViewportMenu_draw)
+	
+	# Register keymaps
+	window_manager = bpy.context.window_manager
+	
+	if (window_manager.keyconfigs.addon):
+		for a in keymaps:
+			keymap = window_manager.keyconfigs.addon.keymaps.new(name = '3D View', space_type = 'VIEW_3D')
+			keymap_item = keymap.keymap_items.new(keymaps[a], type = a, value = 'PRESS', shift = 1, alt = 1)
+			keymaps_registered.append((keymap, keymap_item))
 	
 	# Start server
 	global g_process_test_server
@@ -1760,10 +1892,31 @@ def register():
 def unregister():
 	from bpy.utils import unregister_class
 	
+	# Remove export operators
+	bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export)
+	bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export_gz)
+	bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export_auto)
+	bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export_test)
+	
+	# Remove import operators
+	bpy.types.TOPBAR_MT_file_import.remove(sh_draw_import)
+	bpy.types.TOPBAR_MT_file_import.remove(sh_draw_import_gz)
+	
+	# Remove editor menu UI
+	bpy.types.VIEW3D_MT_editor_menus.remove(sh_Shatter3DViewportMenu_draw)
+	
+	# Delete property types
 	del bpy.types.Scene.sh_properties
 	del bpy.types.Scene.shatter_autogen
 	del bpy.types.Object.sh_properties
 	
+	# Delete keymaps
+	for a, b in keymaps_registered:
+		a.keymap_items.remove(b)
+	
+	keymaps_registered.clear()
+	
+	# Unregister classes
 	for cls in reversed(classes):
 		# Blender decided it would be a piece of shit today 
 		try:
