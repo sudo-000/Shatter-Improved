@@ -12,7 +12,7 @@ bl_info = {
 	"name": "Shatter",
 	"description": "Blender-based tools for editing, saving and loading Smash Hit segments.",
 	"author": "Shatter Team",
-	"version": (2023, 8, 4),
+	"version": (2023, 8, 11),
 	"blender": (3, 2, 0),
 	"location": "File > Import/Export and 3D View > Tools",
 	"warning": "",
@@ -1569,13 +1569,21 @@ class AutogenProperties(PropertyGroup):
 		description = "",
 		default = False,
 	)
+	
+	### Arch ###
+	
+	arch_top_parts: BoolProperty(
+		name = "Top decorations",
+		description = "",
+		default = True,
+	)
 
 class AutogenPanel(Panel):
 	bl_label = "Shatter Autogen"
 	bl_idname = "OBJECT_PT_autogen_panel"
 	bl_space_type = "VIEW_3D"
 	bl_region_type = "UI"
-	bl_category = "Tools"
+	bl_category = "Autogen"
 	
 	@classmethod
 	def poll(self, context):
@@ -1618,6 +1626,10 @@ class AutogenPanel(Panel):
 		if (props.type == "BasicRoom"):
 			sub.prop(props, "room_length")
 			sub.prop(props, "room_door_part")
+		
+		# Archway
+		if (props.type == "ArchWay"):
+			sub.prop(props, "arch_top_parts")
 		
 		sub.operator("sh.run_autogen", text = "Generate")
 		
@@ -1783,6 +1795,10 @@ class RunAutogenAction(bpy.types.Operator):
 		if (props.type == "BasicRoom"):
 			params["room_length"] = props.room_length
 			params["room_door_part"] = props.room_door_part
+		
+		# Archway
+		if (props.type == "ArchWay"):
+			params["top_parts"] = props.arch_top_parts
 		
 		autogen.generate(bbp, params)
 		

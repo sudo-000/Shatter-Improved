@@ -41,6 +41,20 @@ class Box:
 		
 		return Vector3(self.pos.x, self.pos.y + self.size.y, self.pos.z)
 	
+	def getFront(self):
+		"""
+		Get the centre front of the box
+		"""
+		
+		return Vector3(self.pos.x, self.pos.y, self.pos.z + self.size.z)
+	
+	def getTopFront(self):
+		"""
+		Get the top front of the box
+		"""
+		
+		return Vector3(self.pos.x, self.pos.y + self.size.y, self.pos.z + self.size.z)
+	
 	def getWidth(self):
 		"""
 		Get the width of the box
@@ -61,6 +75,14 @@ class Box:
 		"""
 		
 		self.pos = (box.getTop() if type(box) != Vector3 else box) + Vector3(y = self.size.y)
+		return self
+	
+	def placeOnFrontOf(self, box):
+		"""
+		The the position for another place a box on top of this
+		"""
+		
+		self.pos = (box.getFront() if type(box) != Vector3 else box) + Vector3(z = self.size.z)
 		return self
 	
 	def move(self, by):
@@ -341,11 +363,12 @@ class ArchWay:
 		self.placer = placer
 		self.origin = placer.getBase().getTop() if placer.getBase() else Vector3()
 		self.params = params
+		self.random = Random(params["seed"])
 		# Height and width are of the inner part
 		# We also devide by two so we can just use them
 		self.width = params["size"][0] / 2
 		self.height = params["size"][1] / 2
-		self.top_parts = params.get("top_parts", False)
+		self.top_parts = params.get("top_parts", True)
 		self.bottom_parts = params.get("bottom_parts", False)
 		self.running = True
 	
@@ -364,6 +387,39 @@ class ArchWay:
 		self.placer.addBox(leftBox)
 		self.placer.addBox(rightBox)
 		self.placer.addBox(topBox)
+		
+		# Top bumps
+		# I probably should think of a better way to do this but it works really
+		# well like this, actually.
+		if (self.top_parts):
+			for curBox in (leftBox, rightBox):
+				# Yes, these are fixed and cannot be changed
+				options = [
+					[3/16, 3/16, 3/16, 4/16, 4/16, 4/16, 4/16],
+					[2/16, 2/16, 3/16, 3/16, 3/16],
+					[0.0, 1/16, 1/16, 1/16, 2/16, 2/16, 2/16, 2/16, 2/16, 2/16],
+				]
+				
+				for ySubPart in range(min(3, int(self.height))):
+					# Chose which to use
+					i = self.random.randint(0, len(options[ySubPart]) - 1)
+					
+					# Eliminate higher options
+					# options = options[0:i + 1]
+					
+					# Depth (height?) of this box
+					h = options[ySubPart][i]
+					
+					if (h <= 0.0): break
+					
+					# Create the new box
+					box = Box(Vector3(), Vector3(0.5, 0.5, h))
+					
+					# Place the current box
+					box.placeOnFrontOf(curBox.getTopFront()).move(Vector3(y = -0.5 - ySubPart))
+					
+					# Add it to the scene
+					self.placer.addBox(box)
 		
 		# Done!
 		self.running = False
