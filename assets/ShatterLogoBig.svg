@@ -29,7 +29,7 @@
      inkscape:document-units="px"
      showgrid="false"
      inkscape:zoom="4.0431818"
-     inkscape:cx="163.4851"
+     inkscape:cx="210.84879"
      inkscape:cy="63.934795"
      inkscape:window-width="1920"
      inkscape:window-height="995"
@@ -701,10 +701,10 @@
        style="color-interpolation-filters:sRGB;"
        inkscape:label="Drop Shadow"
        id="filter2939"
-       x="-0.028154578"
-       y="-0.13141373"
-       width="1.0563092"
-       height="1.2993313">
+       x="-0.026096232"
+       y="-0.12345968"
+       width="1.0521925"
+       height="1.2812137">
       <feFlood
          flood-opacity="0.301961"
          flood-color="rgb(0,0,0)"
@@ -801,13 +801,13 @@
     </g>
     <text
        xml:space="preserve"
-       style="font-size:22.5778px;font-family:Gilroy-Bold;-inkscape-font-specification:Gilroy-Bold;fill:url(#linearGradient1202);stroke-width:1.00012;stroke-linejoin:round;fill-opacity:1;filter:url(#filter2939)"
+       style="font-size:22.5778px;font-family:Gilroy-Bold;-inkscape-font-specification:Gilroy-Bold;fill:url(#linearGradient1202);fill-opacity:1;stroke-width:1.00012;stroke-linejoin:round;filter:url(#filter2939)"
        x="35.598083"
        y="24.835564"
        id="text17973"><tspan
          sodipodi:role="line"
          id="tspan17971"
-         style="font-size:22.5778px;stroke-width:1.00012;fill:url(#linearGradient1202);fill-opacity:1"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:22.5778px;font-family:'Kumbh Sans';-inkscape-font-specification:'Kumbh Sans';fill:url(#linearGradient1202);fill-opacity:1;stroke-width:1.00012"
          x="35.598083"
          y="24.835564">Shatter</tspan></text>
     <rect

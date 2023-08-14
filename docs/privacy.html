@@ -4,9 +4,11 @@
 		<meta charset="utf-8"/>
 		<link rel="shortcut icon" type="image/png" href="./res/icon.png"/>
 		<link rel="stylesheet" href="./res/main.css"/>
-		<title>Privacy &mdash; Shatter for Blender</title>
-		<meta name="description" content="Smash Hit™ Blender® Tools is an addon for the 3D modeling software Blender that allows the creation of Smash Hit segments."/>
-		<meta name="keywords" content="Smash Hit, Modding, Blender, Level Editor, Segment Editor, Smash Hit Blender Tools, Carambola"/>
+		<title>Privacy &mdash; Shatter</title>
+		<!-- Metadata -->
+		<meta name="description" content="Shatter is an addon for the 3D modeling software Blender that allows the creation of Smash Hit segments."/>
+		<meta name="keywords" content="Smash Hit, Modding, Blender, Level Editor, Segment Editor, Smash Hit Blender Tools, Carambola, Shatter, Shatter for Blender"/>
+		<!-- Email decode script -->
 		<script>
 			function decodeName(name) {
 				let result = atob(atob(name));
@@ -23,55 +25,43 @@
 		</div>
 		<div class="main-section nc-top nc-bottom">
 			<h1 class="post-navbar-padding">Privacy and Security Statement</h1>
-			<p><b><i>This is not a legally binding document. It is for informational purposes only.</i></b></p>
+			<div class="warning-main">
+				<div class="warning-left"><img src="./res/info.png" width="32px"/></div>
+				<div class="warning-right"><p><b>This is not a legally binding document and it is for informational purposes only.</b></p></div>
+			</div>
+			<h3>User IDs</h3>
+			<p>Each install of Shatter is given a random user ID that is generated on your device. This user ID is never submitted to servers, but may be included in your segment's XML file if you have the "Export metadata" option enabled in Shatter preferences.</p>
+<!-- 			<p>We currently only use user IDs to block users from using Shatter in some extreme cases. We do not send your user ID to the server for this check; instead, we download a list of all blocked user IDs and compare yours against them on your device.</p> -->
+<!-- 			<p>Please note that using segment protection featuers, like Segstrate, might require that you enable "Export metadata" and therefore export user IDs.</p> -->
 			<h3>Connection to external services</h3>
-			<p>Smash Hit™ Blender® Tools developers do not store personal information unless you explicitly provide it to us; however, there are <b>some features of Blender Tools that connect to the internet</b> which may <b>collect personally identifiable information</b>:</p>
+			<p>Shatter developers do not use online services to store personal information unless you explicitly provide it to us; however, there are <b>some features of Shatter that connect to the internet</b> which may <b>collect personally identifiable information</b>:</p>
 			<ul>
 				<li>The automatic updater <b>requests files from GitHub servers</b> in some cases. Please see <a href="https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement">GitHub's privacy statement</a>.</li>
-				<li>Some versions of Shatter may feature opt-in telemetry, which will submit crash reports to our logging service.</li>
-			</ul>
-			<details>
-				<summary>Automatic update security issues reporting</summary>
-				<p>There has currently been no external security audit. If you find an issue or want to preform an audit, please report it to one of the following:</p>
+				<li>Shatter may <b>download a list of SHA1 user ID hashes</b> to see if your user ID has been blocked from using Shatter.</li>
 				<ul>
-					<li>Knot126 via Discord: <span id="name-UzI1dmRERXlOaU01TmpnMw" onclick="decodeName('UzI1dmRERXlOaU01TmpnMw')" style="color: #66e0ff; cursor: pointer;">Click to see name</span></li>
-					<li>Knot126 via Email: <span id="name-WTJSa1pYQndjSEF5TlRZZ1cyRjBYU0JuYldGcGJDQmJaRzkwWFNCamIyMA" onclick="decodeName('WTJSa1pYQndjSEF5TlRZZ1cyRjBYU0JuYldGcGJDQmJaRzkwWFNCamIyMA')" style="color: #66e0ff; cursor: pointer;">Click to see email</span></li>
+					<li>Note: Due to bugs, this is disabled in current versions of Shatter.</li>
 				</ul>
-				<p><b>If you send an email or DM about non-security related issues, you will most likely be blocked.</b> Please keep discussion public unless it is sensitive.</p>
-			</details>
+				<li><s>Some versions of Shatter <b>may have opt-in telemetry options</b>, which will submit crash reports to our logging service.</s></li>
+				<ul>
+					<li>Note: The telemetry endpoints were taken down on 31 July 2023 and will no longer collect information.</li>
+				</ul>
+			</ul>
 			<h3>Hosting or creating local network services</h3>
 			<p>There are also features which require hosting a webserver, which <b>might be exposed to the public</b> if your network is configured incorrectly:</p>
 			<ul>
 				<li>The quick test feature requires <b>hosting a webserver</b> which does not serve anything but files at semi-hardcoded file paths.</li>
 			</ul>
-			<h3>Disabling parts of Blender Tools that use network connectivity</h3>
-			<p>It is possible to disable parts of Blender Tools that require network connections. Please see the below sections for information on how to disable these features.</p>
-			<h4>For version 2.1.0 and later</h4>
-			<p>Go to the Blender Addon Preferences (<code>Edit</code> → <code>Add ons</code>), then find Smash Hit Tools. You can find options to disable and enable the update notifier, the auto-updater and the quick test server.</p>
-			<h4>Previous versions</h4>
-			<p>Please see <a href="#disable-quick-test-and-or-updater-on-2-0-x">Disable Quick Test and/or Updater on 2.0.x</a>.</p>
-			<details id="disable-quick-test-and-or-updater-on-2-0-x">
-				<summary>Disable Quick Test and/or Updater on 2.0.x</summary>
-				<h3>Disable the quick test server (before 2.1.0)</h3>
-				<p>If you would like to disable the quick test server:
+			<h3>Automatic update security</h3>
+			<p>We use code signing to verify that updates come from the original developers of Shatter, even in the event that an account is hacked; however, code signing like this could still fail if an attacker has access to private keys needed to sign Shatter updates. Since Blender addons run an unsandboxed version of python, this means a malicous update could be able to install malicous software, like malware or viruses, if a developer is successfully attacked. You shouldn't enable automatic updates if you are concerned about running bad programs.</p>
+			<h3>Disabling network connectivity and other features</h3>
+			<p>You can disable parts of Shatter that require network connections and similar features by going to the Blender Addon Preferences (<code>Edit</code> → <code>Preferences</code> → <code>Add ons</code>), then finding "Shatter". You can then find options to disable and enable the update notifier, the auto-updater and the quick test server.</p>
+			<details>
+				<summary>How to report security issues</summary>
+				<p>There has currently been no external security audit. If you find an issue or want to preform an audit, please report it to one of the following:</p>
 				<ul>
-					<li>find the Blender addons folder</li>
-					<li>open <code>blender_tools.py</code> in a text editor</li>
-					<li>find the line that says <code>g_process_test_server = True</code></li>
-					<li>replace <code>True</code> with <code>False</code></li>
-					<li>save the file</li>
+					<li>Knot126 via Email: <span id="name-WTJSa1pYQndjSEF5TlRZZ1cyRjBYU0JuYldGcGJDQmJaRzkwWFNCamIyMA" onclick="decodeName('WTJSa1pYQndjSEF5TlRZZ1cyRjBYU0JuYldGcGJDQmJaRzkwWFNCamIyMA')" style="color: #66e0ff; cursor: pointer;">Click to see email</span></li>
 				</ul>
-				<p>You will need to do this every time you update Blender Tools.</p>
-				<h3>Disable the update notifier (before 2.1.0)</h3>
-				<p>If you would like to disable the update notifier:
-				<ul>
-					<li>find the Blender addons folder</li>
-					<li>open <code>common.py</code> in a text editor</li>
-					<li>find the line that says <code>UPDATE_INFO = "https://smashing-tech.github.io/Smash-Hit-Blender-Tools/update.json"</code></li>
-					<li>replace the line with <code>UPDATE_INFO = ""</code></p></li>
-					<li>save the file</li>
-				</ul>
-				<p>You will need to do this every time you update Blender Tools.</p>
+				<p><b>If you send an email or DM about non-security related issues, you will most likely be blocked.</b> Please keep discussion public unless it is sensitive.</p>
 			</details>
 			<div class="bottom-section">
 				<p>Content on this page is available under the <a rel="license" href="https://creativecommons.org/licenses/by/4.0/legalcode">Creative Commons Attribution 4.0 International</a> licence.</p>

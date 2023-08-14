@@ -104,6 +104,11 @@ details {
 	padding-left: 1em;
 }
 
+.warning-right p {
+	padding-bottom: 0;
+	margin-bottom: 0;
+}
+
 .navbar-section {
 	-webkit-backdrop-filter: blur(1.25em);
 	backdrop-filter: blur(1.25em);
