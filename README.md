@@ -18,4 +18,4 @@
 
 ## Help
 
-Please see [the wiki](https://github.com/Shatter-Team/Shatter/wiki) for information about how to use the addon, as well as some technical information about Smash Hit and the mesh baker.
+Please see [the wiki](https://github.com/Smashing-Tech/Smash-Hit-Blender-Tools/wiki) for information about how to use the addon, as well as some technical information about Smash Hit and the mesh baker.

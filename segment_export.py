@@ -17,8 +17,23 @@ import util
 import json
 import pathlib
 
-from bpy.props import (StringProperty, BoolProperty, IntProperty, IntVectorProperty, FloatProperty, FloatVectorProperty, EnumProperty, PointerProperty)
-from bpy.types import (Panel, Menu, Operator, PropertyGroup)
+from bpy.props import (
+	StringProperty,
+	BoolProperty,
+	IntProperty,
+	IntVectorProperty,
+	FloatProperty,
+	FloatVectorProperty,
+	EnumProperty,
+	PointerProperty,
+)
+
+from bpy.types import (
+	Panel,
+	Menu,
+	Operator,
+	PropertyGroup,
+)
 
 def tryTemplatesPath():
 	"""
@@ -159,20 +174,20 @@ def sh_create_root(scene, params):
 	if (scene.sh_drm_disallow_import or bpy.context.preferences.addons["blender_tools"].preferences.force_disallow_import):
 		seg_props["drm"] = "NoImport"
 	
-	# Creator information - always exported if available
+	# Creator information
 	creator = bpy.context.preferences.addons["blender_tools"].preferences.creator
 	
-	if (creator):
-		seg_props["shbt-meta-creator"] = creator
-	
-	# Metadata, if allowed
-	if (bpy.context.preferences.addons["blender_tools"].preferences.enable_metadata):
+	# Metadata, if allowed, and SOS not enabled
+	if (bpy.context.preferences.addons["blender_tools"].preferences.enable_metadata and not bpy.context.preferences.addons["blender_tools"].preferences.segment_originality_service):
 		# Export time
 		seg_props["shbt-meta-time"] = hex(util.get_time())[2:]
 		
 		# Export user trace if the creator wasn't specified
-		if (not creator):
-			seg_props["shbt-meta-uid"] = bpy.context.preferences.addons["blender_tools"].preferences.uid
+		seg_props["shbt-meta-uid"] = bpy.context.preferences.addons["blender_tools"].preferences.uid
+		
+		# Creator info
+		if (creator):
+			seg_props["shbt-meta-creator"] = creator
 	
 	# Create main root and return it
 	level_root = et.Element("segment", seg_props)
@@ -615,6 +630,11 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 	else:
 		with gzip.open(filepath, "wb") as f:
 			f.write(content.encode())
+	
+	# If segment claiming is enabled, then submit this segment.
+	if (context.preferences.addons["blender_tools"].preferences.segment_originality_service):
+		import remote_api
+		remote_api.claim_segment_text(context, content)
 	
 	context.window_manager.progress_update(1.0)
 	context.window_manager.progress_end()

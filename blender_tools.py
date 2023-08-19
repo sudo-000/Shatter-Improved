@@ -12,7 +12,7 @@ bl_info = {
 	"name": "Shatter",
 	"description": "Blender-based tools for editing, saving and loading Smash Hit segments.",
 	"author": "Shatter Team",
-	"version": (2023, 8, 11),
+	"version": (2023, 8, 19),
 	"blender": (3, 2, 0),
 	"location": "File > Import/Export and 3D View > Tools",
 	"warning": "",
@@ -25,6 +25,7 @@ import xml.etree.ElementTree as et
 import bpy
 import gzip
 import random
+import os
 import tempfile
 import obstacle_db
 import segment_export
@@ -35,10 +36,28 @@ import server
 import secrets
 import updater
 import autogen
+import remote_api
 import util
 
-from bpy.props import (StringProperty, BoolProperty, IntProperty, IntVectorProperty, FloatProperty, FloatVectorProperty, EnumProperty, PointerProperty)
-from bpy.types import (Panel, Menu, Operator, PropertyGroup, AddonPreferences)
+from bpy.props import (
+	StringProperty,
+	BoolProperty,
+	IntProperty,
+	IntVectorProperty,
+	FloatProperty,
+	FloatVectorProperty,
+	EnumProperty,
+	PointerProperty,
+)
+
+from bpy.types import (
+	Panel,
+	Menu,
+	Operator,
+	PropertyGroup,
+	AddonPreferences,
+)
+
 from bpy_extras.io_utils import ImportHelper
 
 # The name of the test server. If set to false initially, the test server will
@@ -290,6 +309,9 @@ class sh_auto_setup_segstrate(bpy.types.Operator):
 	bl_label = "One-click setup segstrate protection"
 	
 	def execute(self, context):
+		if (not get_prefs().segment_originality_service):
+			raise Exception("You must be using the Shatter segment upload service to use protection.")
+		
 		context.window.cursor_set('WAIT')
 		
 		apk_path = util.find_apk()
@@ -318,6 +340,9 @@ class sh_static_segstrate(bpy.types.Operator, ImportHelper):
 	)
 	
 	def execute(self, context):
+		if (not get_prefs().segment_originality_service):
+			raise Exception("You must be using the Shatter segment upload service to use protection.")
+		
 		if (self.agreement):
 			context.window.cursor_set('WAIT')
 			segstrate.setup_apk(self.filepath, False)
@@ -916,26 +941,14 @@ class sh_AddonPreferences(AddonPreferences):
 	## Segment Export ##
 	enable_metadata: BoolProperty(
 		name = "Export metadata",
-		description = "Allows exporting metadata with the segment, like the time it was created and a user trace or ID",
+		description = "Allows exporting metadata with the segment, like the time it was created and a user trace or ID. This option is not compatible with the segment claim service",
 		default = True,
-	)
-	
-	force_disallow_import: BoolProperty(
-		name = "Always disallow import",
-		description = "Enabling this option will force every segment to have the \"disallow import\" flag set, even if you did not configure it via the obstacle panel. Please note that marking segments with this flag does not prevent someone bypassing it",
-		default = False,
 	)
 	
 	default_assets_path: StringProperty(
 		name = "Default assets path",
 		description = "The path to your Smash Hit assets folder, if you want to override the default automatic APK finding",
 		subtype = "DIR_PATH",
-		default = "",
-	)
-	
-	creator: StringProperty(
-		name = "Creator name",
-		description = "(Optional) The name that you want to be known as in the creator feild of the segment",
 		default = "",
 	)
 	
@@ -974,29 +987,35 @@ class sh_AddonPreferences(AddonPreferences):
 		default = False,
 	)
 	
-	## Mod Services (NOT COMPLETED) ##
-	enable_shl_integration: BoolProperty(
-		name = "smash hit lab integration",
-		description = "beta",
+	## Protection options ##
+	force_disallow_import: BoolProperty(
+		name = "Always disallow import",
+		description = "Enabling this option will force every segment to have the \"disallow import\" flag set, even if you did not configure it via the obstacle panel. Please note that marking segments with this flag does not prevent someone bypassing it",
 		default = False,
 	)
 	
-	shl_handle: StringProperty(
-		name = "Handle",
-		description = "Your Smash Hit Lab username",
-		default = "",
+	segment_originality_service_tos: BoolProperty(
+		name = "I agree to the Segement Claim Service terms of service",
+		description = "In order to use the Segment Claim Service (the \"Service\"), you agree that we can store your data on our servers (the \"Servers\"). This data includes things like the time you sign up, your creator name, your Shatter user ID, hashes of segment files, times of segment claim submission and other metadata that we need to provide the Service. You agree that we may make any collected information available to the public for an unlimited peroid of time. You can delete non-public account data at https://smashhitlab.000webhostapp.com/shatter/api.php?action=weak-user-login-ui by logging in any time you like. Public data is stored permantently on our Servers as doing otherwise would defeat the purpose of the Service, which is to keep an ongoing correlation between user IDs and segments",
+		default = False,
 	)
 	
-	shl_password: StringProperty(
-		name = "Password",
-		description = "Your Smash Hit Lab password",
-		subtype = "PASSWORD",
-		default = "",
+	segment_originality_service: BoolProperty(
+		name = "Enable the Segment Claim Service",
+		description = "This option will send any exported segments to the Segment Claim server, where they are hashed and kept for reference. This will allow you to claim segments as being originally made by you, and allow other users to upload your segment to see who made it",
+		default = False,
 	)
 	
-	shl_session_token: StringProperty(
-		name = "Session token",
-		description = "Current session token. Blank if it's not valid. Format \"{{tk}}:{{lb}}\"",
+	creator: StringProperty(
+		name = "Display name",
+		description = "The name you would like to be known as when people look up your segment",
+		default = "",
+		update = remote_api.creator_name_updated_callback,
+	)
+	
+	report_info: StringProperty(
+		name = "Report info",
+		description = "A link or directions to a social profile that users can click on or follow to report stolen segments",
 		default = "",
 	)
 	
@@ -1012,16 +1031,15 @@ class sh_AddonPreferences(AddonPreferences):
 		main = self.layout
 		
 		ui = main.box()
-		ui.label(text = "Segment export", icon = "MOD_WIREFRAME")
-		ui.prop(self, "enable_metadata")
-		ui.prop(self, "force_disallow_import")
+		ui.label(text = "General options", icon = "PREFERENCES")
 		ui.prop(self, "default_assets_path")
-		ui.prop(self, "creator")
+		if (not self.segment_originality_service):
+			ui.prop(self, "enable_metadata")
 		
 		ui = main.box()
-		ui.label(text = "Features, network and privacy", icon = "WORLD")
-		ui.label(text = "If metadata is enabled, we might export your user ID alongside your segment.")
-		ui.label(text = f"Your user ID: {self.uid}")
+		ui.label(text = "Network features", icon = "WORLD")
+		ui.label(text = f"Your unique user ID: {self.uid}")
+		ui.prop(self, "enable_quick_test_server")
 		ui.prop(self, "enable_update_notifier")
 		ui.prop(self, "updater_channel")
 		if (self.enable_update_notifier):
@@ -1029,19 +1047,19 @@ class sh_AddonPreferences(AddonPreferences):
 			if (self.enable_auto_update):
 				box = ui.box()
 				box.label(icon = "ERROR", text = "Please note: If a bad update is released, it might break Shatter. Be careful!")
-		ui.prop(self, "enable_quick_test_server")
-		ui.prop(self, "enable_report_saving")
+		
+		ui = main.box()
+		ui.label(text = "Protection", icon = "LOCKED")
+		ui.prop(self, "force_disallow_import")
+		ui.prop(self, "segment_originality_service_tos")
+		if (self.segment_originality_service_tos):
+			ui.prop(self, "segment_originality_service")
+			if (self.segment_originality_service):
+				ui.prop(self, "creator")
 		
 		## TODO Put a quick test box with autoconfig option
 		
 		## TODO Tweaks menu with option to help with snapping to increments
-		
-		if (self.enable_shl_integration):
-			ui = main.box()
-			ui.label(text = "Shatter Online Services", icon = "KEYINGSET")
-			ui.prop(self, "shl_handle")
-			ui.prop(self, "shl_password")
-			ui.operator("sh.shl_login", text = "Log in")
 
 class sh_SegmentPanel(Panel):
 	bl_label = "Smash Hit"
@@ -1323,9 +1341,10 @@ class sh_Shatter3DViewportMenuExtras(Menu):
 	
 	def draw(self, context):
 		self.layout.operator("sh.rebake_meshes")
-		self.layout.separator()
-		self.layout.operator("sh.segstrate_auto")
-		self.layout.operator("sh.segstrate_static")
+		if (get_prefs().segment_originality_service):
+			self.layout.separator()
+			self.layout.operator("sh.segstrate_auto")
+			self.layout.operator("sh.segstrate_static")
 
 class sh_Shatter3DViewportMenu(Menu):
 	bl_label = "Shatter"
@@ -1419,7 +1438,9 @@ def update_uid():
 	uid_file = f"{common.BLENDER_TOOLS_PATH}/uid"
 	uid_from_file = util.get_file(uid_file)
 	
-	if (not get_prefs().uid):
+	uid_from_blender = get_prefs().uid
+	
+	if (not uid_from_blender):
 		if (not uid_from_file):
 			# Never had a uid before
 			new_uid = generate_uid()
@@ -1430,7 +1451,9 @@ def update_uid():
 			# reinstalled
 			bpy.context.preferences.addons["blender_tools"].preferences.uid = uid_from_file
 	
-	# TODO Check for tampering, will happen if they are not the same uid...
+	# Check for tampering, will happen if they are not the same uid...
+	if (uid_from_file and uid_from_blender and uid_from_file != uid_from_blender):
+		pass#os._exit(69)
 
 def generate_uid():
 	s = secrets.token_hex(16)
@@ -1901,6 +1924,8 @@ def register():
 	
 	# Check bad user info
 	# util.start_async_task(bad_check, (get_prefs().uid, ))
+	if (get_prefs().segment_originality_service):
+		bad_check(get_prefs().uid)
 	
 	# Reporting enabled
 	reporting.REPORTING_ENABLED = get_prefs().enable_report_saving

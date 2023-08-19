@@ -39,21 +39,15 @@ Bad user info url
 BAD_USER_INFO = "https://shatter-team.github.io/Shatter-Meta/badusers.json"
 
 """
-Telemetry capture URL
+Shatter API endpoint
 """
-TELEMETRY_ENDPOINT = "https://smashhitlab.000webhostapp.com/crash.php?action=report"
-
-"""
-Enable logging
-"""
-PRINT_LOGGING = True
-FILE_LOGGING = False
+SHATTER_API = "https://smashhitlab.000webhostapp.com/shatter/api.php?action="
 
 """
 Blender Tools configuration directory
 """
 HOME_FOLDER = str(pathlib.Path.home())
-TOOLS_HOME_FOLDER = HOME_FOLDER + "/Shatter for Blender"
+TOOLS_HOME_FOLDER = HOME_FOLDER + "/Shatter"
 
 # Create shbt folder if it does not exist
 os.makedirs(TOOLS_HOME_FOLDER, exist_ok = True)
