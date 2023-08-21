@@ -4,6 +4,7 @@ import json
 import util
 import os, os.path
 import secrets
+import hashlib
 from urllib.parse import quote
 
 ACCOUNT_INFO_DIR = common.TOOLS_HOME_FOLDER + "/Account Information"
@@ -126,6 +127,7 @@ def claim_segment_text(context, text):
 	s = weak_user_claim_segment(load_weak_user(preferences.uid), text)
 	
 	print(f"Weak user claim segment status: {s}")
+	print(f"Hash of submitted segment: " + hashlib.sha3_256(text.encode('utf-8')).hexdigest())
 
 def creator_name_updated_callback(self, context):
 	"""

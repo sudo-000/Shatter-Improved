@@ -625,8 +625,8 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 	
 	# Write out file
 	if (not compress):
-		with open(filepath, "w") as f:
-			f.write(content)
+		with open(filepath, "wb") as f:
+			f.write(content.encode())
 	else:
 		with gzip.open(filepath, "wb") as f:
 			f.write(content.encode())

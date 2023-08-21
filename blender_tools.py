@@ -26,6 +26,7 @@ import bpy
 import gzip
 import random
 import os
+import webbrowser
 import tempfile
 import obstacle_db
 import segment_export
@@ -1055,7 +1056,11 @@ class sh_AddonPreferences(AddonPreferences):
 		if (self.segment_originality_service_tos):
 			ui.prop(self, "segment_originality_service")
 			if (self.segment_originality_service):
-				ui.prop(self, "creator")
+				sub = ui.box()
+				sub.label(text = "Account", icon = "HAND")
+				sub.prop(self, "creator")
+				sub.operator("sh.open_shatter_service_delete_account")
+				sub.operator("sh.open_shatter_service_lookup")
 		
 		## TODO Put a quick test box with autoconfig option
 		
@@ -1345,6 +1350,36 @@ class sh_Shatter3DViewportMenuExtras(Menu):
 			self.layout.separator()
 			self.layout.operator("sh.segstrate_auto")
 			self.layout.operator("sh.segstrate_static")
+
+class sh_ClaimServiceDeleteAccount(Operator):
+	"""
+	Operator to create a water
+	"""
+	
+	bl_idname = "sh.open_shatter_service_delete_account"
+	bl_label = "Delete account"
+	
+	def execute(self, context):
+		weak = remote_api.load_weak_user(get_prefs().uid)
+		
+		webbrowser.open(f"https://smashhitlab.000webhostapp.com/shatter/api.php?action=weak-user-login-ui&submit=1&uid={weak.uid}&token={weak.token}")
+		
+		return {"FINISHED"}
+
+class sh_ClaimServiceLookup(Operator):
+	"""
+	Operator to create a water
+	"""
+	
+	bl_idname = "sh.open_shatter_service_lookup"
+	bl_label = "Lookup segment"
+	
+	def execute(self, context):
+		weak = remote_api.load_weak_user(get_prefs().uid)
+		
+		webbrowser.open(f"https://smashhitlab.000webhostapp.com/shatter/api.php?action=segment-lookup-ui")
+		
+		return {"FINISHED"}
 
 class sh_Shatter3DViewportMenu(Menu):
 	bl_label = "Shatter"
@@ -1860,6 +1895,8 @@ classes = (
 	sh_CreateDecal,
 	sh_CreatePowerup,
 	sh_CreateWater,
+	sh_ClaimServiceDeleteAccount,
+	sh_ClaimServiceLookup,
 	AutogenProperties,
 	AutogenPanel,
 	RunRandomiseSeedAction,
