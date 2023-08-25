@@ -1,10 +1,13 @@
+"""
+Generic utilities
+"""
+
 import common
 import os
 import os.path as ospath
 import pathlib
 import tempfile
 from multiprocessing import Process
-import getpass
 import math
 import time
 import json
@@ -12,7 +15,6 @@ import datetime
 import hashlib
 import requests
 import rsa # TODO Don't use RSA anymore
-import bpy
 import gzip
 
 def get_time():
@@ -35,6 +37,13 @@ def get_sha1_hash(data):
 	"""
 	
 	return hashlib.sha1(data.encode('utf-8')).hexdigest()
+
+def sha3_256(data):
+	"""
+	Compute the SHA3-256 hash of a utf8 string
+	"""
+	
+	return hashlib.sha3_256(data.encode('utf-8')).hexdigest()
 
 gLocalIPAddressCache = ""
 
@@ -59,24 +68,6 @@ def get_local_ip():
 			gLocalIPAddressCache = ""
 	
 	return gLocalIPAddressCache
-
-def get_trace():
-	"""
-	The user trace is the first two hex digits of the SHA1 hash of the user's
-	username. This means there is only 256 possible values of the trace, so it's
-	only really useful for confirming that some untampered segments might have
-	been made by the same person, with a relatively high probability of error.
-	
-	It is meant so that someone can tell if some segments in a mod without a
-	given creator name are by the same creator, and for tracking segments in
-	general, while still trying to minimise privacy risk.
-	"""
-	
-	username = getpass.getuser()
-	
-	result = get_sha1_hash(username)[:2]
-	
-	return result
 
 def get_file(path):
 	"""
@@ -168,86 +159,6 @@ def list_folder(folder, full = True):
 	
 	return lst
 
-def find_apk():
-	"""
-	Find the path to an APK
-	"""
-	
-	# Search for templates.xml (how we find the APK) and set path
-	path = ""
-	
-	# If the user has set an override path, then just return that if it exists
-	override = bpy.context.preferences.addons["blender_tools"].preferences.default_assets_path
-	
-	if (override and ospath.exists(override)):
-		return override
-	
-	### Try to find from APK Editor Studio ###
-	
-	try:
-		# Get the search path
-		search_path = tempfile.gettempdir() + "/apk-editor-studio/apk"
-		
-		# Enumerate files
-		dirs = os.listdir(search_path)
-		
-		for d in dirs:
-			cand = str(os.path.abspath(search_path + "/" + d + "/assets/templates.xml.mp3"))
-			
-			print("Trying the path:", cand)
-			
-			if ospath.exists(cand):
-				path = str(pathlib.Path(cand).parent)
-				break
-	except FileNotFoundError:
-		print("Smash Hit Tools: No APK Editor Studio folder found.")
-	
-	print("Final apk path:", path)
-	
-	return path
-
-def set_active(obj):
-	"""
-	Set an object as the only active, selected object
-	"""
-	
-	# Unselect all objects
-	for o in bpy.data.objects:
-		o.select_set(False)
-	
-	# Set selected
-	obj.select_set(True)
-	
-	# Set active
-	bpy.context.view_layer.objects.active = obj
-
-def sh_add_box(pos, size):
-	"""
-	Add a box to the scene and return reference to it
-	
-	See: https://blender.stackexchange.com/questions/2285/how-to-get-reference-to-objects-added-by-an-operator
-	"""
-	
-	bpy.ops.mesh.primitive_cube_add(size = 1.0, location = (pos[0], pos[1], pos[2]), scale = (size[0] * 2, size[1] * 2, size[2] * 2))
-	
-	return bpy.context.active_object
-
-def sh_add_empty():
-	"""
-	Add an empty object and return a reference to it
-	"""
-	
-	o = bpy.data.objects.new("empty", None)
-	
-	bpy.context.scene.collection.objects.link(o)
-	
-	o.empty_display_size = 1
-	o.empty_display_type = "PLAIN_AXES"
-	
-	set_active(o)
-	
-	return o
-
 def start_async_task(func, args):
 	"""
 	Start the given function in its own process, given arguments to pass to the
@@ -259,7 +170,7 @@ def start_async_task(func, args):
 	
 	return p
 
-def http_get_signed(url):
+def http_get_signed(url, sigurl = None):
 	"""
 	Get the file at the given url and verify its signature, then return it's
 	contents. Returns None if there is an error, like not found or invalid
@@ -275,9 +186,12 @@ def http_get_signed(url):
 	TODO Look into something that isn't RSA in 2023
 	"""
 	
+	# This is needed
+	PublicKey = rsa.PublicKey
+	
 	# Download data and signature
 	data = requests.get(url)
-	signature = requests.get(url + ".sig")
+	signature = requests.get(url + ".sig" if not sigurl else sigurl)
 	
 	if (data.status_code != 200 or signature.status_code != 200):
 		return None
@@ -286,7 +200,7 @@ def http_get_signed(url):
 		signature = signature.content
 	
 	# Load the public key
-	public = eval(Path(common.BLENDER_TOOLS_PATH + "/shbt-public.key").read_text())
+	public = eval(pathlib.Path(common.BLENDER_TOOLS_PATH + "/shbt-public.key").read_text())
 	
 	# Verify the signature
 	try:

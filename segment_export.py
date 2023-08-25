@@ -14,6 +14,7 @@ import bake_mesh
 import segstrate
 import obstacle_db
 import util
+import butil
 import json
 import pathlib
 
@@ -41,7 +42,7 @@ def tryTemplatesPath():
 	"""
 	
 	# Try to find templates.xml using util.find_apk() first
-	path = util.find_apk()
+	path = butil.find_apk()
 	
 	if (path):
 		path += "/templates.xml.mp3"
@@ -163,7 +164,7 @@ def sh_create_root(scene, params):
 		if (scene.sh_light_back != 1.0):   seg_props["lightBack"] = str(scene.sh_light_back)
 	
 	# Check for softshadow attrib and set
-	if (scene.sh_softshadow >= 0.0):
+	if (scene.sh_softshadow != 0.6):
 		seg_props["softshadow"] = str(scene.sh_softshadow)
 	
 	# Add ambient lighting if enabled
@@ -173,21 +174,6 @@ def sh_create_root(scene, params):
 	# Protection
 	if (scene.sh_drm_disallow_import or bpy.context.preferences.addons["blender_tools"].preferences.force_disallow_import):
 		seg_props["drm"] = "NoImport"
-	
-	# Creator information
-	creator = bpy.context.preferences.addons["blender_tools"].preferences.creator
-	
-	# Metadata, if allowed, and SOS not enabled
-	if (bpy.context.preferences.addons["blender_tools"].preferences.enable_metadata and not bpy.context.preferences.addons["blender_tools"].preferences.segment_originality_service):
-		# Export time
-		seg_props["shbt-meta-time"] = hex(util.get_time())[2:]
-		
-		# Export user trace if the creator wasn't specified
-		seg_props["shbt-meta-uid"] = bpy.context.preferences.addons["blender_tools"].preferences.uid
-		
-		# Creator info
-		if (creator):
-			seg_props["shbt-meta-creator"] = creator
 	
 	# Create main root and return it
 	level_root = et.Element("segment", seg_props)
@@ -371,11 +357,11 @@ def sh_add_object(level_root, scene, obj, params):
 		
 		properties = {
 			"pos": str(position["X"]) + " " + str(position["Y"]) + " " + str(position["Z"]),
-			"type": "stone",
+			"type": params.get("stone_type", "stone"),
 			"param9": "sizeX=" + str(size["X"]),
 			"param10": "sizeY=" + str(size["Y"]),
 			"param11": "sizeZ=" + str(size["Z"]),
-			"IMPORT_IGNORE": "STONEHACK_IGNORE",
+			"shbt-ignore": "1",
 		}
 		
 		if (obj.sh_properties.sh_template):
@@ -491,7 +477,7 @@ def writeQuicktestInfo(tempdir, scene):
 		info["code"] = scene.sh_extra_code
 	
 	# Try to find where to load remote obstacles from
-	apk_path = util.find_apk()
+	apk_path = butil.find_apk()
 	
 	if (apk_path):
 		info["assets"] = apk_path
@@ -520,13 +506,15 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 	if (filepath == None and params.get("auto_find_filepath", False)):
 		props = context.scene.sh_properties
 		
-		filepath = util.find_apk()
+		filepath = butil.find_apk()
 		
 		if (not filepath):
-			raise FileNotFoundError("There is currently no APK open in APK Editor Studio. Please open a Smash Hit APK with a valid structure and try again.")
+			butil.show_message("Export error", "There is currently no APK open in APK Editor Studio or your asset override path isn't set. Please open a Smash Hit APK with a valid structure or set an asset path in Shatter settings and try again.")
+			return {"FINISHED"}
 		
 		if (not props.sh_level or not props.sh_room or not props.sh_segment):
-			raise FileNotFoundError("You have not set one of the level, room or segment name properties needed to use auto export to apk feature. Please set these in the scene tab and try again.")
+			butil.show_message("Export error", "You have not set one of the level, room or segment name properties needed to use auto export to apk feature. Please set these in the scene tab and try again.")
+			return {"FINISHED"}
 		
 		segstrate_path = filepath + "/shatter.slk" if ospath.exists(filepath + "/shatter.slk") else None
 		

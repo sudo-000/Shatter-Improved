@@ -7,6 +7,7 @@ import xml.etree.ElementTree as et
 import bpy
 import gzip
 import util
+import butil
 
 ## IMPORT
 ## The following things are related to the importer, which is not complete.
@@ -36,8 +37,9 @@ def sh_import_modes(s):
 	
 	return res
 
-sh_add_box = util.sh_add_box
-sh_add_empty = util.sh_add_empty
+# These are here becuase they used to be exclusive to this file
+sh_add_box = butil.add_box
+sh_add_empty = butil.add_empty
 
 def sh_parse_tile(s):
 	"""
@@ -72,24 +74,17 @@ def sh_parse_colour(s):
 	
 	a = s.split()
 	
-	# Remove remaining space strings
-	a = [i for i in a if i != " "]
-	
 	if (len(a) < 9):
 		return [(float(a[0]), float(a[1]), float(a[2]))]
 	else:
-		return [(float(a[0]), float(a[1]), float(a[2])), (float(a[3]), float(a[4]), float(a[5])), (float(a[6]), float(a[7]), float(a[8]))]
+		return [
+			(float(a[0]), float(a[1]), float(a[2])),
+			(float(a[3]), float(a[4]), float(a[5])),
+			(float(a[6]), float(a[7]), float(a[8]))
+		]
 
-def show_message(title = "Info", message = "", icon = "INFO"):
-	"""
-	Show a message as a popup
-	"""
-	
-	def draw(self, context):
-		self.layout.label(text = message)
-	
-	bpy.context.window_manager.popup_menu(draw, title = title, icon = icon)
-	
+show_message = butil.show_message
+
 def sh_import_segment(fp, context, compressed = False):
 	"""
 	Load a Smash Hit segment into blender
@@ -106,8 +101,16 @@ def sh_import_segment(fp, context, compressed = False):
 	
 	root = et.fromstring(root)
 	
+	# Validate we have a proper segment (why tf didn't we do this until 2023 :|)
+	if (root.tag != "segment"):
+		show_message("Import error", "This is not a valid segment file: root tag is not 'segment'.")
+		return {"FINISHED"}
+	
 	scene = context.scene.sh_properties
 	segattr = root.attrib
+	
+	# For keeping track if there were any warnings
+	warnings = set()
 	
 	# Check segment protection and enforce it
 	# 
@@ -119,23 +122,29 @@ def sh_import_segment(fp, context, compressed = False):
 		drm = drm.split()
 		
 		for d in drm:
-			if (d == "NoImport"):
-				show_message("Import error", "The creator of this segment has requested that it not be imported. We encourage you to respect this request.")
+			if (d == "NoImport" or d == "no_import"):
+				show_message("Import error", "The creator of this segment has requested that it not be imported. While you could bypass this, we encourage you to respect this request.")
 				return {"FINISHED"}
 			
-			if (d == "Segstrate"):
-				show_message("Import error", "This segment cannot be imported as it has structural issues that prevent importing it.")
+			elif (d == "Segstrate" or d == "segstrate"):
+				show_message("Import error", "This segment cannot be imported because it is protected with Segstrate.")
 				return {"FINISHED"}
+			
+			else:
+				warnings.add(f"an unknown type of drm '{d}' is being used")
 	
 	# Segment length
-	seg_size = segattr.get("size", "12 10 0").split()
+	seg_size = segattr.get("size", "20 5 20").split()
 	scene.sh_len = (float(seg_size[0]), float(seg_size[1]), float(seg_size[2]))
+	
+	if (scene.sh_len[2] <= 0.0):
+		warnings.add("the segment has a Z-size value of 0 or less which may cause problems when exported")
 	
 	# Segment template
 	scene.sh_template = segattr.get("template", "")
 	
 	# Soft shadow
-	scene.sh_softshadow = float(segattr.get("softshadow", "-0.0001"))
+	scene.sh_softshadow = float(segattr.get("softshadow", "0.6"))
 	
 	# Lights
 	scene.sh_light_left = float(segattr.get("lightLeft", "1"))
@@ -174,12 +183,24 @@ def sh_import_segment(fp, context, compressed = False):
 	else:
 		scene.sh_lighting = False
 	
+	# Check for deprecated segment tags and warn about them
+	if (segattr.get("meshbake_lightFactor") or segattr.get("meshbake_disableLight")):
+		warnings.add("legacy meshbake tags were detected which means exported segments will look significantly different when exported with the current version of Shatter")
+	
+	# ##########################################################################
+	# Process entities
+	box_count = 0
+	
 	for obj in root:
 		kind = obj.tag
 		properties = obj.attrib
 		
 		# Ignore obstacles exported with IMPORT_IGNORE="STONEHACK_IGNORE"
-		if (properties.get("IMPORT_IGNORE") or properties.get("shbt-ignore") or properties.get("type") == "stone"):
+		if (properties.get("IMPORT_IGNORE") or properties.get("shbt-ignore")):
+			continue
+		
+		if (properties.get("type") == "stone"):
+			warnings.add("an obstacle was ignored becuase it had a type of 'stone' but it didn't have the 'IMPORT_IGNORE' or 'shbt-ignore' attribute set")
 			continue
 		
 		# Object position
@@ -192,13 +213,15 @@ def sh_import_segment(fp, context, compressed = False):
 		
 		# Boxes
 		if (kind == "box"):
+			box_count += 1
+			
 			# Size for boxes
-			size = properties.get("size", "0.5 0.5 0.5").split()
+			size = properties.get("size", "0 0 0").split()
 			size = (float(size[2]), float(size[0]), float(size[1]))
 			
 			# Add the box; zero size boxes are treated as points
 			b = None
-			if (size[0] <= 0.0 or size[1] <= 0.0 or size[2] <= 0.0):
+			if (size[0] <= 0.0 and size[1] <= 0.0 and size[2] <= 0.0):
 				b = sh_add_empty()
 				b.location = pos
 			else:
@@ -221,7 +244,7 @@ def sh_import_segment(fp, context, compressed = False):
 			b.sh_properties.sh_visible = (properties.get("visible", "1") == "1" and not b.sh_properties.sh_template)
 			
 			# NOTE: The older format colorX/Y/Z is no longer supported, should it be readded?
-			colour = sh_parse_colour(properties.get("color", "0.5 0.5 0.5"))
+			colour = sh_parse_colour(properties.get("color", "1 1 1"))
 			
 			if (len(colour) == 1):
 				b.sh_properties.sh_tint = (colour[0][0], colour[0][1], colour[0][2], 1.0)
@@ -312,7 +335,7 @@ def sh_import_segment(fp, context, compressed = False):
 			o.sh_properties.sh_type = "OBS"
 			o.sh_properties.sh_obstacle = properties.get("type", "")
 			o.sh_properties.sh_template = properties.get("template", "")
-			o.sh_properties.sh_mode = sh_import_modes(properties.get("mode", "55"))
+			o.sh_properties.sh_mode = sh_import_modes(properties.get("mode", "255"))
 			o.sh_properties.sh_param0 = properties.get("param0", "")
 			o.sh_properties.sh_param1 = properties.get("param1", "")
 			o.sh_properties.sh_param2 = properties.get("param2", "")
@@ -339,6 +362,8 @@ def sh_import_segment(fp, context, compressed = False):
 			o.sh_properties.sh_decal = int(properties.get("tile", "0"))
 			
 			# Set the colourisation of the decal
+			# TODO This can just be 1 1 1 1 by default and no need for havetint,
+			# this is what smash hit does, dont really need to do it like this
 			colour = properties.get("color", None)
 			if (colour):
 				o.sh_properties.sh_havetint = True
@@ -383,5 +408,24 @@ def sh_import_segment(fp, context, compressed = False):
 			
 			# Set hidden
 			if (properties.get("hidden", "0") == "1"): o.sh_properties.sh_hidden = True
+		
+		# Anything else
+		else:
+			warnings.add(f"this segment contains entities of type '{kind}' which cannot be imported")
+	
+	# Warn about box count issues
+	if (box_count == 0):
+		warnings.add("the segment does not have any boxes which causes the segment to load improperly")
+	
+	# Display warnings info message
+	if (len(warnings)):
+		warnlist = []
+		
+		for warn in warnings:
+			warnlist.append(warn)
+		
+		warnlist = ", ".join(warnlist)
+		
+		show_message("Import warnings", f"The segment imported successfully, but some possible issues were noticed: {warnlist}.")
 	
 	return {"FINISHED"}

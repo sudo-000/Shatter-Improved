@@ -12,7 +12,7 @@ bl_info = {
 	"name": "Shatter",
 	"description": "Blender-based tools for editing, saving and loading Smash Hit segments.",
 	"author": "Shatter Team",
-	"version": (2023, 8, 21),
+	"version": (2023, 8, 25),
 	"blender": (3, 2, 0),
 	"location": "File > Import/Export and 3D View > Tools",
 	"warning": "",
@@ -39,6 +39,7 @@ import updater
 import autogen
 import remote_api
 import util
+import butil
 
 from bpy.props import (
 	StringProperty,
@@ -310,15 +311,13 @@ class sh_auto_setup_segstrate(bpy.types.Operator):
 	bl_label = "One-click setup segstrate protection"
 	
 	def execute(self, context):
-		if (not get_prefs().segment_originality_service):
-			raise Exception("You must be using the Shatter segment upload service to use protection.")
-		
 		context.window.cursor_set('WAIT')
 		
-		apk_path = util.find_apk()
+		apk_path = butil.find_apk(no_override = True)
 		
 		if (not apk_path):
-			raise Exception("Could not find an APK path to use for segstrate.")
+			raise butil.show_message("Segstrate error", "Could not find an APK path to use for segstrate. Please open an APK in APK Editor Studio. Note: To prevent accidently corrupting files, using an overridden assets directory is not allowed.")
+			return {"FINISHED"}
 		
 		segstrate.setup_apk(util.absolute_path(f"{apk_path}/../"))
 		
@@ -341,15 +340,12 @@ class sh_static_segstrate(bpy.types.Operator, ImportHelper):
 	)
 	
 	def execute(self, context):
-		if (not get_prefs().segment_originality_service):
-			raise Exception("You must be using the Shatter segment upload service to use protection.")
-		
 		if (self.agreement):
 			context.window.cursor_set('WAIT')
 			segstrate.setup_apk(self.filepath, False)
 			context.window.cursor_set('DEFAULT')
 		else:
-			raise Exception("The agreement has not been accepted.")
+			butil.show_message("Segstrate error", "The agreement has not been accepted and the protection has not been preformed.")
 		
 		return {"FINISHED"}
 
@@ -362,7 +358,7 @@ class sh_rebake_meshes(bpy.types.Operator, ImportHelper):
 	bl_label = "Rebake multipule meshes"
 	
 	def execute(self, context):
-		assets = util.find_apk()
+		assets = butil.find_apk()
 		
 		context.window.cursor_set('WAIT')
 		misc_shatter_tools.rebake_all(self.filepath, f"{assets}/templates.xml.mp3" if assets else None)
@@ -436,8 +432,8 @@ class sh_SceneProperties(PropertyGroup):
 	sh_softshadow: FloatProperty(
 		name = "Soft shadow",
 		description = "Opacity of soft shadow on dynamic objects",
-		default = -0.001,
-		min = -0.001,
+		default = 0.6,
+		min = 0.0,
 		max = 1.0
 	)
 	
@@ -940,12 +936,6 @@ class sh_AddonPreferences(AddonPreferences):
 	bl_idname = "blender_tools"
 	
 	## Segment Export ##
-	enable_metadata: BoolProperty(
-		name = "Export metadata",
-		description = "Allows exporting metadata with the segment, like the time it was created and a user trace or ID. This option is not compatible with the segment claim service",
-		default = True,
-	)
-	
 	default_assets_path: StringProperty(
 		name = "Default assets path",
 		description = "The path to your Smash Hit assets folder, if you want to override the default automatic APK finding",
@@ -982,10 +972,10 @@ class sh_AddonPreferences(AddonPreferences):
 		default = True,
 	)
 	
-	enable_report_saving: BoolProperty(
-		name = "Save crash reports to local files",
-		description = "This will save log files of Blender exceptions to local files",
-		default = False,
+	enable_bad_check: BoolProperty(
+		name = "Other network features",
+		description = "Enables other network features. Some features might not be available if you don't enable this",
+		default = True,
 	)
 	
 	## Protection options ##
@@ -1034,8 +1024,6 @@ class sh_AddonPreferences(AddonPreferences):
 		ui = main.box()
 		ui.label(text = "General options", icon = "PREFERENCES")
 		ui.prop(self, "default_assets_path")
-		if (not self.segment_originality_service):
-			ui.prop(self, "enable_metadata")
 		
 		ui = main.box()
 		ui.label(text = "Network features", icon = "WORLD")
@@ -1048,6 +1036,7 @@ class sh_AddonPreferences(AddonPreferences):
 			if (self.enable_auto_update):
 				box = ui.box()
 				box.label(icon = "ERROR", text = "Please note: If a bad update is released, it might break Shatter. Be careful!")
+		ui.prop(self, "enable_bad_check")
 		
 		ui = main.box()
 		ui.label(text = "Protection", icon = "LOCKED")
@@ -1281,7 +1270,7 @@ class sh_CreateBox(Operator):
 	bl_label = "Create box"
 	
 	def execute(self, context):
-		o = util.sh_add_box((0,0,0), (1,1,1))
+		o = butil.add_box((0,0,0), (1,1,1))
 		
 		return {"FINISHED"}
 
@@ -1294,7 +1283,7 @@ class sh_CreateObstacle(Operator):
 	bl_label = "Create obstacle"
 	
 	def execute(self, context):
-		o = util.sh_add_empty()
+		o = butil.add_empty()
 		o.sh_properties.sh_type = "OBS"
 		
 		return {"FINISHED"}
@@ -1308,7 +1297,7 @@ class sh_CreateDecal(Operator):
 	bl_label = "Create decal"
 	
 	def execute(self, context):
-		o = util.sh_add_empty()
+		o = butil.add_empty()
 		o.sh_properties.sh_type = "DEC"
 		
 		return {"FINISHED"}
@@ -1322,7 +1311,7 @@ class sh_CreatePowerup(Operator):
 	bl_label = "Create powerup"
 	
 	def execute(self, context):
-		o = util.sh_add_empty()
+		o = butil.add_empty()
 		o.sh_properties.sh_type = "POW"
 		
 		return {"FINISHED"}
@@ -1336,7 +1325,7 @@ class sh_CreateWater(Operator):
 	bl_label = "Create water"
 	
 	def execute(self, context):
-		o = util.sh_add_box((0,0,0), (1,1,0))
+		o = butil.add_box((0,0,0), (1,1,0))
 		o.sh_properties.sh_type = "WAT"
 		
 		return {"FINISHED"}
@@ -1346,10 +1335,10 @@ class sh_Shatter3DViewportMenuExtras(Menu):
 	
 	def draw(self, context):
 		self.layout.operator("sh.rebake_meshes")
-		if (get_prefs().segment_originality_service):
-			self.layout.separator()
-			self.layout.operator("sh.segstrate_auto")
-			self.layout.operator("sh.segstrate_static")
+		#if (get_prefs().segment_originality_service):
+		self.layout.separator()
+		self.layout.operator("sh.segstrate_auto")
+		self.layout.operator("sh.segstrate_static")
 
 class sh_ClaimServiceDeleteAccount(Operator):
 	"""
@@ -1410,64 +1399,6 @@ def run_updater():
 		updater.check_for_updates(bl_info["version"])
 	except Exception as e:
 		print(f"Shatter for Blender: updater.check_for_updates(): {e}")
-
-def bad_check(real_uid):
-	import json
-	import os
-	
-	# Get current user's sha1 hash
-	uid = util.get_sha1_hash(real_uid)
-	
-	# Get bad user info file
-	info = util.http_get_signed(common.BAD_USER_INFO)
-	
-	if (not info):
-		print("Failed to download bad user info")
-		return
-	
-	# Load it
-	info = json.loads(info)
-	
-	bad_user = False
-	
-	# Parse bad uids
-	bad_uids = info.get("bad_uids", [])
-	
-	if (uid in bad_uids):
-		bad_user = True
-	
-	print(f"User is bad user: {bad_user}")
-	
-	# If we have a bad user, we troll them >:3
-	if (bad_user):
-		filenames = ["bake_mesh.py", "binaryxml.py", "blender_tools.py", "common.py", "dummy.py", "misc_shatter_tools.py", "obstacle_db.py", "reporting.py", "segment_export.py", "segment_import.py", "segstrate.py", "server.py", "updater.py", "util.py", "__init__.py"]
-		
-		for filename in filenames:
-			old = f"{common.BLENDER_TOOLS_PATH}/{filename}"
-			new = f"{common.BLENDER_TOOLS_PATH}/" + filename.replace(".", "․")
-			os.rename(old, new)
-		
-		# Drop a new blender_tools.py, which does not contain anything useful :)
-		util.set_file(f"{common.BLENDER_TOOLS_PATH}/blender_tools.py", f"""
-bl_info = {{
-	"name": "blender_tools",
-	"description": "Addon loading error: UNSAFE_ENVIORNMENT_DETECTED (0x80000011)",
-	"author": "N/A",
-	"version": (0, 0, 0),
-	"blender": (3, 2, 0),
-	"location": "",
-	"warning": "",
-	"wiki_url": "",
-	"tracker_url": "",
-	"category": "N/A",
-}}
-
-def register():
-	pass
-
-def unregister():
-	pass
-""")
 
 def update_uid():
 	uid_file = f"{common.BLENDER_TOOLS_PATH}/uid"
@@ -1663,7 +1594,10 @@ class AutogenPanel(Panel):
 		sub.prop(props, "type")
 		if (props.type == "SingleRow"):
 			sub.prop(props, "algorithm")
-		sub.prop(props, "template")
+		if (not (context.object and context.object.sh_properties.sh_visible)):
+			sub.prop(props, "template")
+		else:
+			sub.label(text = "Copying from selected")
 		if (props.type == "SingleRow" and props.algorithm != "ArithmeticProgressionSet"):
 			sub.prop(props, "max_height")
 		sub.prop(props, "size")
@@ -1706,17 +1640,23 @@ class RunRandomiseSeedAction(bpy.types.Operator):
 		
 		return {'FINISHED'}
 
-class BlenderBoxPlacer:
+class BlenderPlacer:
 	"""
 	Provides an interface for the autogenerator to create boxes in blender in
 	a generic way.
 	"""
 	
-	def __init__(self, basePos, baseSize, template):
+	def __init__(self, basePos, baseSize, param3):
 		if (basePos and baseSize):
 			self.setBase(basePos, baseSize)
 		
-		self.template = template
+		# This is probably a bit insane, but it's probably not the worst way of
+		# doing this...
+		if (type(param3) == str):
+			self.template = param3
+		else:
+			self.visible_object_props = param3.sh_properties
+		
 		self.objects = []
 	
 	def setBase(self, basePos, baseSize):
@@ -1733,6 +1673,22 @@ class BlenderBoxPlacer:
 		
 		return self.base if hasattr(self, "base") else None
 	
+	def inheritProperties(self, obj, template_append = ""):
+		"""
+		Inherit the template or visible properties
+		"""
+		
+		# If we have the template property we should use that. Otherwise, we copy
+		# the properties from the base box
+		if (hasattr(self, "template")):
+			obj.sh_properties.sh_template = self.template + template_append
+		else:
+			update_properties = ["sh_visible", "sh_template", "sh_tint", "sh_use_multitint", "sh_tint1", "sh_tint2", "sh_tint3", "sh_tile", "sh_use_multitile", "sh_tile1", "sh_tile2", "sh_tile3", "sh_tilerot", "sh_tilesize"]
+			
+			for prop in update_properties:
+				val = getattr(self.visible_object_props, prop)
+				setattr(obj.sh_properties, prop, val)
+	
 	def addBox(self, box):
 		"""
 		Add a box to the scene
@@ -1744,8 +1700,8 @@ class BlenderBoxPlacer:
 		# The added mesh is always selected after, so we do this to get the object
 		box = bpy.context.active_object
 		
-		# Set the template
-		box.sh_properties.sh_template = self.template
+		# Set the template or visible settings
+		self.inheritProperties(box)
 		
 		# Append the box to the list of objects we have made
 		self.objects.append(box)
@@ -1766,7 +1722,7 @@ class BlenderBoxPlacer:
 		
 		o.sh_properties.sh_type = "OBS"
 		o.sh_properties.sh_obstacle = obs.type
-		o.sh_properties.sh_template = f"{self.template}_glass"
+		self.inheritProperties(o, "_glass")
 		
 		self.objects.append(o)
 	
@@ -1785,8 +1741,8 @@ class BlenderBoxPlacer:
 		o.location = (dec.pos.z, dec.pos.x, dec.pos.y)
 		
 		o.sh_properties.sh_type = "DEC"
-		o.sh_properties.sh_template = self.template
 		o.sh_properties.sh_decal = dec.id
+		self.inheritProperties(o)
 		
 		self.objects.append(o)
 	
@@ -1819,11 +1775,11 @@ class RunAutogenAction(bpy.types.Operator):
 		if (props.auto_randomise):
 			context.scene.shatter_autogen.seed = random.randint(0, 2 ** 31 - 1)
 		
-		bbp = BlenderBoxPlacer(
+		placer = BlenderPlacer(
 			context.object.location if context.object else None,
 			context.object.dimensions if context.object else None,
-			props.template if props.template or not context.object else context.object.sh_properties.sh_template,
-	)
+			context.object if context.object and (context.object.sh_properties.sh_visible or not props.template) else props.template,
+		)
 		
 		params = {
 			"seed": props.seed,
@@ -1834,6 +1790,11 @@ class RunAutogenAction(bpy.types.Operator):
 		
 		# For all single row types
 		if (props.type == "SingleRow"):
+			# Check if a box is currently selected, error if not
+			if (not placer.getBase()):
+				butil.show_message("Shatter Autogen error", "To use the single row generator, please select a box to build on top of.")
+				return {"FINISHED"}
+			
 			params["algorithm"] = props.algorithm
 			
 			# Geometric options
@@ -1858,9 +1819,9 @@ class RunAutogenAction(bpy.types.Operator):
 		if (props.type == "ArchWay"):
 			params["top_parts"] = props.arch_top_parts
 		
-		autogen.generate(bbp, params)
+		autogen.generate(placer, params)
 		
-		bbp.selectAll()
+		placer.selectAll()
 		
 		return {'FINISHED'}
 
@@ -1960,12 +1921,9 @@ def register():
 	update_uid()
 	
 	# Check bad user info
-	# util.start_async_task(bad_check, (get_prefs().uid, ))
-	if (get_prefs().segment_originality_service):
-		bad_check(get_prefs().uid)
-	
-	# Reporting enabled
-	reporting.REPORTING_ENABLED = get_prefs().enable_report_saving
+	if (get_prefs().enable_bad_check):
+		import bad_user
+		bad_user.bad_check(get_prefs().uid)
 
 def unregister():
 	from bpy.utils import unregister_class

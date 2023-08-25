@@ -117,17 +117,35 @@ def weak_user_set_creator(weak, name):
 	
 	return (result["status"] == "done")
 
+def claim_segment_text__runner(uid, text):
+	import os
+	
+	print("*** CLAIM SEGMENT ASYNC ***")
+	
+	s = weak_user_claim_segment(load_weak_user(uid), text)
+	
+	print(f"Weak user claim segment status: {s}")
+	print(f"Hash of submitted segment: " + hashlib.sha3_256(text.encode('utf-8')).hexdigest())
+	
+	os._exit(0)
+
 def claim_segment_text(context, text):
 	"""
 	Try to claim the segment text as being made by the creator
 	"""
 	
-	preferences = context.preferences.addons["blender_tools"].preferences
+	uid = context.preferences.addons["blender_tools"].preferences.uid
 	
-	s = weak_user_claim_segment(load_weak_user(preferences.uid), text)
+	util.start_async_task(claim_segment_text__runner, (str(uid), str(text)))
+
+def creator_name_updated_callback__runner(uid, name):
+	import os
+	print("*** UPDATE CREATOR NAME ASYNC ***")
 	
-	print(f"Weak user claim segment status: {s}")
-	print(f"Hash of submitted segment: " + hashlib.sha3_256(text.encode('utf-8')).hexdigest())
+	s = weak_user_set_creator(load_weak_user(uid), name)
+	
+	print(f"Creator name update status: {s}")
+	os._exit(0)
 
 def creator_name_updated_callback(self, context):
 	"""
@@ -136,6 +154,4 @@ def creator_name_updated_callback(self, context):
 	
 	preferences = context.preferences.addons["blender_tools"].preferences
 	
-	s = weak_user_set_creator(load_weak_user(preferences.uid), preferences.creator)
-	
-	print(f"Creator name update status: {s}")
+	util.start_async_task(creator_name_updated_callback__runner, (preferences.uid, preferences.creator))
