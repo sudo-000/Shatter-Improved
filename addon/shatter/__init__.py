@@ -29,8 +29,6 @@ import pathlib
 shatter_dir = pathlib.Path(__file__).parent
 sys.path.append(str(shatter_dir))
 
-print(sys.path)
-
 import main
 
 def register():
