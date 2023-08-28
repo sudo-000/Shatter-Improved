@@ -2,7 +2,6 @@
 Shatter for Blender segment export
 """
 
-import common
 import xml.etree.ElementTree as et
 import bpy
 import gzip
@@ -10,13 +9,15 @@ import os
 import os.path as ospath
 import pathlib
 import tempfile
-import bake_mesh
-import segstrate
-import obstacle_db
-import util
-import butil
 import json
 import pathlib
+import common as common
+import bake_mesh as bake_mesh
+import segstrate as segstrate
+import obstacle_db as obstacle_db
+import remote_api as remote_api
+import util as util
+import butil as butil
 
 from bpy.props import (
 	StringProperty,
@@ -172,7 +173,7 @@ def sh_create_root(scene, params):
 		seg_props["ambient"] = str(scene.sh_lighting_ambient[0]) + " " + str(scene.sh_lighting_ambient[1]) + " " + str(scene.sh_lighting_ambient[2])
 	
 	# Protection
-	if (scene.sh_drm_disallow_import or bpy.context.preferences.addons["blender_tools"].preferences.force_disallow_import):
+	if (scene.sh_drm_disallow_import or bpy.context.preferences.addons["shatter"].preferences.force_disallow_import):
 		seg_props["drm"] = "NoImport"
 	
 	# Create main root and return it
@@ -496,7 +497,7 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 	context.window.cursor_set('WAIT')
 	
 	# We need this later ...
-	uid = bpy.context.preferences.addons["blender_tools"].preferences.uid
+	uid = bpy.context.preferences.addons["shatter"].preferences.uid
 	
 	# Marking for segstrate
 	segstrate_path = None
@@ -516,7 +517,7 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 			butil.show_message("Export error", "You have not set one of the level, room or segment name properties needed to use auto export to apk feature. Please set these in the scene tab and try again.")
 			return {"FINISHED"}
 		
-		segstrate_path = filepath + "/shatter.slk" if ospath.exists(filepath + "/shatter.slk") else None
+		segstrate_path = filepath + "/slk" if ospath.exists(filepath + "/slk") else None
 		
 		# Real file path
 		filepath += "/segments/" + props.sh_level + "/" + props.sh_room + "/" + props.sh_segment + ".xml.gz.mp3"
@@ -527,17 +528,6 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 	
 	# Export to xml string
 	content = createSegmentText(context, params)
-	
-	# Binary segments
-	if (params.get("binary", False)):
-		import binaryxml
-		
-		content = binaryxml.from_string(content)
-		
-		with open(filepath, "wb") as f:
-			f.write(content)
-		
-		return {'FINISHED'}
 	
 	##
 	## Handle test server mode
@@ -620,8 +610,7 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 			f.write(content.encode())
 	
 	# If segment claiming is enabled, then submit this segment.
-	if (context.preferences.addons["blender_tools"].preferences.segment_originality_service):
-		import remote_api
+	if (context.preferences.addons["shatter"].preferences.segment_originality_service):
 		remote_api.claim_segment_text(context, content)
 	
 	context.window_manager.progress_update(1.0)

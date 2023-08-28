@@ -1,4 +1,4 @@
-import common
+import common as common
 
 # For obstacle picker
 OBSTACLES = [
@@ -74,13 +74,14 @@ OBSTACLES = [
 OBSTACLES_LIST = ["3dcross", "babytoy", "bar", "beatmill", "beatsweeper", "beatwindow", "bigcrank", "bigpendulum", "boss", "bowling", "box", "cactus", "credits1", "credits2", "creditssign", "cubeframe", "dna", "doors", "dropblock", "elevatorgrid", "elevator", "fence", "flycube", "foldwindow", "framedwindow", "gear", "grid", "gyro", "hitblock", "laser", "levicube", "ngon", "pyramid", "revolver", "rotor", "scorediamond", "scoremulti", "scorestar", "scoretop", "sidesweeper", "stone", "suspendbox", "suspendcube", "suspendcylinder", "suspendhollow", "suspendside", "suspendwindow", "sweeper", "test", "tree", "vs_door", "vs_sweeper", "vs_wall", "boss/cube", "boss/matryoshka", "boss/single", "boss/telecube", "boss/triple", "doors/45", "doors/basic", "doors/double", "fence/carousel", "fence/dna", "fence/slider"]
 
 # Find custom obstacles
+# TODO Make this not shit anymore (that is: a JSON file) :-)
 try:
 	with open(common.TOOLS_HOME_FOLDER + "/obstacles.txt", "r") as f:
 		content = f.read()
 		content = content.split("\n")
 		
-		for obs in content:
-			s = obs.split("=")
+		for line in content:
+			s = line.replace("= ", "=").replace(" =", "=").split("=")
 			
 			if (len(s) == 2 and not s[0].startswith("#")):
 				OBSTACLES.append((s[0], s[1], ""))

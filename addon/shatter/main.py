@@ -1,25 +1,10 @@
 """
-Smash Hit segment export tool for Blender - main file
-
-This mostly handles UI stuff
+Main file for Shatter tools
 """
 
-import reporting
-import common
+import common as common
 
 SH_MAX_STR_LEN = common.MAX_STRING_LENGTH
-bl_info = {
-	"name": "Shatter",
-	"description": "Blender-based tools for editing, saving and loading Smash Hit segments.",
-	"author": "Shatter Team",
-	"version": (2023, 8, 25),
-	"blender": (3, 2, 0),
-	"location": "File > Import/Export and 3D View > Tools",
-	"warning": "",
-	"wiki_url": "https://github.com/Shatter-Team/Shatter/wiki",
-	"tracker_url": "https://github.com/Shatter-Team/Shatter/issues",
-	"category": "Development",
-}
 
 import xml.etree.ElementTree as et
 import bpy
@@ -28,18 +13,18 @@ import random
 import os
 import webbrowser
 import tempfile
-import obstacle_db
-import segment_export
-import segment_import
-import segstrate
-import misc_shatter_tools
-import server
 import secrets
-import updater
-import autogen
-import remote_api
-import util
-import butil
+import obstacle_db as obstacle_db
+import segment_export as segment_export
+import segment_import as segment_import
+import segstrate as segstrate
+import extra_tools as extra_tools
+import quick_test as quick_test
+import updater as updater
+import autogen as autogen
+import remote_api as remote_api
+import util as util
+import butil as butil
 
 from bpy.props import (
 	StringProperty,
@@ -71,7 +56,7 @@ def get_prefs():
 	Get a reference to the addon preferences
 	"""
 	
-	return bpy.context.preferences.addons["blender_tools"].preferences
+	return bpy.context.preferences.addons["shatter"].preferences
 
 class sh_ExportCommon(bpy.types.Operator, segment_export.ExportHelper2):
 	"""
@@ -361,7 +346,7 @@ class sh_rebake_meshes(bpy.types.Operator, ImportHelper):
 		assets = butil.find_apk()
 		
 		context.window.cursor_set('WAIT')
-		misc_shatter_tools.rebake_all(self.filepath, f"{assets}/templates.xml.mp3" if assets else None)
+		extra_tools.rebake_all(self.filepath, f"{assets}/templates.xml.mp3" if assets else None)
 		context.window.cursor_set('DEFAULT')
 		
 		return {"FINISHED"}
@@ -933,7 +918,7 @@ class sh_EntityProperties(PropertyGroup):
 	)
 
 class sh_AddonPreferences(AddonPreferences):
-	bl_idname = "blender_tools"
+	bl_idname = "shatter"
 	
 	## Segment Export ##
 	default_assets_path: StringProperty(
@@ -1112,7 +1097,7 @@ class sh_SegmentPanel(Panel):
 			sub.prop(sh_properties, "sh_ambient_occlusion")
 		
 		# Quick test
-		if (bpy.context.preferences.addons["blender_tools"].preferences.enable_quick_test_server):
+		if (bpy.context.preferences.addons["shatter"].preferences.enable_quick_test_server):
 			sub = layout.box()
 			sub.label(text = "Quick test", icon = "AUTO")
 			sub.prop(sh_properties, "sh_fog_colour_top")
@@ -1126,7 +1111,7 @@ class sh_SegmentPanel(Panel):
 			sub.label(text = f"Your IP: {util.get_local_ip()}")
 		
 		# DRM
-		if (not bpy.context.preferences.addons["blender_tools"].preferences.force_disallow_import):
+		if (not bpy.context.preferences.addons["shatter"].preferences.force_disallow_import):
 			sub = layout.box()
 			sub.label(text = "Protection", icon = "LOCKED")
 			sub.prop(sh_properties, "sh_drm_disallow_import")
@@ -1395,13 +1380,14 @@ def sh_Shatter3DViewportMenu_draw(self, context):
 
 def run_updater():
 	try:
-		global bl_info
-		updater.check_for_updates(bl_info["version"])
+		updater.check_for_updates(common.BL_INFO["version"])
 	except Exception as e:
-		print(f"Shatter for Blender: updater.check_for_updates(): {e}")
+		import traceback
+		print(f"Shatter for Blender: Had an exception whilst checking for updates:")
+		print(traceback.format_exc())
 
 def update_uid():
-	uid_file = f"{common.BLENDER_TOOLS_PATH}/uid"
+	uid_file = f"{common.SHATTER_PATH}/data/uid"
 	uid_from_file = util.get_file(uid_file)
 	
 	uid_from_blender = get_prefs().uid
@@ -1410,16 +1396,12 @@ def update_uid():
 		if (not uid_from_file):
 			# Never had a uid before
 			new_uid = generate_uid()
-			bpy.context.preferences.addons["blender_tools"].preferences.uid = new_uid
+			bpy.context.preferences.addons["shatter"].preferences.uid = new_uid
 			util.set_file(uid_file, new_uid)
 		else:
 			# We have the file but not the saved uid, probably the user
 			# reinstalled
-			bpy.context.preferences.addons["blender_tools"].preferences.uid = uid_from_file
-	
-	# Check for tampering, will happen if they are not the same uid...
-	if (uid_from_file and uid_from_blender and uid_from_file != uid_from_blender):
-		pass#os._exit(69)
+			bpy.context.preferences.addons["shatter"].preferences.uid = uid_from_file
 
 def generate_uid():
 	s = secrets.token_hex(16)
@@ -1912,7 +1894,7 @@ def register():
 	global g_process_test_server
 	
 	if (g_process_test_server and get_prefs().enable_quick_test_server):
-		g_process_test_server = server.runServerProcess()
+		g_process_test_server = quick_test.runServerProcess()
 	
 	# Check for updates
 	run_updater()
@@ -1922,7 +1904,7 @@ def register():
 	
 	# Check bad user info
 	if (get_prefs().enable_bad_check):
-		import bad_user
+		import bad_user as bad_user
 		bad_user.bad_check(get_prefs().uid)
 
 def unregister():
@@ -1958,7 +1940,7 @@ def unregister():
 		try:
 			unregister_class(cls)
 		except RuntimeError as e:
-			reporting.report(f"Blender is being a little shit while unregistering class {cls}:\n\n{e}")
+			print(f"Blender is being a little shit while unregistering class {cls}:\n\n{e}")
 	
 	# Shutdown server
 	global g_process_test_server

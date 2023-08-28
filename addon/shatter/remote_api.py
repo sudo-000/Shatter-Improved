@@ -1,11 +1,11 @@
-import requests
-import common
 import json
-import util
 import os, os.path
 import secrets
 import hashlib
 from urllib.parse import quote
+import requests as requests
+import common as common
+import util as util
 
 ACCOUNT_INFO_DIR = common.TOOLS_HOME_FOLDER + "/Account Information"
 
@@ -134,7 +134,7 @@ def claim_segment_text(context, text):
 	Try to claim the segment text as being made by the creator
 	"""
 	
-	uid = context.preferences.addons["blender_tools"].preferences.uid
+	uid = context.preferences.addons["shatter"].preferences.uid
 	
 	util.start_async_task(claim_segment_text__runner, (str(uid), str(text)))
 
@@ -152,6 +152,6 @@ def creator_name_updated_callback(self, context):
 	Callback for when the value of creator name is changed in Shatter settings
 	"""
 	
-	preferences = context.preferences.addons["blender_tools"].preferences
+	preferences = context.preferences.addons["shatter"].preferences
 	
 	util.start_async_task(creator_name_updated_callback__runner, (preferences.uid, preferences.creator))

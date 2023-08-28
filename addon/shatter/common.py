@@ -13,11 +13,14 @@ HACK Blender only parses the AST for bl_info so we can't just define it here if 
 not already cached, which it isn't for new installs
 """
 
-# Get the path
-BLENDER_TOOLS_PATH = os.path.abspath(__file__)[:-9]
+# Get the path to the Shatter install
+SHATTER_PATH = str(pathlib.Path(__file__).parent) + "/"
+
+# Find the addons path
+BLENDER_ADDONS_PATH = str(pathlib.Path(__file__).parent.parent) + "/"
 
 # Read main file
-BL_INFO = pathlib.Path(BLENDER_TOOLS_PATH + "/blender_tools.py").read_text()
+BL_INFO = pathlib.Path(SHATTER_PATH + "/__init__.py").read_text()
 
 # Get the stuff
 # NOTE Breaks if we ever have { or } in bl_info
@@ -49,5 +52,5 @@ Blender Tools configuration directory
 HOME_FOLDER = str(pathlib.Path.home())
 TOOLS_HOME_FOLDER = HOME_FOLDER + "/Shatter"
 
-# Create shbt folder if it does not exist
+# Create shatter folder if it does not exist
 os.makedirs(TOOLS_HOME_FOLDER, exist_ok = True)

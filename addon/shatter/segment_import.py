@@ -2,12 +2,12 @@
 Smash Hit Blender Tools segment import
 """
 
-import common
 import xml.etree.ElementTree as et
 import bpy
 import gzip
-import util
-import butil
+import util as util
+import butil as butil
+import common as common
 
 ## IMPORT
 ## The following things are related to the importer, which is not complete.

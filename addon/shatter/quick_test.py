@@ -9,10 +9,8 @@ Notes:
 
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from multiprocessing import Process
-import socket
 import tempfile
 import xml.etree.ElementTree as et
-import common
 from urllib.parse import parse_qs
 import pathlib
 import os

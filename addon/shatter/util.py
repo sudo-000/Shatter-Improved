@@ -2,7 +2,6 @@
 Generic utilities
 """
 
-import common
 import os
 import os.path as ospath
 import pathlib
@@ -13,9 +12,10 @@ import time
 import json
 import datetime
 import hashlib
-import requests
-import rsa # TODO Don't use RSA anymore
+import requests as requests
+import rsa as rsa # TODO Don't use RSA anymore
 import gzip
+import common as common
 
 def get_time():
 	"""
@@ -200,7 +200,7 @@ def http_get_signed(url, sigurl = None):
 		signature = signature.content
 	
 	# Load the public key
-	public = eval(pathlib.Path(common.BLENDER_TOOLS_PATH + "/shbt-public.key").read_text())
+	public = eval(pathlib.Path(common.SHATTER_PATH + "/data/public.key").read_text())
 	
 	# Verify the signature
 	try:

@@ -10,8 +10,8 @@ import os
 import os.path
 import sys
 import secrets
-import common
-import util
+import common as common
+import util as util
 
 class Patcher:
 	"""
