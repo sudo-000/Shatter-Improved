@@ -426,6 +426,7 @@ def sh_import_segment(fp, context, compressed = False):
 		
 		warnlist = ", ".join(warnlist)
 		
-		show_message("Import warnings", f"The segment imported successfully, but some possible issues were noticed: {warnlist}.")
+		if (context.preferences.addons["shatter"].preferences.enable_segment_warnings):
+			show_message("Import warnings", f"The segment imported successfully, but some possible issues were noticed: {warnlist}.")
 	
 	return {"FINISHED"}

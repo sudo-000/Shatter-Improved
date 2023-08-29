@@ -57,7 +57,7 @@ class ExportWarnings():
 		Display a message with warnings
 		"""
 		
-		if (len(self.warnings)):
+		if (len(self.warnings) and bpy.context.preferences.addons["shatter"].preferences.enable_segment_warnings):
 			warnlist = []
 			
 			for warn in self.warnings:
@@ -65,7 +65,7 @@ class ExportWarnings():
 			
 			warnlist = ", ".join(warnlist)
 			
-			butil.show_message("Export warnings", f"The segment imported successfully, but some possible issues were noticed: {warnlist}.")
+			butil.show_message("Export warnings", f"The segment exported successfully, but some possible issues were noticed: {warnlist}.")
 
 class ExportCounter():
 	"""
@@ -188,6 +188,10 @@ def sh_create_root(scene, params):
 	if (sh_vrmultiply != 1.0):
 		size["Z"] = size["Z"] * sh_vrmultiply
 	
+	# Segment size warning
+	if (size["Z"] <= 0.0):
+		params["warnings"].add("the segment length is zero or less which may behave weirdly")
+	
 	# Initial segment properties, like size
 	seg_props = {
 	   "size": str(size["X"]) + " " + str(size["Y"]) + " " + str(size["Z"])
@@ -209,7 +213,7 @@ def sh_create_root(scene, params):
 		if (scene.sh_light_back != 1.0):   seg_props["lightBack"] = str(scene.sh_light_back)
 	
 	# Check for softshadow attrib and set
-	if (scene.sh_softshadow != 0.6):
+	if (not (0.59999 < scene.sh_softshadow < 0.60001)):
 		seg_props["softshadow"] = str(scene.sh_softshadow)
 	
 	# Add ambient lighting if enabled
@@ -247,6 +251,10 @@ def sh_add_object(level_root, scene, obj, params):
 	
 	# Shorthand for obj.sh_properties.sh_type
 	sh_type = obj.sh_properties.sh_type
+	
+	# Count as a box if it's a box
+	if (sh_type == "BOX"):
+		params["box_counter"].inc()
 	
 	# Type for obstacles
 	if (sh_type == "OBS"):
@@ -325,6 +333,10 @@ def sh_add_object(level_root, scene, obj, params):
 			if (val):
 				properties["param" + str(i)] = val
 	
+	# Warning for param0 and template being set
+	if (sh_type == "OBS" and obj.sh_properties.param0 and obj.sh_properties.sh_template):
+		params["warnings"].add("both param0 and a template are set on some obstacles making param0 override the template - since param0 is often used for colours this might result in clear glass")
+	
 	# Set tint for decals
 	if (sh_type == "DEC" and obj.sh_properties.sh_havetint):
 		properties["color"] = str(obj.sh_properties.sh_tint[0]) + " " + str(obj.sh_properties.sh_tint[1]) + " " + str(obj.sh_properties.sh_tint[2]) + " " + str(obj.sh_properties.sh_tint[3])
@@ -364,7 +376,7 @@ def sh_add_object(level_root, scene, obj, params):
 			properties["tileRot"] = str(obj.sh_properties.sh_tilerot[0]) + " " + str(obj.sh_properties.sh_tilerot[1]) + " " + str(obj.sh_properties.sh_tilerot[2])
 	
 	# Set the tag name
-	element_type = "entity"
+	element_type = "shbt-unknown-entity"
 	
 	if (sh_type == "BOX"):
 		element_type = "box"
@@ -376,6 +388,8 @@ def sh_add_object(level_root, scene, obj, params):
 		element_type = "powerup"
 	elif (sh_type == "WAT"):
 		element_type = "water"
+	else:
+		params["warnings"].add("an unknown type of entity was found")
 	
 	# Add the element to the document
 	el = et.SubElement(level_root, element_type, properties)
@@ -443,6 +457,10 @@ def createSegmentText(context, params):
 			params["isLast"] = True
 		
 		sh_add_object(level_root, scene, obj, params)
+	
+	# Check the warning for box count being zero
+	if (not params["box_counter"].has_any()):
+		params["warnings"].add("there are no boxes which causes the segment to load improperly")
 	
 	# Add file header with version
 	file_header = "<!-- Exporter: Shatter for Blender " + str(common.BL_INFO["version"][0]) + "." + str(common.BL_INFO["version"][1]) + "." + str(common.BL_INFO["version"][2]) + " -->\n"
@@ -540,8 +558,9 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 	# Set wait cursor
 	context.window.cursor_set('WAIT')
 	
-	# We need this later ...
-	uid = bpy.context.preferences.addons["shatter"].preferences.uid
+	# Warnings related
+	params["warnings"] = ExportWarnings()
+	params["box_counter"] = ExportCounter()
 	
 	# Marking for segstrate
 	segstrate_path = None
@@ -614,6 +633,9 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 		
 		context.window.cursor_set('DEFAULT')
 		
+		# Display export warnings, if any
+		params["warnings"].display()
+		
 		return {'FINISHED'}
 	
 	##
@@ -657,6 +679,10 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 	if (context.preferences.addons["shatter"].preferences.segment_originality_service):
 		remote_api.claim_segment_text(context, content)
 	
+	# Display export warnings, if any and if enabled
+	params["warnings"].display()
+	
+	# Progress display cleanup
 	context.window_manager.progress_update(1.0)
 	context.window_manager.progress_end()
 	context.window.cursor_set('DEFAULT')

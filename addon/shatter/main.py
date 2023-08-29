@@ -928,6 +928,12 @@ class sh_AddonPreferences(AddonPreferences):
 		default = "",
 	)
 	
+	enable_segment_warnings: BoolProperty(
+		name = "Enable export and import warnings",
+		description = "Export and import warnings can warn you about possible issues that might result in odd or unexpected behaviour in Smash Hit",
+		default = True,
+	)
+	
 	## Network and privacy ##
 	enable_update_notifier: BoolProperty(
 		name = "Enable update checking",
@@ -1009,6 +1015,7 @@ class sh_AddonPreferences(AddonPreferences):
 		ui = main.box()
 		ui.label(text = "General options", icon = "PREFERENCES")
 		ui.prop(self, "default_assets_path")
+		ui.prop(self, "enable_segment_warnings")
 		
 		ui = main.box()
 		ui.label(text = "Network features", icon = "WORLD")
@@ -1401,7 +1408,7 @@ def update_uid():
 		else:
 			# We have the file but not the saved uid, probably the user
 			# reinstalled
-			bpy.context.preferences.addons["shatter"].preferences.uid = uid_from_file
+			bpy.context.preferences.addons["shatter"].preferences.uid = uid_from_file.replace("\n", "")
 
 def generate_uid():
 	s = secrets.token_hex(16)

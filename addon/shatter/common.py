@@ -36,7 +36,7 @@ MAX_STRING_LENGTH = 512
 """
 Update info URL
 """
-UPDATE_INFO = "https://shatter-team.github.io/Shatter-Meta/update.json"
+UPDATE_INFO = "https://shatter-team.github.io/Shatter-Meta/update-v2.json"
 
 """
 Bad user info url
