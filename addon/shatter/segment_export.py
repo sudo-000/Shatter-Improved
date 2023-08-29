@@ -37,6 +37,50 @@ from bpy.types import (
 	PropertyGroup,
 )
 
+class ExportWarnings():
+	"""
+	Keep track of export warnings
+	"""
+	
+	def __init__(self):
+		self.warnings = set()
+	
+	def add(self, text):
+		"""
+		Add an export warning
+		"""
+		
+		self.warnings.add(text)
+	
+	def display(self):
+		"""
+		Display a message with warnings
+		"""
+		
+		if (len(self.warnings)):
+			warnlist = []
+			
+			for warn in self.warnings:
+				warnlist.append(warn)
+			
+			warnlist = ", ".join(warnlist)
+			
+			butil.show_message("Export warnings", f"The segment imported successfully, but some possible issues were noticed: {warnlist}.")
+
+class ExportCounter():
+	"""
+	Helps count things
+	"""
+	
+	def __init__(self):
+		self.count = 0
+	
+	def inc(self):
+		self.count += 1
+	
+	def has_any(self):
+		return self.count > 0
+
 def tryTemplatesPath():
 	"""
 	Try to get the path of the templates.xml file automatically

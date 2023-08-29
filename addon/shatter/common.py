@@ -15,9 +15,11 @@ not already cached, which it isn't for new installs
 
 # Get the path to the Shatter install
 SHATTER_PATH = str(pathlib.Path(__file__).parent) + "/"
+print(f"Shatter install path: {SHATTER_PATH}")
 
 # Find the addons path
 BLENDER_ADDONS_PATH = str(pathlib.Path(__file__).parent.parent) + "/"
+print(f"Blender addons path: {BLENDER_ADDONS_PATH}")
 
 # Read main file
 BL_INFO = pathlib.Path(SHATTER_PATH + "/__init__.py").read_text()

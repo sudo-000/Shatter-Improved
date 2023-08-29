@@ -1894,7 +1894,11 @@ def register():
 	global g_process_test_server
 	
 	if (g_process_test_server and get_prefs().enable_quick_test_server):
-		g_process_test_server = quick_test.runServerProcess()
+		try:
+			g_process_test_server = quick_test.runServerProcess()
+		except Exception as e:
+			print(f"*** Exception while starting quick test server ***")
+			print(traceback.format_exc())
 	
 	# Check for updates
 	run_updater()
