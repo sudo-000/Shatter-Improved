@@ -334,7 +334,7 @@ def sh_add_object(level_root, scene, obj, params):
 				properties["param" + str(i)] = val
 	
 	# Warning for param0 and template being set
-	if (sh_type == "OBS" and obj.sh_properties.param0 and obj.sh_properties.sh_template):
+	if (sh_type == "OBS" and obj.sh_properties.sh_param0 and obj.sh_properties.sh_template):
 		params["warnings"].add("both param0 and a template are set on some obstacles making param0 override the template - since param0 is often used for colours this might result in clear glass")
 	
 	# Set tint for decals
