@@ -13,6 +13,7 @@ from pathlib import Path
 from hashlib import sha3_384
 from bpy.types import (UILayout)
 from multiprocessing import Process
+import traceback
 
 import shatter.common as common
 import shatter.util as util
@@ -41,27 +42,31 @@ def download_json(source):
 	return json.loads(data)
 
 def update_downloader(url):
-	import shutil, pathlib, os
-	
-	# Download data
-	data = util.http_get_signed(url)
-	
-	if (not data):
-		print("Update failed to download or verify properly")
+	try:
+		import shutil, pathlib, os
+		
+		# Download data
+		data = util.http_get_signed(url)
+		
+		if (not data):
+			print("Update failed to download or verify properly")
+			os._exit(0)
+		
+		# Get the local file path
+		path = common.TOOLS_HOME_FOLDER + "/" + url.split("/")[-1].replace("/", "").replace("\\", "")
+		
+		# Write the data
+		pathlib.Path(path).write_bytes(data)
+		
+		print(f"Downloaded latest update to {path}, preparing to extract.")
+		
+		# Extract the files (installs update)
+		shutil.unpack_archive(path, common.BLENDER_ADDONS_PATH, "zip")
+		
 		os._exit(0)
-	
-	# Get the local file path
-	path = common.TOOLS_HOME_FOLDER + "/" + url.split("/")[-1].replace("/", "").replace("\\", "")
-	
-	# Write the data
-	pathlib.Path(path).write_bytes(data)
-	
-	print(f"Downloaded latest update to {path}, preparing to extract.")
-	
-	# Extract the files (installs update)
-	shutil.unpack_archive(path, common.BLENDER_ADDONS_PATH, "zip")
-	
-	os._exit(0)
+	except:
+		print(traceback.print_exc())
+		os._exit(1)
 
 def download_and_install_update(source):
 	"""
@@ -113,26 +118,36 @@ def get_latest_version(current_version, release_channel):
 	Check the new version against the current version
 	"""
 	
-	info = download_json(common.UPDATE_INFO).get(release_channel, None)
+	info = download_json(common.UPDATE_INFO)
+	
+	if (not info):
+		print("No update info (bad signature?)")
+		return None
+	
+	info = info.get(release_channel, None)
 	
 	# No info on release channel
 	if (info == None):
+		print("No info for release channel")
 		return None
 	
 	new_version = info.get("version", None)
 	
 	# Do not prompt to update things with version set to null
 	if (new_version == None):
+		print("No new version was put (bad file?)")
 		return None
 	
 	# Check if the version is actually new
 	if (not version_compare(current_version, new_version)):
+		print("Current version matches latest version")
 		return None
 	
 	blender_version_requirement = info.get("blender_version", [2, 60, 0])
 	
 	# Check if the required blender version is too great
 	if (version_compare(bpy.app.version, blender_version_requirement, True)):
+		print("Blender too old to update")
 		return None
 	
 	# Create the update object, if we need to use it
@@ -162,4 +177,4 @@ def check_for_updates(current_version):
 			# startup.
 			bpy.app.timers.register(functools.partial(show_message, "Shatter Update", message), first_interval = 5.0)
 	else:
-		print("Smash Hit Tools: Up to date (or checker failed or disabled)!")
+		print("Didn't find any updates or checker is disabled.")

@@ -1,6 +1,13 @@
 #!/usr/bin/python3
 """
 Tool for baking a Smash Hit mesh
+
+Problems:
+
+ - CP2 segments are 100% fucked becuase:
+   - tileRot isn't respected correctly
+   - shatter does not export tileSize when there is a template
+   - tileSize rotation might be wrong as well, hell if I know
 """
 
 import struct
@@ -9,9 +16,14 @@ import sys
 import xml.etree.ElementTree as et
 import random
 import math
+import profile
 
-# Version of mesh baker; this is not used anywhere.
-VERSION = (0, 15, 0)
+# Version of mesh baker
+VERSION = (0, 15, 2)
+
+# If the mesh baker version and bake info should be appended to the end of the
+# mesh data
+INCLUDE_VERSION_AND_INFO = True
 
 # The number of rows and columns in the tiles.mtx.png file. Change this if you
 # have overloaded the file with more tiles; note that you will also need to
@@ -244,7 +256,7 @@ class SegmentInfo:
 		intersected = 0
 		
 		for b in self.boxes:
-			result = b.testAABB(pos, size)
+			result = b.testAABB_optimisedBC(pos, size)
 			
 			if (result):
 				volume = (2.0 * result[1].x) * (2.0 * result[1].y) * (2.0 * result[1].z)
@@ -284,7 +296,7 @@ class Quad:
 		p1, p2, p3, p4, col, gc, normal = self.p1, self.p2, self.p3, self.p4, self.colour, self.seg, self.normal
 		tex = getTextureCoords(TILE_ROWS, TILE_COLS, TILE_BITE_ROW, TILE_BITE_COL, self.tileRot, self.tile)
 		
-		vertexes = b''
+		vertexes = bytearray()
 		vertexes += meshPointBytes(p1.x, p1.y, p1.z, tex[0][0], tex[0][1], col.x, col.y, col.z, col.a if hasattr(col, "a") else 1, gc, normal)
 		vertexes += meshPointBytes(p2.x, p2.y, p2.z, tex[1][0], tex[1][1], col.x, col.y, col.z, col.a if hasattr(col, "a") else 1, gc, normal)
 		vertexes += meshPointBytes(p3.x, p3.y, p3.z, tex[2][0], tex[2][1], col.x, col.y, col.z, col.a if hasattr(col, "a") else 1, gc, normal)
@@ -297,7 +309,7 @@ class Quad:
 			index[0], index[2] = index[2], index[0]
 			index[3], index[5] = index[5], index[3]
 		
-		indexes = b''
+		indexes = bytearray()
 		indexes += meshIndexBytes(index[0], index[1], index[2])
 		indexes += meshIndexBytes(index[3], index[4], index[5])
 		
@@ -452,7 +464,11 @@ class Box:
 		
 		def test_aabb_axis(a_min, a_max, b_min, b_max):
 			"""
-			Test a single aabb axis returning the midpoint and half-difference of two values
+			Test a single aabb axis returning the midpoint and half-difference
+			of two values
+			
+			2023-08-30: I forget what the fuck "half-difference" means, I think
+			I meant "half of the length of the intersection"
 			"""
 			
 			if (a_min > a_max):
@@ -468,13 +484,66 @@ class Box:
 		
 		########################################################################
 		
+		# 2023-08-30: Did some optimisation by only computing these in a short
+		# curcit style. Maybe it would be nice to find which order of these is
+		# optimal for most cases.
 		x = test_aabb_axis(self.pos.x - self.size.x, self.pos.x + self.size.x, other_pos.x - other_size.x, other_pos.x + other_size.x)
-		y = test_aabb_axis(self.pos.y - self.size.y, self.pos.y + self.size.y, other_pos.y - other_size.y, other_pos.y + other_size.y)
-		z = test_aabb_axis(self.pos.z - self.size.z, self.pos.z + self.size.z, other_pos.z - other_size.z, other_pos.z + other_size.z)
 		
-		if (x != None and y != None and z != None):
-			#       Origin                     Size
-			return (Vector3(x[0], y[0], z[0]), Vector3(x[1], y[1], z[1]))
+		if (x):
+			y = test_aabb_axis(self.pos.y - self.size.y, self.pos.y + self.size.y, other_pos.y - other_size.y, other_pos.y + other_size.y)
+			
+			if (y):
+				z = test_aabb_axis(self.pos.z - self.size.z, self.pos.z + self.size.z, other_pos.z - other_size.z, other_pos.z + other_size.z)
+				
+				if (z):
+					#       Origin                     Size
+					return (Vector3(x[0], y[0], z[0]), Vector3(x[1], y[1], z[1]))
+		
+		return None
+	
+	def testAABB_optimisedBC(self, other_pos, other_size):
+		"""
+		testAABB but optimised for boxcast
+		"""
+		
+		def test_aabb_axis(a_min, a_max, b_min, b_max):
+			"""
+			Test a single aabb axis returning the midpoint and half-difference
+			of two values
+			
+			2023-08-30: I forget what the fuck "half-difference" means, I think
+			I meant "half of the length of the intersection"
+			
+			optimised version is regular diff
+			"""
+			
+			if (a_min > a_max):
+				a_min, a_max = a_max, a_min
+			
+			if (b_min > b_max):
+				b_min, b_max = b_max, b_min
+			
+			if (a_max >= b_min and b_max >= a_min):
+				return min(a_max, b_max) - max(a_min, b_min)
+			else:
+				return None
+		
+		########################################################################
+		
+		# 2023-08-30: Did some optimisation by only computing these in a short
+		# curcit style. Maybe it would be nice to find which order of these is
+		# optimal for most cases.
+		x = test_aabb_axis(self.pos.x - self.size.x, self.pos.x + self.size.x, other_pos.x - other_size.x, other_pos.x + other_size.x)
+		
+		if (x != None):
+			y = test_aabb_axis(self.pos.y - self.size.y, self.pos.y + self.size.y, other_pos.y - other_size.y, other_pos.y + other_size.y)
+			
+			if (y != None):
+				z = test_aabb_axis(self.pos.z - self.size.z, self.pos.z + self.size.z, other_pos.z - other_size.z, other_pos.z + other_size.z)
+				
+				if (z != None):
+					#       Origin                     Size
+					return (None, Vector3(0.5 * x, 0.5 * y, 0.5 * z))
 		
 		return None
 
@@ -505,7 +574,7 @@ def parseSegmentXML(data, templates = {}):
 				pos = Vector3.fromString(getFromTemplate(a, templates, t, "pos", "0 0 0"))
 				
 				# Size -- x y z
-				size = Vector3.fromString(getFromTemplate(a, templates, t, "size", "0.5 0.5 0.5"))
+				size = Vector3.fromString(getFromTemplate(a, templates, t, "size", "0 0 0"))
 				
 				# Colour -- r1 g1 b1   [r2 g2 b2   r3 g3 b3]
 				colour = Vector3.fromString(getFromTemplate(a, templates, t, "color", "1 1 1"), True)
@@ -517,7 +586,7 @@ def parseSegmentXML(data, templates = {}):
 				tileSize = parseFloatTriplet(getFromTemplate(a, templates, t, "tileSize", "1"))
 				
 				# Tile rotation -- rot1 [rot2 rot3]
-				tileRot = parseIntTriplet(getFromTemplate(a, templates, t, "tileRot", "1"))
+				tileRot = parseIntTriplet(getFromTemplate(a, templates, t, "tileRot", "0"))
 				
 				# Lighting: Glow -- intensity
 				glow = float(getFromTemplate(a, templates, t, "glow", "0"))
@@ -669,7 +738,7 @@ def meshIndexBytes(i0, i1, i2):
 	Return the bytes for an index in the mesh
 	"""
 	
-	c = b''
+	c = bytearray()
 	
 	c += struct.pack('I', i0)
 	c += struct.pack('I', i1)
@@ -812,7 +881,7 @@ def meshPointBytes(x, y, z, u, v, r, g, b, a, gc, normal):
 	
 	r, g, b, a = doVertexColour(x, y, z, r, g, b, a, gc, normal)
 	
-	c = b''
+	c = bytearray()
 	
 	c += struct.pack('f', x)
 	c += struct.pack('f', y)
@@ -863,6 +932,18 @@ def generateMeshData(data, seg = None, progress = None, extra_data = None):
 	
 	if (extra_data):
 		outdata += extra_data.encode('utf-8')
+	
+	if (INCLUDE_VERSION_AND_INFO):
+		outdata += b"MB"
+		outdata += struct.pack('!H', VERSION[0])
+		outdata += struct.pack('!H', VERSION[1])
+		outdata += struct.pack('!H', VERSION[2])
+		outdata += struct.pack('!H', (1 if BAKE_UNSEEN_FACES else 0) | (2 if ABMIENT_OCCLUSION_ENABLED else 0) | (4 if LIGHTING_ENABLED else 0))
+		outdata += struct.pack('!H', TILE_ROWS)
+		outdata += struct.pack('!H', TILE_COLS)
+		outdata += struct.pack('!f', TILE_BITE_ROW)
+		outdata += struct.pack('!f', TILE_BITE_COL)
+		outdata += struct.pack('!f', ABMIENT_OCCLUSION_DELTA_BOX_SIZE)
 	
 	outdata = zlib.compress(outdata, -1)
 	
@@ -916,5 +997,17 @@ def main(input_file, output_file, template_file = None):
 	
 	bakeMeshToFile(data, output_file, template_file)
 
+def runMain():
+	if (sys.argv[1] != "!!decompress!!"):
+		main(sys.argv[1], sys.argv[2], sys.argv[3] if (len(sys.argv) >= 4) else None)
+	else:
+		print("decompress mesh mode")
+		f = open(sys.argv[2], "rb")
+		d = zlib.decompress(f.read())
+		f.close()
+		f = open(sys.argv[2] + ".mesh-uncompressed", "wb")
+		f.write(d)
+		f.close()
+
 if (__name__ == "__main__"):
-	main(sys.argv[1], sys.argv[2], sys.argv[3] if (len(sys.argv) >= 4) else None)
+	profile.run('runMain()')
