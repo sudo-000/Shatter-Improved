@@ -93,6 +93,8 @@ def version_compare(current, candidate, or_eq = False):
 	Return True if candidate is greater than (or, if or_eq is set, if it's equal
 	to) current, otherwise return False.
 	
+	e.g. vcmp(current, candidate) = candidate > current
+	
 	NOTE This is less dumb than the older function :P
 	"""
 	
@@ -120,6 +122,14 @@ def get_latest_version(current_version, release_channel):
 	
 	info = download_json(common.UPDATE_INFO)
 	
+	# Fake info for updater test
+	if (release_channel == "updatertest"):
+		info = {"updatertest": {
+			"version": [9999, 99, 99],
+			"blender_version": [3, 0, 0],
+			"download": "https://example.invalid/file.zip",
+		}}
+	
 	if (not info):
 		print("No update info (bad signature?)")
 		return None
@@ -140,7 +150,7 @@ def get_latest_version(current_version, release_channel):
 	
 	# Check if the version is actually new
 	if (not version_compare(current_version, new_version)):
-		print("Current version matches latest version")
+		print(f"Current version ({current_version}) matches or is newer than latest version ({new_version})")
 		return None
 	
 	blender_version_requirement = info.get("blender_version", [2, 60, 0])
