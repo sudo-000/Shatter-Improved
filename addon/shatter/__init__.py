@@ -29,6 +29,19 @@ import pathlib
 shatter_dir = pathlib.Path(__file__).parent
 sys.path.append(str(shatter_dir))
 
+# remove files from older versions that left crap everywhere and would break
+# the current version of shatter
+import util
+import common
+
+if (hasattr(common, "BLENDER_TOOLS_PATH")):
+	print("Shatter: Need to delete a lot of old files, Blender might also break when loading addon the first time...")
+	
+	for f in ["assets", "docs", "requests", "rsa", "thirdparty-info", ".gitignore", "__init__.py", "autogen.py", "bake_mesh.py", "binaryxml.py", "common.py", "CONTRIBUTING.md", "CREDITS.md", "dummy.py", "LICENCE", "misc_shatter_tools.py", "obstacle_db.py", "README.md", "reporting.py", "segment_import.py", "segment_export.py", "segstrate.py", "server.py", "updater.py", "util.py", "shbt-public.key", "todo.txt"]:
+		util.delete_path(common.BLENDER_TOOLS_PATH + "/" + f)
+else:
+	print("Shatter: Don't need to delete any old files")
+
 import main
 
 def register():

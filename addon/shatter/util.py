@@ -15,7 +15,7 @@ import hashlib
 import requests as requests
 import rsa as rsa # TODO Don't use RSA anymore
 import gzip
-import common as common
+import shutil
 
 def get_time():
 	"""
@@ -130,6 +130,19 @@ def prepare_folders(path):
 def absolute_path(path):
 	return os.path.abspath(path)
 
+def delete_path(path):
+	"""
+	Delete the thing at the path
+	"""
+	
+	try:
+		shutil.rmtree(path)
+	except:
+		try:
+			os.remove(path)
+		except:
+			pass
+
 def list_folder(folder, full = True):
 	"""
 	List files in a folder. Full will make the paths the full file paths, false
@@ -185,6 +198,8 @@ def http_get_signed(url, sigurl = None):
 	TODO Actually use this
 	TODO Look into something that isn't RSA in 2023
 	"""
+	
+	import common
 	
 	# This is needed
 	PublicKey = rsa.PublicKey
