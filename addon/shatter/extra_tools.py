@@ -51,3 +51,9 @@ def rebake_all(path, templates):
 		bake_mesh.bakeMeshToFile(data, basename + ".mesh.mp3", templates)
 	
 	foreach_segment_in(path, callback)
+
+################################################################################
+# PATCHER
+################################################################################
+
+# Not Yet!

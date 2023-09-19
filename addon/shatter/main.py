@@ -496,10 +496,6 @@ class sh_SceneProperties(PropertyGroup):
 		default = False
 	)
 	
-	# Yes, I'm trying to add "DRM" support for this. It can barely be called that
-	# but I think it would fit the definition of DRM, despite not being very
-	# strong. This isn't available in the UI for now to emphasise that it's not
-	# really that useful.
 	sh_drm_disallow_import: BoolProperty(
 		name = "Disallow import",
 		description = "This will disallow importing the exported segment. It can very easily be bypassed, but might prevent a casual user from editing your segment without asking. Please use this feature wisely and consider providing Blender files for people who ask nicely",
@@ -511,6 +507,28 @@ class sh_SceneProperties(PropertyGroup):
 		description = "Colour and intensity of the ambient light",
 		subtype = "COLOR_GAMMA",
 		default = (0.0, 0.0, 0.0), 
+		min = 0.0,
+		max = 1.0,
+	)
+	
+	sh_stone_obstacle_name: StringProperty(
+		name = "Stone obstacle name",
+		description = "Name of the obstacle to use for stone",
+		default = "stone",
+		maxlen = SH_MAX_STR_LEN,
+	)
+	
+	sh_legacy_colour_model: BoolProperty(
+		name = "Legacy colour model",
+		description = "Uses the colour inheritance model from SHBT v0.9x, which can avoid extra effort when using the stone hack",
+		default = False
+	)
+	
+	sh_legacy_colour_default: FloatVectorProperty(
+		name = "Default colour",
+		description = "The default colour for all (non-visible marked) boxes when using the legacy colour model",
+		subtype = "COLOR_GAMMA",
+		default = (1.0, 1.0, 1.0), 
 		min = 0.0,
 		max = 1.0,
 	)
@@ -1079,7 +1097,9 @@ class sh_SegmentPanel(Panel):
 		sub.prop(sh_properties, "sh_softshadow")
 		sub.prop(sh_properties, "sh_vrmultiply")
 		
-		if (sh_properties.sh_box_bake_mode == "Mesh"):
+		bake_mode = sh_properties.sh_box_bake_mode
+		
+		if (bake_mode == "Mesh"):
 			# Lighting
 			sub = layout.box()
 			sub.label(text = "Light", icon = "LIGHT")
@@ -1092,16 +1112,24 @@ class sh_SegmentPanel(Panel):
 				sub.prop(sh_properties, "sh_light_bottom")
 				sub.prop(sh_properties, "sh_light_front")
 				sub.prop(sh_properties, "sh_light_back")
-
+			
 			sub.prop(sh_properties, "sh_lighting")
 			if (sh_properties.sh_lighting):
 				sub.prop(sh_properties, "sh_lighting_ambient")
-
+			
 			# Mesh settings
 			sub = layout.box()
 			sub.label(text = "Meshes", icon = "MESH_DATA")
 			sub.prop(sh_properties, "sh_menu_segment")
 			sub.prop(sh_properties, "sh_ambient_occlusion")
+		
+		if (bake_mode == "StoneHack"):
+			sub = layout.box()
+			sub.label(text = "Stone", icon = "UV_DATA")
+			sub.prop(sh_properties, "sh_stone_obstacle_name")
+			sub.prop(sh_properties, "sh_legacy_colour_model")
+			if (sh_properties.sh_legacy_colour_model):
+				sub.prop(sh_properties, "sh_legacy_colour_default")
 		
 		# Quick test
 		if (bpy.context.preferences.addons["shatter"].preferences.enable_quick_test_server):
@@ -1548,6 +1576,14 @@ class AutogenProperties(PropertyGroup):
 		default = False,
 	)
 	
+	room_yoffset: FloatProperty(
+		name = "Height offset",
+		description = "How high or low the room will appear to the player",
+		default = 1.0,
+		min = -15.0,
+		max = 15.0,
+	)
+	
 	### Arch ###
 	
 	arch_top_parts: BoolProperty(
@@ -1606,6 +1642,7 @@ class AutogenPanel(Panel):
 		# Room options
 		if (props.type == "BasicRoom"):
 			sub.prop(props, "room_length")
+			sub.prop(props, "room_yoffset")
 			sub.prop(props, "room_door_part")
 		
 		# Archway
@@ -1802,6 +1839,7 @@ class RunAutogenAction(bpy.types.Operator):
 		# Room options
 		if (props.type == "BasicRoom"):
 			params["room_length"] = props.room_length
+			params["room_yoffset"] = props.room_yoffset
 			params["room_door_part"] = props.room_door_part
 		
 		# Archway

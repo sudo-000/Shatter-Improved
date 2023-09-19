@@ -397,7 +397,11 @@ def sh_add_object(level_root, scene, obj, params):
 	if (params["isLast"]): # Fixes the issues with the last line of the file
 		el.tail = "\n"
 	
-	if (params.get("sh_box_bake_mode", "Mesh") == "StoneHack" and sh_type == "BOX" and obj.sh_properties.sh_visible):
+	# Some things to handle legacy colour model
+	use_legacy = params["stone_legacy_colour_model"]
+	default_colour = params["stone_legacy_colour_default"]
+	
+	if (params.get("sh_box_bake_mode", "Mesh") == "StoneHack" and sh_type == "BOX" and (obj.sh_properties.sh_visible or use_legacy)):
 		"""
 		Export a fake obstacle that will represent stone in the level.
 		"""
@@ -408,11 +412,8 @@ def sh_add_object(level_root, scene, obj, params):
 		position = {"X": obj.location[1], "Y": obj.location[2], "Z": obj.location[0]}
 		
 		# VR Multiply setting
-		if (sh_vrmultiply != 1.0):
-			position["Z"] = position["Z"] * sh_vrmultiply
-		
-		if (sh_vrmultiply != 1.0 and ((scene.sh_len[2] / 2) - 0.5) < abs(size["Z"])):
-			size["Z"] = size["Z"] * sh_vrmultiply
+		position["Z"] = position["Z"] * sh_vrmultiply
+		size["Z"] = size["Z"] * sh_vrmultiply
 		
 		properties = {
 			"pos": str(position["X"]) + " " + str(position["Y"]) + " " + str(position["Z"]),
@@ -426,8 +427,10 @@ def sh_add_object(level_root, scene, obj, params):
 		if (obj.sh_properties.sh_template):
 			properties["template"] = obj.sh_properties.sh_template
 		else:
+			colour = obj.sh_properties.sh_tint if obj.sh_properties.sh_visible else default_colour
+			
 			properties["param7"] = "tile=" + str(obj.sh_properties.sh_decal)
-			properties["param8"] = "color=" + str(obj.sh_properties.sh_tint[0]) + " " + str(obj.sh_properties.sh_tint[1]) + " " + str(obj.sh_properties.sh_tint[2])
+			properties["param8"] = "color=" + str(colour[0]) + " " + str(colour[1]) + " " + str(colour[2])
 		
 		el_stone = et.SubElement(level_root, "obstacle", properties)
 		el_stone.tail = "\n\t"
@@ -442,6 +445,11 @@ def createSegmentText(context, params):
 	scene = context.scene.sh_properties
 	b_scene = context.scene
 	level_root = sh_create_root(scene, params)
+	
+	# Set some params
+	params["stone_type"] = scene.sh_stone_obstacle_name
+	params["stone_legacy_colour_model"] = scene.sh_legacy_colour_model
+	params["stone_legacy_colour_default"] = scene.sh_legacy_colour_default
 	
 	# Export each object to XML node
 	for i in range(len(bpy.data.objects)):

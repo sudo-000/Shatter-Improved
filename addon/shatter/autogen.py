@@ -293,12 +293,13 @@ class RoomWithBasicWalls:
 		self.height = params["size"][1] / 2
 		self.length = params["room_length"] / 2
 		self.door_part = params["room_door_part"]
+		self.yoffset = params.get("room_yoffset", 1.0)
 		self.running = True
 	
 	def next(self):
 		basePos = Vector3(0.0, 0.0, -self.length)
 		
-		offset = Vector3(0.0, 1.0, 0.0)
+		offset = Vector3(0.0, self.yoffset, 0.0)
 		
 		# Walls
 		leftBoxPos = basePos - Vector3(x = self.width + 0.5) + offset
@@ -319,28 +320,33 @@ class RoomWithBasicWalls:
 		if (self.door_part):
 			zPos = 2 * -self.length + 0.5
 			
-			# We essentially need to create two boxes for the top and bottom:
-			# One that has its top at y=0 and another that is a bottom at y=2
-			# TIP: Drawing this out is helpful!
+			# Calculate distance from 2.0 to top of ceiling
+			yTopCeilingPos = offset.y + self.height
+			yCeilingToTwo = yTopCeilingPos - 2.0
 			
 			# Top box
-			topBoxPos = Vector3(0.0, 2.0 + (self.height / 2) - 0.5, zPos)
-			topBoxSize = Vector3(1.0, (self.height - 1) / 2, 0.5)
+			topBoxPos = Vector3(0.0, 2.0 + (yCeilingToTwo / 2), zPos)
+			topBoxSize = Vector3(1.0, yCeilingToTwo / 2, 0.5)
 			topBox = Box(topBoxPos, topBoxSize)
 			
 			self.placer.addBox(topBox)
 			
+			# Calculate distance from bottom pos of floor to 0.0
+			# Remember that self.height is already divided by two...
+			yBottomFloorPos = offset.y - self.height
+			yFloorToZero = -yBottomFloorPos
+			
 			# Bottom box
-			bottomBoxPos = Vector3(0.0, -(self.height / 2) + 0.5, zPos)
-			bottomBoxSize = Vector3(1.0, (self.height - 1) / 2, 0.5)
+			bottomBoxPos = Vector3(0.0, -(yFloorToZero / 2), zPos)
+			bottomBoxSize = Vector3(1.0, yFloorToZero / 2, 0.5)
 			bottomBox = Box(bottomBoxPos, bottomBoxSize)
 			
 			self.placer.addBox(bottomBox)
 			
 			# Left and right box
 			leftAndRightBoxSize = Vector3((self.width / 2) - 0.5, self.height, 0.5)
-			leftBoxPos = Vector3(-(self.width / 2) - 0.5, 1.0, zPos)
-			rightBoxPos = Vector3((self.width / 2) + 0.5, 1.0, zPos)
+			leftBoxPos = Vector3(-(self.width / 2) - 0.5, offset.y, zPos)
+			rightBoxPos = Vector3((self.width / 2) + 0.5, offset.y, zPos)
 			
 			self.placer.addBox(Box(leftBoxPos, leftAndRightBoxSize))
 			self.placer.addBox(Box(rightBoxPos, leftAndRightBoxSize))
@@ -455,3 +461,29 @@ def generate(placer, params):
 	
 	while (gen.hasMore()):
 		gen.next()
+
+class PlaceScript():
+	"""
+	Some complex examples:
+	
+	[Scene place: [Box pos: [Vec x: [Range start: -4 end: 4 step: 2] y: 0 z: [From var: "x"]] size: [Vec x: 0.5 y: 0.5 z: 0.5] template: [[Context object] get: "sh_properties.sh_template"] reflective: 1]]
+	
+	-> Object
+	
+	[Equal first: [["0 -1 0" toVector] toString] second: [Vec x: 0 y: -1 z: 0]]
+	
+	-> 1
+	
+	[Print text: ["Number of objects" withInteger: [[Scene getObjects] len] joinedBy: ": "]]
+	
+	-> "Number of objects: 31"
+	
+	Grammar:
+	
+	expr -> access | symbol | string | number | null
+	access -> '[' expr exprList ']'
+	exprList -> symbol ':' expr exprList?
+	"""
+	
+	def __init__(self):
+		pass
