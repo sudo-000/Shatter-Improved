@@ -7,16 +7,14 @@ This looks better than Python-RSA imo: https://github.com/wbond/oscrypto
 NOTE: Contact cddepppp256<@]gmail(.}com for sensitive security issues.
 """
 
-import bpy, functools
 import json
 from pathlib import Path
 from hashlib import sha3_384
-from bpy.types import (UILayout)
 from multiprocessing import Process
 import traceback
 
-import shatter.common as common
-import shatter.util as util
+import common
+import util
 
 class Update():
 	"""
@@ -78,16 +76,18 @@ def download_and_install_update(source):
 	p = Process(target = update_downloader, args = (source,))
 	p.start()
 
-def show_message(title = "Info", message = "", icon = "INFO"):
-	"""
-	Show a message as a popup
-	"""
-	
-	def draw(self, context):
-		self.layout.label(text = message)
-	
-	bpy.context.window_manager.popup_menu(draw, title = title, icon = icon)
-
+# def show_message(title = "Info", message = "", icon = "INFO"):
+# 	"""
+# 	Show a message as a popup
+# 	"""
+# 	
+# 	import bpy, functools
+# 	
+# 	def draw(self, context):
+# 		self.layout.label(text = message)
+# 	
+# 	bpy.context.window_manager.popup_menu(draw, title = title, icon = icon)
+# 
 def version_compare(current, candidate, or_eq = False):
 	"""
 	Return True if candidate is greater than (or, if or_eq is set, if it's equal
@@ -115,7 +115,7 @@ def version_compare(current, candidate, or_eq = False):
 	
 	return or_eq
 
-def get_latest_version(current_version, release_channel):
+def get_latest_version(current_version, release_channel, current_blender):
 	"""
 	Check the new version against the current version
 	"""
@@ -156,7 +156,7 @@ def get_latest_version(current_version, release_channel):
 	blender_version_requirement = info.get("blender_version", [2, 60, 0])
 	
 	# Check if the required blender version is too great
-	if (version_compare(bpy.app.version, blender_version_requirement, True)):
+	if (version_compare(current_blender, blender_version_requirement, True)):
 		print("Blender too old to update")
 		return None
 	
@@ -170,10 +170,13 @@ def check_for_updates(current_version):
 	Display a popup if there is an update.
 	"""
 	
+	import bpy, functools
+	import butil
+	
 	if (not bpy.context.preferences.addons["shatter"].preferences.enable_update_notifier):
 		return
 	
-	update = get_latest_version(current_version, bpy.context.preferences.addons["shatter"].preferences.updater_channel)
+	update = get_latest_version(current_version, bpy.context.preferences.addons["shatter"].preferences.updater_channel, bpy.app.version)
 	
 	if (update != None):
 		if (bpy.context.preferences.addons["shatter"].preferences.enable_auto_update):
@@ -185,6 +188,6 @@ def check_for_updates(current_version):
 			# we make it crash!
 			# TODO: Look if there is some signal or event we can catch for Blender
 			# startup.
-			bpy.app.timers.register(functools.partial(show_message, "Shatter Update", message), first_interval = 5.0)
+			bpy.app.timers.register(functools.partial(butil.show_message, "Shatter Update", message), first_interval = 5.0)
 	else:
 		print("Didn't find any updates or checker is disabled.")

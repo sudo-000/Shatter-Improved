@@ -962,7 +962,7 @@ class sh_AddonPreferences(AddonPreferences):
 	enable_auto_update: BoolProperty(
 		name = "Enable automatic updates",
 		description = "Automatically downloads and installs the newest version of the addon",
-		default = False,
+		default = True,
 	)
 	
 	updater_channel: EnumProperty(
@@ -1051,15 +1051,15 @@ class sh_AddonPreferences(AddonPreferences):
 		ui = main.box()
 		ui.label(text = "Protection", icon = "LOCKED")
 		ui.prop(self, "force_disallow_import")
-		ui.prop(self, "segment_originality_service_tos")
-		if (self.segment_originality_service_tos):
-			ui.prop(self, "segment_originality_service")
-			if (self.segment_originality_service):
-				sub = ui.box()
-				sub.label(text = "Account", icon = "HAND")
-				sub.prop(self, "creator")
-				sub.operator("sh.open_shatter_service_delete_account")
-				sub.operator("sh.open_shatter_service_lookup")
+		# ui.prop(self, "segment_originality_service_tos")
+		# if (self.segment_originality_service_tos):
+		# 	ui.prop(self, "segment_originality_service")
+		# 	if (self.segment_originality_service):
+		# 		sub = ui.box()
+		# 		sub.label(text = "Account", icon = "HAND")
+		# 		sub.prop(self, "creator")
+		# 		sub.operator("sh.open_shatter_service_delete_account")
+		# 		sub.operator("sh.open_shatter_service_lookup")
 		
 		## TODO Put a quick test box with autoconfig option
 		
