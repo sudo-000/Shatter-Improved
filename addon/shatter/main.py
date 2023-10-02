@@ -14,17 +14,17 @@ import os
 import webbrowser
 import tempfile
 import secrets
-import obstacle_db as obstacle_db
-import segment_export as segment_export
-import segment_import as segment_import
-import segstrate as segstrate
-import extra_tools as extra_tools
-import quick_test as quick_test
-import updater as updater
-import autogen as autogen
-import remote_api as remote_api
-import util as util
-import butil as butil
+import obstacle_db
+import segment_export
+import segment_import
+import segstrate
+import extra_tools
+import quick_test
+import updater
+import autogen
+import remote_api
+import util
+import butil
 
 from bpy.props import (
 	StringProperty,
@@ -674,13 +674,22 @@ class sh_EntityProperties(PropertyGroup):
 		options = {"ENUM_FLAG"},
 		description = "The game modes in which this obstacle should appear",
 		items = [
-			('training', "Training", "The easiest game mode which removes randomisation", 1),
-			('classic', "Classic/Zen", "The primary game mode in Smash Hit/A relaxing sandbox mode which removes hit detection", 2),
-			('expert', "Mayhem", "The harder version of classic mode, with boss fights", 4),
-			('versus', "Versus", "Two player versus mode where each player has their own ball count", 16),
-			('coop', "Co-op", "Two player co-op mode where both players share a ball count", 32),
+			('training', "Training", "Obstacle should appear in Training mode", 1),
+			('classic', "Classic and Zen", "Obstacle should appear in Classic and Zen modes", 2),
+			('expert', "Mayhem", "Obstacle should appear in Mayhem mode", 4),
+			('versus', "Versus", "Obstacle should appear in Versus mode", 16),
+			('coop', "Co-op", "Obstacle should appear in Co-op mode", 32),
 		],
 		default = {'training', 'classic', 'expert', 'versus', 'coop'},
+	)
+	
+	sh_difficulty: FloatVectorProperty(
+		name = "Difficulty",
+		description = "The range of difficulty values for which this entity will appear. Difficulty is different than game modes, and is mainly used in Endless Mode to include or exclude obstacle based on a value set per room (using mgSetDifficulty) indicating how hard the room should be. As an example, this is used to exclude crystals in later levels in the Endless mode without creating entirely new segments",
+		default = (0.0, 1.0),
+		min = 0.0,
+		max = 1.0,
+		size = 2,
 	)
 	
 	##################
@@ -1242,10 +1251,6 @@ class sh_ItemPropertiesPanel(Panel):
 				layout.prop(sh_properties, "sh_tintalpha")
 			layout.prop(sh_properties, "sh_blend")
 		
-		# Mode for obstacles
-		if (sh_properties.sh_type == "OBS"):
-			layout.prop(sh_properties, "sh_mode")
-		
 		# Power-up name for power-ups
 		if (sh_properties.sh_type == "POW"):
 			layout.prop(sh_properties, "sh_powerup")
@@ -1253,6 +1258,14 @@ class sh_ItemPropertiesPanel(Panel):
 		# Size for decals
 		if (sh_properties.sh_type == "DEC"):
 			layout.prop(sh_properties, "sh_size")
+		
+		# Mode for obstacles
+		if (sh_properties.sh_type == "OBS"):
+			layout.prop(sh_properties, "sh_mode")
+		
+		# Difficulty for obstacles, powerups and decals (not supported for others)
+		if (sh_properties.sh_type in ["OBS", "POW", "DEC"]):
+			layout.prop(sh_properties, "sh_difficulty")
 		
 		# Hidden property
 		if (sh_properties.sh_type != "BOX"):

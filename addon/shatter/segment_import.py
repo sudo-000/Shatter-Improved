@@ -83,6 +83,20 @@ def sh_parse_colour(s):
 			(float(a[6]), float(a[7]), float(a[8]))
 		]
 
+def sh_parse_string_array(string, T = float):
+	"""
+	Generic utility to parse a string of type T
+	"""
+	
+	string = string.split()
+	
+	data = []
+	
+	for item in string:
+		data.append(T(item))
+	
+	return data
+
 show_message = butil.show_message
 
 def sh_import_segment(fp, context, compressed = False):
@@ -336,6 +350,7 @@ def sh_import_segment(fp, context, compressed = False):
 			o.sh_properties.sh_obstacle = properties.get("type", "")
 			o.sh_properties.sh_template = properties.get("template", "")
 			o.sh_properties.sh_mode = sh_import_modes(properties.get("mode", "255"))
+			o.sh_properties.sh_difficulty = sh_parse_string_array(properties.get("difficulty", "0 1"))
 			o.sh_properties.sh_param0 = properties.get("param0", "")
 			o.sh_properties.sh_param1 = properties.get("param1", "")
 			o.sh_properties.sh_param2 = properties.get("param2", "")
@@ -348,7 +363,7 @@ def sh_import_segment(fp, context, compressed = False):
 			o.sh_properties.sh_param9 = properties.get("param9", "")
 			o.sh_properties.sh_param10 = properties.get("param10", "")
 			o.sh_properties.sh_param11 = properties.get("param11", "")
-			if (properties.get("hidden", "0") == "1"): o.sh_properties.sh_hidden = True
+			o.sh_properties.sh_hidden = (properties.get("hidden", "0") == "1")
 		
 		# Decals
 		elif (kind == "decal"):
@@ -377,7 +392,10 @@ def sh_import_segment(fp, context, compressed = False):
 			o.sh_properties.sh_blend = float(properties.get("blend", "1"))
 			
 			# Set the hidden flag
-			if (properties.get("hidden", "0") == "1"): o.sh_properties.sh_hidden = True
+			o.sh_properties.sh_hidden = (properties.get("hidden", "0") == "1")
+			
+			# Set the difficulty
+			o.sh_properties.sh_difficulty = sh_parse_string_array(properties.get("difficulty", "0 1"))
 			
 			# Size
 			o.sh_properties.sh_size = sh_parse_tile_size(properties.get("size", "1 1"))[0:2]
@@ -392,8 +410,11 @@ def sh_import_segment(fp, context, compressed = False):
 			o.sh_properties.sh_type = "POW"
 			o.sh_properties.sh_powerup = properties.get("type", "ballfrenzy")
 			
+			# Set difficulty
+			o.sh_properties.sh_difficulty = sh_parse_string_array(properties.get("difficulty", "0 1"))
+			
 			# Set hidden
-			if (properties.get("hidden", "0") == "1"): o.sh_properties.sh_hidden = True
+			o.sh_properties.sh_hidden = (properties.get("hidden", "0") == "1")
 		
 		# Water
 		elif (kind == "water"):
@@ -407,7 +428,7 @@ def sh_import_segment(fp, context, compressed = False):
 			o.sh_properties.sh_type = "WAT"
 			
 			# Set hidden
-			if (properties.get("hidden", "0") == "1"): o.sh_properties.sh_hidden = True
+			o.sh_properties.sh_hidden = (properties.get("hidden", "0") == "1")
 		
 		# Anything else
 		else:

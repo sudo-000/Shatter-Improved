@@ -303,6 +303,14 @@ def sh_add_object(level_root, scene, obj, params):
 		if (mask != 0b110111):
 			properties["mode"] = str(mask)
 	
+	# Add difficulty for relevant entity types
+	if (sh_type in ["OBS", "POW", "DEC"]):
+		diffic = obj.sh_properties.sh_difficulty
+		
+		# Only export if it's not default of (0.0, 1.0)
+		if (diffic[0] != 0.0 or diffic[1] != 1.0):
+			properties["difficulty"] = str(diffic[0]) + " " + str(diffic[1])
+	
 	# Add reflection property for boxes if not default
 	if (sh_type == "BOX" and obj.sh_properties.sh_reflective):
 		properties["reflection"] = "1"

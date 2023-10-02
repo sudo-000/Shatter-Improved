@@ -1,8 +1,11 @@
 """
 Make a room, level file, append to game.xml
+
+This code sucks a lot but it should at least work
 """
 
 import xml.etree.ElementTree as et
+import os
 import util
 
 class Room:
@@ -136,11 +139,63 @@ end
 			seg.tail = ("\n" if len(self.segments) == j else "\n\t")
 		
 		return et.tostring(room).decode()
+
+def isOnlyWhiteSpace(s):
+	for c in s:
+		if (c != " " and c != "\t" and c != "\r" and c != "\n"):
+			return False
 	
-	def fromRoomXML(self, data):
-		room = et.fromstring(data)
+	return True
+
+def appendToRoomLua(path, segmentToAdd, onlyPrint = False):
+	"""
+	This is a really big bad terrible awful very not good shitty clusterfuck of
+	a hack, but ... it does append a segment to a room if it doesn't exist
+	
+	This only works if:
+		1. segmentToAdd doesn't have special chars
+		2. There is at least one blank line after the confSegment's (there will
+		usually be but not always)
+		3. You actually use confSegment
+	"""
+	
+	newData = ""
+	inSegmentsPart = False
+	alreadyHave = False
+	
+	room = open(path, "r")
+	
+	while (True):
+		line = room.readline()
 		
+		if (not line):
+			break
 		
+		if ("--" not in line and "confSegment" in line):
+			inSegmentsPart = True
+		
+		if (f'"{segmentToAdd}"' in line):
+			alreadyHave = True
+		
+		# At the part where we can insert the thing
+		print(f"{isOnlyWhiteSpace(line)} and {inSegmentsPart} and not {alreadyHave} -- {repr(line)}")
+		if (isOnlyWhiteSpace(line) and inSegmentsPart and not alreadyHave):
+			newData += f"\tconfSegment(\"{segmentToAdd}\", 1)\n"
+			inSegmentsPart = False
+		
+		newData += line
+	
+	room.close()
+	
+	if (onlyPrint):
+		print(newData)
+	else:
+		util.set_file(path, newData)
+
+def createRoomLua(path, firstSegment):
+	"""
+	Create a basic room lua text
+	"""
 
 def appendToLevelXML(data, roomToAdd):
 	"""
@@ -189,6 +244,14 @@ def ensureRoomInXML(path, room):
 	"""
 	Ensure that the `room` is in the level xml at `path`
 	"""
+	
+	if (os.path.exists(path)):
+		d = util.get_file(path)
+		d = appendToLevelXML(d, room)
+		util.set_file(path, d)
+	else:
+		d = createLevelXML(room)
+		util.set_file(path, d)
 
 def appendToGameXML(path, levelToAdd):
 	"""
@@ -270,3 +333,7 @@ if __name__ == "__main__":
 	# Test initial room XML creation
 	print("=" * 80)
 	print(createLevelXML("myroom/mysegment"))
+	
+	# Append seg to room
+	print("=" * 80)
+	appendToRoomLua(r"C:\Users\Admin\Documents\assets\rooms\basic\darker.lua.mp3", "basic/darker/zuwu", onlyPrint = True)
