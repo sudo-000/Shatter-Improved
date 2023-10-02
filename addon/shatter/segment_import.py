@@ -168,7 +168,7 @@ def sh_import_segment(fp, context, compressed = False):
 	
 	# If it is the same as if it were exported with default templates and
 	# default is set then we can make it blank
-	if (scene.sh_default_template and segment_template == f"{default_template}_s"):
+	if (scene.sh_default_template and segment_template == f"{scene.sh_default_template}_s"):
 		segment_template = ""
 	
 	scene.sh_template = segment_template
