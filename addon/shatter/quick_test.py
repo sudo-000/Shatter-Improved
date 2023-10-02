@@ -67,8 +67,10 @@ def getSegmentOptions():
 	music = attrib.get("music", None)
 	particles = attrib.get("particles", None)
 	reverb = toCommaArray(attrib.get("reverb", ""))
+	echo = toCommaArray(attrib.get("echo", ""))
 	length = attrib.get("length", 90)
 	gravity = attrib.get("gravity", 1.0)
+	difficulty = attrib.get("difficulty", 0.0)
 	code = attrib.get("code", "")
 	assets = attrib.get("assets", None)
 	
@@ -77,8 +79,10 @@ def getSegmentOptions():
 		"music": music,
 		"particles": particles,
 		"reverb": reverb,
+		"echo": echo,
 		"length": length,
 		"gravity": gravity,
+		"difficulty": difficulty,
 		"code": code,
 		"assets": assets,
 	}
@@ -114,17 +118,21 @@ def generateRoomText(hostname, options):
 	music = options["music"]
 	particles = options["particles"]
 	reverb = options["reverb"]
+	echo = options["echo"]
 	gravity = options["gravity"]
-	length = options["length"]
+	difficulty = options["difficulty"]
+	length = options["length"] 
 	code = options["code"]
 	
 	music = ("\"" + music + "\"") if music else "tostring(math.random(0, 28))"
 	particles = (f"\n\tmgParticles(\"{particles}\")") if particles else ""
 	reverb = (f"\n\tmgReverb({reverb})") if reverb else ""
+	echo = (f"\n\tmgEcho({echo})") if echo else ""
+	difficulty = (f"\n\tmgSetDifficulty({difficulty})") if difficulty > 0.0 else ""
 	
 	room = f"""function init()
 	mgMusic({music})
-	mgFogColor({options["fog"]}){reverb}{particles}
+	mgFogColor({options["fog"]}){echo}{reverb}{particles}{difficulty}
 	mgGravity({gravity})
 	{code}
 	

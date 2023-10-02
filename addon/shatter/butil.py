@@ -41,7 +41,7 @@ def find_assets_paths(*, search_default = True, search_apk = True):
 	
 	return paths
 
-def find_apk(*, no_override = False):
+def find_apk(*, allow_override = True):
 	"""
 	Find the path to an APK
 	
@@ -49,7 +49,9 @@ def find_apk(*, no_override = False):
 	dynamically pick between
 	"""
 	
-	result = find_assets_paths(search_default = no_override)
+	result = find_assets_paths(search_default = allow_override)
+	
+	print(result)
 	
 	if (result):
 		return result[0]

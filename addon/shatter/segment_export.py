@@ -552,8 +552,17 @@ def writeQuicktestInfo(tempdir, scene):
 	if (scene.sh_reverb):
 		info["reverb"] = scene.sh_reverb
 	
+	if (scene.sh_echo):
+		info["echo"] = scene.sh_echo
+	
+	if (scene.sh_difficulty > 0.0):
+		info["difficulty"] = scene.sh_difficulty
+	
 	if (scene.sh_extra_code):
 		info["code"] = scene.sh_extra_code
+	
+	if (scene.sh_particles != "None"):
+		info["particles"] = scene.sh_particles
 	
 	# Try to find where to load remote obstacles from
 	apk_path = butil.find_apk()

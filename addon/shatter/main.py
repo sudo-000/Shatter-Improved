@@ -563,10 +563,34 @@ class sh_SceneProperties(PropertyGroup):
 		default = "",
 	)
 	
-	sh_particles: StringProperty(
+	sh_echo: StringProperty(
+		name = "Echo",
+		description = "Echo parameters in quick test. No one knows what these do ‾\\_o_/‾",
+		default = "",
+	)
+	
+	sh_particles: EnumProperty(
 		name = "Particles",
 		description = "The particles that appear when looking at the stage in quick test",
-		default = "",
+		items = (
+			("None", "None", ""),
+			("starfield", "Star feild", ""),
+			("lowrising", "Low rising 1", ""),
+			("lowrising2", "Low rising 2", ""),
+			("sidesrising", "Sides rising", ""),
+			("fallinglite", "Falling lite", ""),
+			("bubbles", "Bubbles", ""),
+			("dustyfalling", "Dusty falling", ""),
+		),
+		default = "None",
+	)
+	
+	sh_difficulty: FloatProperty(
+		name = "Difficulty",
+		description = "Sets the difficulty level of the room",
+		default = 0.0,
+		min = 0.0,
+		max = 1.0,
 	)
 	
 	sh_gravity: FloatProperty(
@@ -1149,8 +1173,10 @@ class sh_SegmentPanel(Panel):
 			sub.prop(sh_properties, "sh_room_length")
 			sub.prop(sh_properties, "sh_gravity")
 			sub.prop(sh_properties, "sh_music")
+			sub.prop(sh_properties, "sh_echo")
 			sub.prop(sh_properties, "sh_reverb")
 			sub.prop(sh_properties, "sh_particles")
+			sub.prop(sh_properties, "sh_difficulty")
 			sub.prop(sh_properties, "sh_extra_code")
 			sub.label(text = f"Your IP: {util.get_local_ip()}")
 		
