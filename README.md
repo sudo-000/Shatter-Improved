@@ -1,8 +1,8 @@
 <img src="docs/res/logo.svg" align="centre"/>
 
-# Shatter for Blender
+# Shatter
 
-**Shatter for Blender** (**SfB**) is an addon for Blender that allows the creation of segments (parts of levels) for the mobile game *Smash Hit*. Currently, it can handle boxes, obstacles, decals and water to the degree that it should be possible to create segments which look official.
+**Shatter** is an addon for Blender that allows the creation of segments (parts of levels) for the mobile game *Smash Hit*. Currently, it can handle boxes, obstacles, decals and water to the degree that it should be possible to create segments which look official.
 
 ## Features
 
