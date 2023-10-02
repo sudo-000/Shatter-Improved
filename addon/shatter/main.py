@@ -599,11 +599,11 @@ class sh_EntityProperties(PropertyGroup):
 		name = "Kind",
 		description = "The kind of object that the currently selected object should be treated as.",
 		items = [
-			('BOX', "Box", ""),
-			('OBS', "Obstacle", ""),
-			('DEC', "Decal", ""),
-			('POW', "Power-up", ""),
-			('WAT', "Water", ""),
+			('BOX', "Box", "", "MESH_CUBE", 0),
+			('OBS', "Obstacle", "", "NODE_MATERIAL", 1),
+			('DEC', "Decal", "", "TEXTURE", 2),
+			('POW', "Power-up", "", "LIGHT_SUN", 3),
+			('WAT', "Water", "", "MATFLUID", 4),
 		],
 		default = "BOX"
 	)
@@ -639,11 +639,11 @@ class sh_EntityProperties(PropertyGroup):
 		name = "Power-up",
 		description = "The type of power-up that will appear",
 		items = [
-			('ballfrenzy', "Ball Frenzy", "Allows the player infinite balls for some time"),
-			('slowmotion', "Slow Motion", "Slows down the game"),
-			('nitroballs', "Nitro Balls", "Turns balls into exposlives for a short period of time"),
+			('ballfrenzy', "Ball Frenzy", "Allows the player infinite balls for some time", "LIGHTPROBE_GRID", 0),
+			('slowmotion', "Slow Motion", "Slows down the game", "MOD_TIME", 1),
+			('nitroballs', "Nitro Balls", "Turns balls into exposlives for a short period of time", "PROP_OFF", 2),
 			None,
-			('barrel', "Barrel", "Creates a large explosion which breaks glass (lefover from beta versions)"),
+			('barrel', "Barrel", "Creates a large explosion which breaks glass (lefover from beta versions)", "EXPERIMENTAL", 3),
 			None,
 			('multiball', "Multi-ball*", "*Does not work anymore. Old power up that would enable five-ball multiball"),
 			('freebie', "Freebie*", "*Does not work anymore. Old power up found in binary strings but no known usage"),
@@ -1183,21 +1183,24 @@ class sh_ItemPropertiesPanel(Panel):
 		# each of obstacle there is.
 		layout.prop(sh_properties, "sh_type")
 		
-		# Obstacle type for obstacles
-		if (sh_properties.sh_type == "OBS"):
-			layout.prop(sh_properties, "sh_use_chooser", toggle = 1)
-			if (sh_properties.sh_use_chooser):
-				layout.prop(sh_properties, "sh_obstacle_chooser")
-			else:
-				layout.prop(sh_properties, "sh_obstacle")
-		
 		# Decal number for decals
 		if (sh_properties.sh_type == "DEC"):
 			layout.prop(sh_properties, "sh_decal")
 		
 		# Template for boxes and obstacles
-		if (sh_properties.sh_type == "OBS" or (sh_properties.sh_type == "BOX" and not sh_properties.sh_visible)):
+		if ((sh_properties.sh_type == "BOX" and not sh_properties.sh_visible) or (sh_properties.sh_type == "OBS")):
 			layout.prop(sh_properties, "sh_template")
+		
+		# Obstacle type for obstacles
+		if (sh_properties.sh_type == "OBS"):
+			sub = layout.box()
+			sub.label(text = "Type", icon = "COPY_ID")
+			sub.prop(sh_properties, "sh_use_chooser", toggle = 1, icon = "NODE_MATERIAL")
+			
+			if (sh_properties.sh_use_chooser):
+				sub.prop(sh_properties, "sh_obstacle_chooser", text = "")
+			else:
+				sub.prop(sh_properties, "sh_obstacle", text = "")
 		
 		# Refelective and tile property for boxes
 		if (sh_properties.sh_type == "BOX"):
@@ -1245,7 +1248,7 @@ class sh_ItemPropertiesPanel(Panel):
 		
 		# Colourisation and blend for decals
 		if (sh_properties.sh_type == "DEC"):
-			layout.prop(sh_properties, "sh_havetint")
+			layout.prop(sh_properties, "sh_havetint", toggle = 1, icon = "COLOR")
 			if (sh_properties.sh_havetint):
 				layout.prop(sh_properties, "sh_tint")
 				layout.prop(sh_properties, "sh_tintalpha")
@@ -1259,35 +1262,36 @@ class sh_ItemPropertiesPanel(Panel):
 		if (sh_properties.sh_type == "DEC"):
 			layout.prop(sh_properties, "sh_size")
 		
-		# Mode for obstacles
-		if (sh_properties.sh_type == "OBS"):
-			layout.prop(sh_properties, "sh_mode")
-		
-		# Difficulty for obstacles, powerups and decals (not supported for others)
-		if (sh_properties.sh_type in ["OBS", "POW", "DEC"]):
+		# Difficulty for powerups and decals (obstacle use something different)
+		if (sh_properties.sh_type in ["POW", "DEC"]):
 			layout.prop(sh_properties, "sh_difficulty")
 		
-		# Hidden property
-		if (sh_properties.sh_type != "BOX"):
-			layout.prop(sh_properties, "sh_hidden")
+		# Mode for obstacles
+		if (sh_properties.sh_type == "OBS"):
+			sub = layout.box()
+			sub.label(text = "Visibility", icon = "HIDE_OFF")
+			sub.prop_menu_enum(sh_properties, "sh_mode", text = "Select game modes")
+			sub.prop(sh_properties, "sh_difficulty")
 		
 		# Paramaters for boxes
 		if (sh_properties.sh_type == "OBS"):
 			sub = layout.box()
 			
 			sub.label(text = "Parameters", icon = "SETTINGS")
-			sub.prop(sh_properties, "sh_param0", text = "")
-			sub.prop(sh_properties, "sh_param1", text = "")
-			sub.prop(sh_properties, "sh_param2", text = "")
-			sub.prop(sh_properties, "sh_param3", text = "")
-			sub.prop(sh_properties, "sh_param4", text = "")
-			sub.prop(sh_properties, "sh_param5", text = "")
-			sub.prop(sh_properties, "sh_param6", text = "")
-			sub.prop(sh_properties, "sh_param7", text = "")
-			sub.prop(sh_properties, "sh_param8", text = "")
-			sub.prop(sh_properties, "sh_param9", text = "")
-			sub.prop(sh_properties, "sh_param10", text = "")
-			sub.prop(sh_properties, "sh_param11", text = "")
+			# sub.separator()
+			
+			# We draw each param under it's own sublayout row so that we can
+			# disable them when a template is set
+			# NOTE: That function is not fully implemented since templates
+			# are not yet loaded, but I should add that sometime soon...
+			for i in range(12):
+				ssub = sub.row()
+				ssub.enabled = (i != 0) or (not sh_properties.sh_template)
+				ssub.prop(sh_properties, f"sh_param{i}", text = "")
+		
+		# Hidden property
+		if (sh_properties.sh_type != "BOX"):
+			layout.prop(sh_properties, "sh_hidden")
 		
 		# Option to export object or not
 		layout.prop(sh_properties, "sh_export")
