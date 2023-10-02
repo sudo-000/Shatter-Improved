@@ -154,8 +154,24 @@ def sh_import_segment(fp, context, compressed = False):
 	if (scene.sh_len[2] <= 0.0):
 		warnings.add("the segment has a Z-size value of 0 or less which may cause problems when exported")
 	
+	# Default template
+	# 
+	# NOTE: The decision to keep the current value if it is not set in the
+	# importing segment is intentional. This makes it so that if you specify the
+	# default template *before* import, the segment will auto-convert to using
+	# default templates.
+	default_template = segattr.get("shbt-default-template", "")
+	scene.sh_default_template = default_template if default_template else scene.sh_default_template
+	
 	# Segment template
-	scene.sh_template = segattr.get("template", "")
+	segment_template = segattr.get("template", "")
+	
+	# If it is the same as if it were exported with default templates and
+	# default is set then we can make it blank
+	if (scene.sh_default_template and segment_template == f"{default_template}_s"):
+		segment_template = ""
+	
+	scene.sh_template = segment_template
 	
 	# Soft shadow
 	scene.sh_softshadow = float(segattr.get("softshadow", "0.6"))
@@ -335,6 +351,11 @@ def sh_import_segment(fp, context, compressed = False):
 					if (len(c) == 3): c = (c[0], c[1], c[2], 1.0)
 					setattr(b.sh_properties, f"sh_tint{n}", c)
 			
+			# NOTE: Default template logic is here so it doesn't fuck up some
+			# other stuff that depends on having the actual template value
+			if (scene.sh_default_template and b.sh_properties.sh_template == scene.sh_default_template):
+				b.sh_properties.sh_template = ""
+			
 			# Glow for lighting
 			b.sh_properties.sh_glow = float(properties.get("glow", "0"))
 		
@@ -364,6 +385,16 @@ def sh_import_segment(fp, context, compressed = False):
 			o.sh_properties.sh_param10 = properties.get("param10", "")
 			o.sh_properties.sh_param11 = properties.get("param11", "")
 			o.sh_properties.sh_hidden = (properties.get("hidden", "0") == "1")
+			
+			# Solve default templates
+			if (scene.sh_default_template and 
+				(
+						(o.sh_properties.sh_obstacle.startswith("score") and o.sh_properties.sh_template == f"{scene.sh_default_template}_st") 
+					or
+						(not o.sh_properties.sh_obstacle.startswith("score") and o.sh_properties.sh_template == f"{scene.sh_default_template}_glass")
+				)
+			):
+				o.sh_properties.sh_template = ""
 		
 		# Decals
 		elif (kind == "decal"):
