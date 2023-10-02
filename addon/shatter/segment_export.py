@@ -627,7 +627,7 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 			butil.show_message("Export error", "There is currently no APK open in APK Editor Studio or your asset override path isn't set. Please open a Smash Hit APK with a valid structure or set an asset path in Shatter settings and try again.")
 			return {"FINISHED"}
 		
-		if (not props.sh_level or not props.sh_room or not props.sh_segment):
+		if ((not props.sh_level or not props.sh_room or not props.sh_segment) and (not props.sh_segment)):
 			butil.show_message("Export error", "You have not set one of the level, room or segment name properties needed to use auto export to apk feature. Please set these in the scene tab and try again.")
 			return {"FINISHED"}
 		
@@ -727,8 +727,8 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 			f.write(content.encode())
 	
 	# If segment claiming is enabled, then submit this segment.
-	if (context.preferences.addons["shatter"].preferences.segment_originality_service):
-		remote_api.claim_segment_text(context, content)
+	# if (context.preferences.addons["shatter"].preferences.segment_originality_service):
+	# 	remote_api.claim_segment_text(context, content)
 	
 	# Display export warnings, if any and if enabled
 	params["warnings"].display()
