@@ -399,7 +399,7 @@ class sh_SceneProperties(PropertyGroup):
 	sh_box_bake_mode: EnumProperty(
 		name = "Box bake mode",
 		description = "This will control how the boxes should be exported. Hover over each option for an explation of how it works",
-		items = [ 
+		items = [
 			('Mesh', "Mesh", "Exports a .mesh file alongside the segment for showing visible box geometry"),
 			('StoneHack', "Obstacle", "Adds a custom obstacle named 'stone' for every box that attempts to simulate stone. Only colour is supported: there are no textures"),
 			('None', "None", "Don't do anything related to baking stone; only exports the raw segment data"),
@@ -410,6 +410,13 @@ class sh_SceneProperties(PropertyGroup):
 	sh_template: StringProperty(
 		name = "Template",
 		description = "The template paramater that is passed for the entire segment",
+		default = "",
+		maxlen = SH_MAX_STR_LEN,
+	)
+	
+	sh_default_template: StringProperty(
+		name = "Default template",
+		description = "The base name of the template to use when no template is specified for an entity. Format: boxes 🡒 '{basename}', obstacles 🡒 '{basename}_glass', obstacles starting with 'score' 🡒 '{basename}_st', segment 🡒 '{basename}_s'",
 		default = "",
 		maxlen = SH_MAX_STR_LEN,
 	)
@@ -1127,6 +1134,7 @@ class sh_SegmentPanel(Panel):
 			sub.prop(sh_properties, "sh_len")
 		sub.prop(sh_properties, "sh_box_bake_mode")
 		sub.prop(sh_properties, "sh_template")
+		sub.prop(sh_properties, "sh_default_template")
 		sub.prop(sh_properties, "sh_softshadow")
 		sub.prop(sh_properties, "sh_vrmultiply")
 		

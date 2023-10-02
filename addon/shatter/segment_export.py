@@ -200,6 +200,12 @@ def sh_create_root(scene, params):
 	# Check for the template attrib and set
 	if (scene.sh_template):
 		seg_props["template"] = scene.sh_template
+	elif (scene.sh_default_template):
+		seg_props["template"] = f"{scene.sh_default_template}_s"
+	
+	# Default template
+	if (scene.sh_default_template):
+		seg_props["shbt-default-template"] = scene.sh_default_template
 	
 	# Lighting
 	# We no longer export lighting info if the template is present since that should
@@ -287,10 +293,30 @@ def sh_add_object(level_root, scene, obj, params):
 			properties["rot"] = str(obj.rotation_euler[1]) + " " + str(obj.rotation_euler[2]) + " " + str(obj.rotation_euler[0])
 	
 	# Add template for all types of objects
-	# HACK: We don't export with a template value if the visible attribute is checked. There is a bug somewhere in the meshbaker that I can't fix right now which causes this.
-	# NOTE I think it's fixed, but it's still pointless to export the template in this case.
-	if (obj.sh_properties.sh_template and ((not obj.sh_properties.sh_visible) or (sh_type != "BOX"))):
-		properties["template"] = obj.sh_properties.sh_template
+	# For boxes, we only do it if visible isn't checked since there is not much
+	# of a point otherwise
+	# TODO Is the special case for boxes really needed?
+	if ((sh_type != "BOX") or (not obj.sh_properties.sh_visible)):
+		if (obj.sh_properties.sh_template):
+			properties["template"] = obj.sh_properties.sh_template
+		# Use default template from scene if we don't have one
+		elif (scene.sh_default_template):
+			default_template = scene.sh_default_template
+			
+			# We use the standard naming convention from most Smash Hit templates
+			# for these:
+			#   Box -> {basename}
+			#   Crystal obstacle -> {basename}_st
+			#   Non-crystal Obstacle -> {basename}_glass
+			#   Segment -> {basename}_s
+			if (default_template):
+				if (sh_type == "BOX"):
+					properties["template"] = default_template
+				elif (sh_type == "OBS"):
+					if (properties["type"].startswith("score")):
+						properties["template"] = f"{default_template}_st"
+					else:
+						properties["template"] = f"{default_template}_glass"
 	
 	# Add mode appearance tag
 	if (sh_type == "OBS"):
