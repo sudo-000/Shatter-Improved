@@ -978,7 +978,7 @@ class sh_EntityProperties(PropertyGroup):
 class sh_AddonPreferences(AddonPreferences):
 	bl_idname = "shatter"
 	
-	## Segment Export ##
+	## General ##
 	default_assets_path: StringProperty(
 		name = "Default assets path",
 		description = "The path to your Smash Hit assets folder, if you want to override the default automatic APK finding",
@@ -992,7 +992,13 @@ class sh_AddonPreferences(AddonPreferences):
 		default = True,
 	)
 	
-	## Network and privacy ##
+	compact_ui: BoolProperty(
+		name = "Compact UI mode",
+		description = "Avoids drawing any excessive UI elements that would make the UI larger than needed",
+		default = False,
+	)
+	
+	## Network ##
 	enable_update_notifier: BoolProperty(
 		name = "Enable update checking",
 		description = "Enables checking for updates. This will try to contact github, which may pose a privacy risk",
@@ -1074,6 +1080,7 @@ class sh_AddonPreferences(AddonPreferences):
 		ui.label(text = "General options", icon = "PREFERENCES")
 		ui.prop(self, "default_assets_path")
 		ui.prop(self, "enable_segment_warnings")
+		ui.prop(self, "compact_ui")
 		
 		ui = main.box()
 		ui.label(text = "Network features", icon = "WORLD")
@@ -1091,19 +1098,6 @@ class sh_AddonPreferences(AddonPreferences):
 		ui = main.box()
 		ui.label(text = "Protection", icon = "LOCKED")
 		ui.prop(self, "force_disallow_import")
-		# ui.prop(self, "segment_originality_service_tos")
-		# if (self.segment_originality_service_tos):
-		# 	ui.prop(self, "segment_originality_service")
-		# 	if (self.segment_originality_service):
-		# 		sub = ui.box()
-		# 		sub.label(text = "Account", icon = "HAND")
-		# 		sub.prop(self, "creator")
-		# 		sub.operator("sh.open_shatter_service_delete_account")
-		# 		sub.operator("sh.open_shatter_service_lookup")
-		
-		## TODO Put a quick test box with autoconfig option
-		
-		## TODO Tweaks menu with option to help with snapping to increments
 
 class sh_SegmentPanel(Panel):
 	bl_label = "Smash Hit"
@@ -1243,26 +1237,33 @@ class sh_ItemPropertiesPanel(Panel):
 			
 			# Properties affected by being visible
 			if (sh_properties.sh_visible):
-				sub = layout.box()
-				
-				sub.label(text = "Colour", icon = "COLOR")
+				def CUIText(a, b):
+					return (a) if not get_prefs().compact_ui else (f"{a} {b}")
+# 				sub = layout
+# 				
+# 				if (not get_prefs().compact_ui):
+# 					sub = layout.box()
+# 				
+# 				sub.label(text = "Colour", icon = "COLOR")
+				sub = butil.ui_region(layout, "Colour", "COLOR")
 				if (not sh_properties.sh_use_multitint):
-					sub.prop(sh_properties, "sh_use_multitint", text = "Uniform", toggle = 1)
+					sub.prop(sh_properties, "sh_use_multitint", text = CUIText("Uniform", "colour"), toggle = 1)
 					sub.prop(sh_properties, "sh_tint")
 				else:
-					sub.prop(sh_properties, "sh_use_multitint", text = "Per-axis", toggle = 1)
+					sub.prop(sh_properties, "sh_use_multitint", text = CUIText("Per-axis", "colour"), toggle = 1)
 					sub.prop(sh_properties, "sh_tint1")
 					sub.prop(sh_properties, "sh_tint2")
 					sub.prop(sh_properties, "sh_tint3")
 				
-				sub = layout.box()
-				
-				sub.label(text = "Tile", icon = "TEXTURE")
+# 				sub = layout.box()
+# 				
+# 				sub.label(text = "Tile", icon = "TEXTURE")
+				sub = butil.ui_region(layout, "Tile", "TEXTURE")
 				if (not sh_properties.sh_use_multitile):
-					sub.prop(sh_properties, "sh_use_multitile", text = "Uniform", toggle = 1)
+					sub.prop(sh_properties, "sh_use_multitile", text = CUIText("Uniform", "texture"), toggle = 1)
 					sub.prop(sh_properties, "sh_tile")
 				else:
-					sub.prop(sh_properties, "sh_use_multitile", text = "Per-axis", toggle = 1)
+					sub.prop(sh_properties, "sh_use_multitile", text = CUIText("Per-axis", "texture"), toggle = 1)
 					sub.prop(sh_properties, "sh_tile1")
 					sub.prop(sh_properties, "sh_tile2")
 					sub.prop(sh_properties, "sh_tile3")
@@ -1274,9 +1275,10 @@ class sh_ItemPropertiesPanel(Panel):
 					sub.prop(sh_properties, "sh_glow")
 				
 				# Box Transformations
-				sub = layout.box()
-				
-				sub.label(text = "Transforms", icon = "GRAPH")
+# 				sub = layout.box()
+# 				
+# 				sub.label(text = "Tile transforms", icon = "GRAPH")
+				sub = butil.ui_region(layout, "Tile transforms", "GRAPH")
 				sub.prop(sh_properties, "sh_tilesize")
 				sub.prop(sh_properties, "sh_tilerot")
 		

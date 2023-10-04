@@ -113,3 +113,16 @@ def show_message(title = "Info", message = "", icon = "INFO"):
 		self.layout.label(text = message)
 	
 	bpy.context.window_manager.popup_menu(draw, title = title, icon = icon)
+
+def ui_region(layout, label = None, icon = None):
+	"""
+	Get the next UI region, with respect to compact mode
+	"""
+	
+	sub = layout
+	
+	if (not bpy.context.preferences.addons["shatter"].preferences.compact_ui):
+		sub = layout.box()
+		sub.label(text = label, icon = icon)
+	
+	return sub
