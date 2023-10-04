@@ -1306,7 +1306,7 @@ class sh_ItemPropertiesPanel(Panel):
 		if (sh_properties.sh_type == "OBS"):
 			sub = layout.box()
 			sub.label(text = "Visibility", icon = "HIDE_OFF")
-			sub.prop_menu_enum(sh_properties, "sh_mode", text = "Select game modes")
+			sub.props_enum(sh_properties, "sh_mode")#, text = "Select game modes")
 			sub.prop(sh_properties, "sh_difficulty")
 		
 		# Paramaters for boxes
