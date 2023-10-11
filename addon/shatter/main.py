@@ -730,7 +730,7 @@ class sh_EntityProperties(PropertyGroup):
 	sh_visible: BoolProperty(
 		name = "Visible",
 		description = "If the box will appear in the exported mesh",
-		default = False
+		default = True
 	)
 	
 	sh_use_multitile: BoolProperty(
@@ -1207,132 +1207,90 @@ class sh_ItemPropertiesPanel(Panel):
 		object = context.object
 		sh_properties = object.sh_properties
 		
+		ui = butil.UIDrawingHelper(context, layout, sh_properties, compact = get_prefs().compact_ui)
+		
 		# All objects will have all properties, but only some will be used for
 		# each of obstacle there is.
-		layout.prop(sh_properties, "sh_type")
+		t = ui.prop("sh_type", text = "")
+		ui.prop("sh_template")
 		
-		# Decal number for decals
-		if (sh_properties.sh_type == "DEC"):
-			layout.prop(sh_properties, "sh_decal")
-		
-		# Template for boxes and obstacles
-		if ((sh_properties.sh_type == "BOX" and not sh_properties.sh_visible) or (sh_properties.sh_type == "OBS")):
-			layout.prop(sh_properties, "sh_template")
-		
-		# Obstacle type for obstacles
-		if (sh_properties.sh_type == "OBS"):
-			sub = layout.box()
-			sub.label(text = "Type", icon = "COPY_ID")
-			sub.prop(sh_properties, "sh_use_chooser", toggle = 1, icon = "NODE_MATERIAL")
+		if (t == "BOX"):
+			ui.prop("sh_visible", disabled = not not ui.get("sh_template"))
 			
-			if (sh_properties.sh_use_chooser):
-				sub.prop(sh_properties, "sh_obstacle_chooser", text = "")
-			else:
-				sub.prop(sh_properties, "sh_obstacle", text = "")
-		
-		# Refelective and tile property for boxes
-		if (sh_properties.sh_type == "BOX"):
-			layout.prop(sh_properties, "sh_reflective")
-			layout.prop(sh_properties, "sh_visible")
-			
-			# Properties affected by being visible
-			if (sh_properties.sh_visible):
-				def CUIText(a, b):
-					return (a) if not get_prefs().compact_ui else (f"{a} {b}")
-# 				sub = layout
-# 				
-# 				if (not get_prefs().compact_ui):
-# 					sub = layout.box()
-# 				
-# 				sub.label(text = "Colour", icon = "COLOR")
-				sub = butil.ui_region(layout, "Colour", "COLOR")
-				if (not sh_properties.sh_use_multitint):
-					sub.prop(sh_properties, "sh_use_multitint", text = CUIText("Uniform", "colour"), toggle = 1)
-					sub.prop(sh_properties, "sh_tint")
+			# silly little loop wrapper :-3
+			for x in ["tint", "tile"]:
+				word = {"tint": "Colour", "tile": "Tile"}[x]
+				
+				ui.region(
+					{"tint": "COLOR", "tile": "TEXTURE"}[x],
+					word,
+				)
+				
+				if (ui.get(f"sh_use_multi{x}")):
+					ui.prop(f"sh_use_multi{x}", text = "Uniform", text_compact = f"Uniform {word.lower()}", use_button = True)
+					ui.prop(f"sh_{x}1")
+					ui.prop(f"sh_{x}2")
+					ui.prop(f"sh_{x}3")
 				else:
-					sub.prop(sh_properties, "sh_use_multitint", text = CUIText("Per-axis", "colour"), toggle = 1)
-					sub.prop(sh_properties, "sh_tint1")
-					sub.prop(sh_properties, "sh_tint2")
-					sub.prop(sh_properties, "sh_tint3")
+					ui.prop(f"sh_use_multi{x}", text = "Per axis", text_compact = f"Per axis {word.lower()}", use_button = True)
+					ui.prop(f"sh_{x}")
 				
-# 				sub = layout.box()
-# 				
-# 				sub.label(text = "Tile", icon = "TEXTURE")
-				sub = butil.ui_region(layout, "Tile", "TEXTURE")
-				if (not sh_properties.sh_use_multitile):
-					sub.prop(sh_properties, "sh_use_multitile", text = CUIText("Uniform", "texture"), toggle = 1)
-					sub.prop(sh_properties, "sh_tile")
-				else:
-					sub.prop(sh_properties, "sh_use_multitile", text = CUIText("Per-axis", "texture"), toggle = 1)
-					sub.prop(sh_properties, "sh_tile1")
-					sub.prop(sh_properties, "sh_tile2")
-					sub.prop(sh_properties, "sh_tile3")
-				
-				if (context.scene.sh_properties.sh_lighting):
-					sub = layout.box()
-					
-					sub.label(text = "Light", icon = "LIGHT")
-					sub.prop(sh_properties, "sh_glow")
-				
-				# Box Transformations
-# 				sub = layout.box()
-# 				
-# 				sub.label(text = "Tile transforms", icon = "GRAPH")
-				sub = butil.ui_region(layout, "Tile transforms", "GRAPH")
-				sub.prop(sh_properties, "sh_tilesize")
-				sub.prop(sh_properties, "sh_tilerot")
-		
-		# Colourisation and blend for decals
-		if (sh_properties.sh_type == "DEC"):
-			layout.prop(sh_properties, "sh_havetint", toggle = 1, icon = "COLOR")
-			if (sh_properties.sh_havetint):
-				layout.prop(sh_properties, "sh_tint")
-				layout.prop(sh_properties, "sh_tintalpha")
-			layout.prop(sh_properties, "sh_blend")
-		
-		# Power-up name for power-ups
-		if (sh_properties.sh_type == "POW"):
-			layout.prop(sh_properties, "sh_powerup")
-		
-		# Size for decals
-		if (sh_properties.sh_type == "DEC"):
-			layout.prop(sh_properties, "sh_size")
-		
-		# Difficulty for powerups and decals (obstacle use something different)
-		if (sh_properties.sh_type in ["POW", "DEC"]):
-			layout.prop(sh_properties, "sh_difficulty")
-		
-		# Mode for obstacles
-		if (sh_properties.sh_type == "OBS"):
-			sub = layout.box()
-			sub.label(text = "Visibility", icon = "HIDE_OFF")
-			sub.props_enum(sh_properties, "sh_mode")#, text = "Select game modes")
-			sub.prop(sh_properties, "sh_difficulty")
-		
-		# Paramaters for boxes
-		if (sh_properties.sh_type == "OBS"):
-			sub = layout.box()
+				ui.end()
 			
-			sub.label(text = "Parameters", icon = "SETTINGS")
-			# sub.separator()
+			if (context.scene.sh_properties.sh_lighting):
+				ui.region("LIGHT", "Light")
+				ui.prop("sh_glow")
+				ui.end()
 			
-			# We draw each param under it's own sublayout row so that we can
-			# disable them when a template is set
-			# NOTE: That function is not fully implemented since templates
-			# are not yet loaded, but I should add that sometime soon...
+			ui.region("GRAPH", "Tile transforms")
+			ui.prop("sh_tilesize")
+			ui.prop("sh_tilerot")
+			ui.end()
+			
+			ui.prop("sh_reflective")
+		elif (t == "OBS"):
+			ui.region("COPY_ID", "Type")
+			ui.prop("sh_use_chooser", use_button = True)
+			ui.prop("sh_obstacle_chooser" if ui.get("sh_use_chooser") else "sh_obstacle", text = "", text_compact = "Type")
+			ui.end()
+			
+			ui.region("HIDE_OFF", "Visibility")
+			ui.prop("sh_mode")
+			ui.prop("sh_difficulty")
+			ui.end()
+			
+			ui.region("SETTINGS", "Templates")
 			for i in range(12):
-				ssub = sub.row()
-				ssub.enabled = (i != 0) or (not sh_properties.sh_template)
-				ssub.prop(sh_properties, f"sh_param{i}", text = "")
+				ui.prop(f"sh_param{i}", text = "", text_compact = f"Param {i}", disabled = (i == 0) and (ui.get("sh_template") != ""))
+			ui.end()
+		elif (t == "DEC"):
+			ui.region("TEXTURE", "Sprite")
+			ui.prop("sh_decal")
+			ui.end()
+			
+			ui.region("COLOR", "Colour")
+			ui.prop("sh_havetint", use_button = True, icon = "COLOR")
+			if (ui.get("sh_havetint")):
+				ui.prop("sh_tint")
+			ui.prop("sh_blend")
+			ui.end()
+			
+			if (context.object.dimensions[1] == 0.0 and context.object.dimensions[2] == 0.0):
+				ui.region("SETTINGS", "Size")
+				ui.prop("sh_size")
+				ui.end()
+			
+			ui.region("HIDE_OFF", "Visibility")
+			ui.prop("sh_difficulty")
+			ui.end()
+		elif (t == "POW"):
+			ui.prop("sh_powerup")
+			ui.prop("sh_difficulty")
+		elif (t == "WAT"):
+			pass
 		
-		# Hidden property
-		if (sh_properties.sh_type != "BOX"):
-			layout.prop(sh_properties, "sh_hidden")
-		
-		# Option to export object or not
-		layout.prop(sh_properties, "sh_export")
-		
-		layout.separator()
+		ui.prop("sh_hidden")
+		ui.prop("sh_export")
 
 class sh_CreateBox(Operator):
 	"""
@@ -1532,14 +1490,13 @@ class AutogenProperties(PropertyGroup):
 			('UpAndDownPath', "UpAndDownPath", ""),
 			('ArithmeticProgressionSet', "ArithmeticProgressionSet", "Randomly selected from a subset of a arithmetic series (ex: random of 1/2, 1/4, 1/6)"),
 			('GeometricProgressionSet', "GeometricProgressionSet", "Randomly selected from a subset of a geometric series (ex: random of 1/2, 1/4, 1/8)"),
-			# ('PerlinNoise', "PerlinNoise", ""),
 		],
 		default = "ActualRandom",
 	)
 	
 	template: StringProperty(
 		name = "Template",
-		description = "Template to use for these boxes. If not specified, this will inherit from the target box",
+		description = "Template to use for these boxes. You can also select a target box to copy properties from that box",
 		default = "",
 		maxlen = SH_MAX_STR_LEN,
 	)
@@ -1672,10 +1629,10 @@ class AutogenPanel(Panel):
 		sub.prop(props, "type")
 		if (props.type == "SingleRow"):
 			sub.prop(props, "algorithm")
-		if (not (context.object and context.object.sh_properties.sh_visible)):
+		if (not context.object):
 			sub.prop(props, "template")
 		else:
-			sub.label(text = "Copying from selected")
+			sub.label(text = "Copying props from selected")
 		if (props.type == "SingleRow" and props.algorithm != "ArithmeticProgressionSet"):
 			sub.prop(props, "max_height")
 		sub.prop(props, "size")
@@ -1757,16 +1714,16 @@ class BlenderPlacer:
 		Inherit the template or visible properties
 		"""
 		
-		# If we have the template property we should use that. Otherwise, we copy
-		# the properties from the base box
-		if (hasattr(self, "template")):
-			obj.sh_properties.sh_template = self.template + template_append
-		else:
+		# Use the base box if one exists, otherwise just fallback to using the
+		# template value
+		if (hasattr(self, "base")):
 			update_properties = ["sh_visible", "sh_template", "sh_tint", "sh_use_multitint", "sh_tint1", "sh_tint2", "sh_tint3", "sh_tile", "sh_use_multitile", "sh_tile1", "sh_tile2", "sh_tile3", "sh_tilerot", "sh_tilesize"]
 			
 			for prop in update_properties:
 				val = getattr(self.visible_object_props, prop)
 				setattr(obj.sh_properties, prop, val)
+		else:
+			obj.sh_properties.sh_template = self.template + template_append
 	
 	def addBox(self, box):
 		"""

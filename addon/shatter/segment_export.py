@@ -292,31 +292,33 @@ def sh_add_object(level_root, scene, obj, params):
 		if (obj.rotation_euler[1] != 0.0 or obj.rotation_euler[2] != 0.0 or obj.rotation_euler[0] != 0.0):
 			properties["rot"] = str(obj.rotation_euler[1]) + " " + str(obj.rotation_euler[2]) + " " + str(obj.rotation_euler[0])
 	
-	# Add template for all types of objects
-	# For boxes, we only do it if visible isn't checked since there is not much
-	# of a point otherwise
-	# TODO Is the special case for boxes really needed?
-	if ((sh_type != "BOX") or (not obj.sh_properties.sh_visible)):
-		if (obj.sh_properties.sh_template):
-			properties["template"] = obj.sh_properties.sh_template
-		# Use default template from scene if we don't have one
-		elif (scene.sh_default_template):
-			default_template = scene.sh_default_template
-			
-			# We use the standard naming convention from most Smash Hit templates
-			# for these:
-			#   Box -> {basename}
-			#   Crystal obstacle -> {basename}_st
-			#   Non-crystal Obstacle -> {basename}_glass
-			#   Segment -> {basename}_s
-			if (default_template):
-				if (sh_type == "BOX"):
-					properties["template"] = default_template
-				elif (sh_type == "OBS"):
-					if (properties["type"].startswith("score")):
-						properties["template"] = f"{default_template}_st"
-					else:
-						properties["template"] = f"{default_template}_glass"
+	# Add template
+	if (obj.sh_properties.sh_template):
+		properties["template"] = obj.sh_properties.sh_template
+	# Use default template from scene if we don't have one
+	elif (scene.sh_default_template):
+		default_template = scene.sh_default_template
+		
+		# We use the standard naming convention from most Smash Hit templates
+		# for these:
+		#   Box -> {basename}
+		#   Crystal obstacle -> {basename}_st
+		#   Non-crystal Obstacle -> {basename}_glass
+		#   Segment -> {basename}_s
+		if (default_template):
+			if (sh_type == "BOX"):
+				properties["template"] = default_template
+			elif (sh_type == "OBS"):
+				if (properties["type"].startswith("score")):
+					properties["template"] = f"{default_template}_st"
+				else:
+					properties["template"] = f"{default_template}_glass"
+			elif (sh_type == "DEC"):
+				properties["template"] = f"{default_template}_decal"
+			elif (sh_type == "POW"):
+				properties["template"] = f"{default_template}_pu"
+			elif (sh_type == "WAT"):
+				properties["template"] = f"{default_template}_water"
 	
 	# Add mode appearance tag
 	if (sh_type == "OBS"):
@@ -349,9 +351,14 @@ def sh_add_object(level_root, scene, obj, params):
 	if (sh_type == "DEC"):
 		properties["tile"] = str(obj.sh_properties.sh_decal)
 	
-	# Add decal size if this is a decal (based on sh_size)
+	# Add decal size if this is a decal
+	# Based on sh_size if its not some kind of plane
 	if (sh_type == "DEC"):
-		properties["size"] = str(obj.sh_properties.sh_size[0]) + " " + str(obj.sh_properties.sh_size[1])
+		if (obj.dimensions[1] == 0.0 and obj.dimensions[2] == 0.0):
+			properties["size"] = str(obj.sh_properties.sh_size[0]) + " " + str(obj.sh_properties.sh_size[1])
+		else:
+			size = {"X": obj.dimensions[1] / 2, "Y": obj.dimensions[2] / 2}
+			properties["size"] = str(size["X"]) + " " + str(size["Y"])
 	
 	# Add water size if this is a water (based on physical plane properties)
 	if (sh_type == "WAT"):
@@ -380,24 +387,24 @@ def sh_add_object(level_root, scene, obj, params):
 		properties["blend"] = str(obj.sh_properties.sh_blend)
 	
 	if (sh_type == "BOX"):
-		if (obj.sh_properties.sh_visible):
-			properties["visible"] = "1"
-		else:
-			if (not obj.sh_properties.sh_template):
-				properties["visible"] = "0"
+		if (not obj.sh_properties.sh_visible and not obj.sh_properties.sh_template):
+			properties["visible"] = "0"
 	
 	# Set tile info for boxes if visible
 	# This basically overrides any point to having a template
-	if (sh_type == "BOX" and obj.sh_properties.sh_visible):
-		# Depending on if colour per side is selected
+	if (sh_type == "BOX"):
+		# Chose colour string depending on if multitint is enabled
 		if (not obj.sh_properties.sh_use_multitint):
-			properties["color"] = str(obj.sh_properties.sh_tint[0]) + " " + str(obj.sh_properties.sh_tint[1]) + " " + str(obj.sh_properties.sh_tint[2])
+			# Export if not default
+			if (obj.sh_properties.sh_tint[0] != 1.0 or obj.sh_properties.sh_tint[1] != 1.0 or obj.sh_properties.sh_tint[2] != 1.0):
+				properties["color"] = str(obj.sh_properties.sh_tint[0]) + " " + str(obj.sh_properties.sh_tint[1]) + " " + str(obj.sh_properties.sh_tint[2])
 		else:
 			properties["color"] = str(obj.sh_properties.sh_tint1[0]) + " " + str(obj.sh_properties.sh_tint1[1]) + " " + str(obj.sh_properties.sh_tint1[2]) + " " + str(obj.sh_properties.sh_tint2[0]) + " " + str(obj.sh_properties.sh_tint2[1]) + " " + str(obj.sh_properties.sh_tint2[2]) + " " + str(obj.sh_properties.sh_tint3[0]) + " " + str(obj.sh_properties.sh_tint3[1]) + " " + str(obj.sh_properties.sh_tint3[2])
 		
 		# Depnding on if tile per side is selected
 		if (not obj.sh_properties.sh_use_multitile):
-			properties["tile"] = str(obj.sh_properties.sh_tile)
+			if (obj.sh_properties.sh_tile != 0):
+				properties["tile"] = str(obj.sh_properties.sh_tile)
 		else:
 			properties["tile"] = str(obj.sh_properties.sh_tile1) + " " + str(obj.sh_properties.sh_tile2) + " " + str(obj.sh_properties.sh_tile3)
 		
@@ -485,17 +492,37 @@ def createSegmentText(context, params):
 	params["stone_legacy_colour_model"] = scene.sh_legacy_colour_model
 	params["stone_legacy_colour_default"] = scene.sh_legacy_colour_default
 	
-	# Export each object to XML node
-	for i in range(len(bpy.data.objects)):
-		obj = bpy.data.objects[i]
+	# Enumerate which objects we should export right now
+	
+	### Export all objects ###
+	
+	# NOTE: 2023-10-10 This was changed so that it now uses objects only in the
+	# current selected scene in the blend file and not just exports all objects
+	# even if they are not in the current scene
+	objects = bpy.context.scene.objects
+	
+	# A list of objects that will actually be exported (e.g. those that have
+	# sh_export set)
+	exportedObjectsList = []
+	
+	for o in objects:
+		if (o.sh_properties.sh_export):
+			exportedObjectsList.append(o)
+	
+	objects = exportedObjectsList
+	
+	# Export every object in the scene
+	for i in range(len(objects)):
+		obj = objects[i]
 		
 		if (not obj.sh_properties.sh_export):
 			continue
 		
 		params["isLast"] = False
 		
-		# HACK: This hack doesn't work if the last object isn't visible.
-		if (i == (len(bpy.data.objects) - 1)):
+		# This is a bit ugly but at least isn't not broken with the pre-computed
+		# export list anymore :)
+		if (i == (len(objects) - 1)):
 			params["isLast"] = True
 		
 		sh_add_object(level_root, scene, obj, params)

@@ -16,6 +16,8 @@ import requests as requests
 import rsa as rsa # TODO Don't use RSA anymore
 import gzip
 import shutil
+import sys
+import importlib.util
 
 def get_time():
 	"""
@@ -225,3 +227,21 @@ def http_get_signed(url, sigurl = None):
 	
 	# Return the content of the file
 	return data
+
+def load_module(path):
+	"""
+	Load and return a module from the given file path, return None if it does
+	not exist
+	"""
+	
+	if (not os.exists(path)):
+		return None
+	
+	module_name = "module_" + get_sha1_hash(path)
+	
+	spec = importlib.util.spec_from_file_location(module_name, path)
+	module = importlib.util.module_from_spec(spec)
+	sys.modules[module_name] = module
+	spec.loader.exec_module(module)
+	
+	return module

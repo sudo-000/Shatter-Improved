@@ -8,6 +8,119 @@ import pathlib
 import tempfile
 import bpy
 
+class UIDrawingHelper():
+	"""
+	Helpful thing to draw UIs easier than the Blender API allows for. Basically
+	takes a context and layout and starts drawing based on what you say. No need
+	to manipulate variables or anything either.
+	
+	The current object to pull properties from is just stored as part of the
+	state. The layouts are kept on a stack and always poped with end().
+	"""
+	
+	def __init__(self, context, layout, obj, *, compact = False):
+		self.context = context
+		self.layout = [layout]
+		self.obj = obj
+		self.compact = compact
+	
+	def set_object(self, obj):
+		"""
+		Set the object to take properties from
+		"""
+		
+		self.obj = obj
+	
+	def get(self, symbol):
+		"""
+		Get the value of the given property (symbol) on the current object
+		"""
+		
+		return getattr(self.obj, symbol)
+	
+	def begin(self):
+		"""
+		Begin a new (non-region) layout
+		"""
+		
+		sub = self.layout[-1].column()
+		self.layout.append(sub)
+	
+	def beginFake(self):
+		"""
+		Begin a fake layout (just pushes the current one again)
+		"""
+		
+		self.layout.append(self.layout[-1])
+	
+	def end(self):
+		"""
+		Pop the current layout off of the stack
+		"""
+		
+		self.layout.pop()
+	
+	def region(self, icon = "", title = "", new = True):
+		"""
+		Create a new UI region (e.g. boxed area with title)
+		
+		If `new` is set, then any previous box will automatically be poped from
+		the stack
+		"""
+		
+		if (self.compact):
+			return self.beginFake()
+		
+		if (new and len(self.layout) > 1):
+			self.end()
+		
+		self.layout.append(self.layout[-1].box())
+		
+		self.layout[-1].label(text = title, icon = icon)
+	
+	def label(self, text):
+		"""
+		Draw a basic label
+		"""
+		
+		self.layout[-1].label(text = text)
+	
+	def prop(self, symbol, *, icon = None, text = None, text_compact = None, use_button = False, disabled = False):
+		"""
+		Draw the property with the given options
+		
+		Returns the value of the property drawn
+		"""
+		
+		args = {}
+		
+		# Set up properties
+		if (text != None):
+			args["text"] = text
+		
+		if (self.compact and text_compact != None):
+			args["text"] = text_compact
+		
+		if (icon):
+			args["icon"] = icon
+		
+		if (use_button):
+			args["toggle"] = True
+		
+		if (disabled):
+			self.begin()
+			self.layout[-1].enabled = False
+		
+		if (type(self.get(symbol)) != set):
+			self.layout[-1].prop(self.obj, symbol, **args)
+		else:
+			self.layout[-1].props_enum(self.obj, symbol, **args)
+		
+		if (disabled):
+			self.end()
+		
+		return self.get(symbol)
+
 def find_assets_paths(*, search_default = True, search_apk = True):
 	"""
 	Detect all valid assets paths and return them as a list
