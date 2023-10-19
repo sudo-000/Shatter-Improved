@@ -88,6 +88,23 @@ def set_file(path, data):
 	
 	pathlib.Path(path).write_text(data)
 
+def get_file_raw(path):
+	"""
+	Get the data in a file if it exists
+	"""
+	
+	try:
+		return pathlib.Path(path).read_bytes()
+	except FileNotFoundError as e:
+		return None
+
+def set_file_raw(path, data):
+	"""
+	Put a binary file with the given data at the given path
+	"""
+	
+	pathlib.Path(path).write_bytes(data)
+
 def get_file_json(path):
 	"""
 	Get a json file's contents
@@ -234,7 +251,7 @@ def load_module(path):
 	not exist
 	"""
 	
-	if (not os.exists(path)):
+	if (not os.path.exists(path)):
 		return None
 	
 	module_name = "module_" + get_sha1_hash(path)

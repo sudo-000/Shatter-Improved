@@ -106,55 +106,11 @@ def tryTemplatesPath():
 	
 	return path
 
-class ExportHelper2:
-	"""
-	Extended from blender's default ExportHelper to fix some bugs.
-	"""
-	
-	filepath: StringProperty(
-		name = "File Path",
-		description = "Filepath used for exporting the file",
-		maxlen = 1024,
-		subtype = 'FILE_PATH',
-	)
-	
-	check_existing: BoolProperty(
-		name = "Check Existing",
-		description = "Check and warn on overwriting existing files",
-		default = True,
-		options = {'HIDDEN'},
-	)
-	
-	# subclasses can override with decorator
-	# True == use ext, False == no ext, None == do nothing.
-	check_extension = True
-	
-	def invoke(self, context, _event):
-		if not self.filepath:
-			blend_filepath = context.blend_data.filepath
-			if not blend_filepath:
-				blend_filepath = "untitled"
-			else:
-				blend_filepath = os.path.splitext(blend_filepath)[0]
-			
-			self.filepath = blend_filepath + self.filename_ext
-		
-		context.window_manager.fileselect_add(self)
-		return {'RUNNING_MODAL'}
-	
-	def check(self, _context):
-		"""
-		Custom version of filepath check that fixes issues with two dots in names
-		"""
-		
-		change_ext = False
-		
-		if self.check_extension is not None and self.check_extension:
-			if not self.filepath.endswith(self.filename_ext):
-				self.filepath += self.filename_ext
-				change_ext = True
-		
-		return change_ext
+def exportList(lst):
+	return " ".join([str(x) for x in lst])
+
+def exportPointList(lst):
+	return f"{lst[1]} {lst[2]} {lst[0]}"
 
 ## Segment Export
 ## All of the following is related to exporting segments.
@@ -164,7 +120,7 @@ def sh_create_root(scene, params):
 	Creates the main root and returns it
 	"""
 	
-	size = {"X": scene.sh_len[0], "Y": scene.sh_len[1], "Z": scene.sh_len[2]}
+	size = scene.sh_len
 	
 	# Automatic length detection
 	if (scene.sh_auto_length):
@@ -178,23 +134,23 @@ def sh_create_root(scene, params):
 			if (candZ < sizeZ):
 				sizeZ = candZ
 		
-		size["X"] = 12.0
-		size["Y"] = 10.0
-		size["Z"] = -sizeZ
+		size[0] = 12.0
+		size[1] = 10.0
+		size[2] = -sizeZ
 	
 	# VR Multiply setting
 	sh_vrmultiply = params.get("sh_vrmultiply", 1.0)
 	
 	if (sh_vrmultiply != 1.0):
-		size["Z"] = size["Z"] * sh_vrmultiply
+		size[2] = size[2] * sh_vrmultiply
 	
 	# Segment size warning
-	if (size["Z"] <= 0.0):
+	if (size[2] <= 0.0):
 		params["warnings"].add("the segment length is zero or less which may behave weirdly")
 	
 	# Initial segment properties, like size
 	seg_props = {
-	   "size": str(size["X"]) + " " + str(size["Y"]) + " " + str(size["Z"])
+		"size": exportList(size)
 	}
 	
 	# Check for the template attrib and set
@@ -224,7 +180,7 @@ def sh_create_root(scene, params):
 	
 	# Add ambient lighting if enabled
 	if (scene.sh_lighting):
-		seg_props["ambient"] = str(scene.sh_lighting_ambient[0]) + " " + str(scene.sh_lighting_ambient[1]) + " " + str(scene.sh_lighting_ambient[2])
+		seg_props["ambient"] = exportList(scene.sh_lighting_ambient)
 	
 	# Protection
 	if (scene.sh_drm_disallow_import or bpy.context.preferences.addons["shatter"].preferences.force_disallow_import):
@@ -236,9 +192,17 @@ def sh_create_root(scene, params):
 	
 	return level_root
 
-def sh_add_object(level_root, scene, obj, params):
+def make_subelement_from_entity(level_root, scene, obj, params):
 	"""
-	This will add an obstacle to level_root
+	This will add an obstacle to level_root. Note that there is no big
+	swtich-case like thing here, it's basically checking what type of entity we
+	have each time we want to add a property, so adding a property appears only
+	once but checks for the type of entity appear many times.
+	
+	`level_root` is the root xml entity we should add to
+	`scene` is actually just bpy.context.scene.sh_properties
+	`obj` is the object to export
+	`params` is a dictionary of export settings
 	"""
 	
 	# These positions are swapped
@@ -290,7 +254,7 @@ def sh_add_object(level_root, scene, obj, params):
 	# Add rotation paramater if any rotation has been done
 	if (sh_type == "OBS" or sh_type == "DEC"):
 		if (obj.rotation_euler[1] != 0.0 or obj.rotation_euler[2] != 0.0 or obj.rotation_euler[0] != 0.0):
-			properties["rot"] = str(obj.rotation_euler[1]) + " " + str(obj.rotation_euler[2]) + " " + str(obj.rotation_euler[0])
+			properties["rot"] = exportPointList(obj.rotation_euler)
 	
 	# Add template
 	if (obj.sh_properties.sh_template):
@@ -337,7 +301,7 @@ def sh_add_object(level_root, scene, obj, params):
 		
 		# Only export if it's not default of (0.0, 1.0)
 		if (diffic[0] != 0.0 or diffic[1] != 1.0):
-			properties["difficulty"] = str(diffic[0]) + " " + str(diffic[1])
+			properties["difficulty"] = exportList(diffic)
 	
 	# Add reflection property for boxes if not default
 	if (sh_type == "BOX" and obj.sh_properties.sh_reflective):
@@ -355,7 +319,7 @@ def sh_add_object(level_root, scene, obj, params):
 	# Based on sh_size if its not some kind of plane
 	if (sh_type == "DEC"):
 		if (obj.dimensions[1] == 0.0 and obj.dimensions[2] == 0.0):
-			properties["size"] = str(obj.sh_properties.sh_size[0]) + " " + str(obj.sh_properties.sh_size[1])
+			properties["size"] = exportList(obj.sh_properties.sh_size)
 		else:
 			size = {"X": obj.dimensions[1] / 2, "Y": obj.dimensions[2] / 2}
 			properties["size"] = str(size["X"]) + " " + str(size["Y"])
@@ -380,7 +344,7 @@ def sh_add_object(level_root, scene, obj, params):
 	
 	# Set tint for decals
 	if (sh_type == "DEC" and obj.sh_properties.sh_havetint):
-		properties["color"] = str(obj.sh_properties.sh_tint[0]) + " " + str(obj.sh_properties.sh_tint[1]) + " " + str(obj.sh_properties.sh_tint[2]) + " " + str(obj.sh_properties.sh_tint[3])
+		properties["color"] = exportList(obj.sh_properties.sh_tint)
 	
 	# Set blend for decals
 	if (sh_type == "DEC" and obj.sh_properties.sh_blend != 1.0):
@@ -397,7 +361,7 @@ def sh_add_object(level_root, scene, obj, params):
 		if (not obj.sh_properties.sh_use_multitint):
 			# Export if not default
 			if (obj.sh_properties.sh_tint[0] != 1.0 or obj.sh_properties.sh_tint[1] != 1.0 or obj.sh_properties.sh_tint[2] != 1.0):
-				properties["color"] = str(obj.sh_properties.sh_tint[0]) + " " + str(obj.sh_properties.sh_tint[1]) + " " + str(obj.sh_properties.sh_tint[2])
+				properties["color"] = exportList(obj.sh_properties.sh_tint)
 		else:
 			properties["color"] = str(obj.sh_properties.sh_tint1[0]) + " " + str(obj.sh_properties.sh_tint1[1]) + " " + str(obj.sh_properties.sh_tint1[2]) + " " + str(obj.sh_properties.sh_tint2[0]) + " " + str(obj.sh_properties.sh_tint2[1]) + " " + str(obj.sh_properties.sh_tint2[2]) + " " + str(obj.sh_properties.sh_tint3[0]) + " " + str(obj.sh_properties.sh_tint3[1]) + " " + str(obj.sh_properties.sh_tint3[2])
 		
@@ -410,11 +374,11 @@ def sh_add_object(level_root, scene, obj, params):
 		
 		# Tile size for boxes
 		if (obj.sh_properties.sh_tilesize[0] != 1.0 or obj.sh_properties.sh_tilesize[1] != 1.0 or obj.sh_properties.sh_tilesize[2] != 1.0):
-			properties["tileSize"] = str(obj.sh_properties.sh_tilesize[0]) + " " + str(obj.sh_properties.sh_tilesize[1]) + " " + str(obj.sh_properties.sh_tilesize[2])
+			properties["tileSize"] = exportList(obj.sh_properties.sh_tilesize)
 		
 		# Tile rotation
 		if (obj.sh_properties.sh_tilerot[1] > 0.0 or obj.sh_properties.sh_tilerot[2] > 0.0 or obj.sh_properties.sh_tilerot[0] > 0.0):
-			properties["tileRot"] = str(obj.sh_properties.sh_tilerot[0]) + " " + str(obj.sh_properties.sh_tilerot[1]) + " " + str(obj.sh_properties.sh_tilerot[2])
+			properties["tileRot"] = exportList(obj.sh_properties.sh_tilerot)
 	
 	# Set the tag name
 	element_type = "shbt-unknown-entity"
@@ -525,7 +489,7 @@ def createSegmentText(context, params):
 		if (i == (len(objects) - 1)):
 			params["isLast"] = True
 		
-		sh_add_object(level_root, scene, obj, params)
+		make_subelement_from_entity(level_root, scene, obj, params)
 	
 	# Check the warning for box count being zero
 	if (not params["box_counter"].has_any()):
