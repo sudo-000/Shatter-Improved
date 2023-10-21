@@ -8,6 +8,8 @@ def process_block(key, plaintext, rounds = 64, magic = 0x9E3779B9, decrypt = Fal
 	"""
 	(De|En)crypt a block of plaintext. Key must be four 32-bit words and
 	plaintext must be two 32-bit words.
+	
+	NOTE This is a low level function, you should not use it directly.
 	"""
 	
 	ciphertext = plaintext.copy()
@@ -38,6 +40,8 @@ def process_block(key, plaintext, rounds = 64, magic = 0x9E3779B9, decrypt = Fal
 def process_block_bytes(key, plaintext, rounds = 64, magic = 0x9E3779B9, decrypt = False):
 	"""
 	The same as process_block, but the key and plaintext are bytearrays
+	
+	NOTE This is a low level function, you should not use it directly.
 	"""
 	
 	v = process_block(
@@ -74,6 +78,8 @@ def process_bytes_ctr(key, plaintext, nonce = None):
 	"""
 	Process an N-length bytearray in CTR mode using XOR to combine a 64-bit
 	nonce and counter. Note that this is secure only if a random nonce is used.
+	
+	NOTE This is a low level function, you should not use it directly.
 	"""
 	
 	nonce = bytearray(secrets.token_bytes(8)) if nonce == None else nonce
@@ -91,7 +97,73 @@ def process_bytes_ctr(key, plaintext, nonce = None):
 	
 	return (nonce, ciphertext)
 
-if __name__ == "__main__":
+################################################################################
+# Interfaces for users of the library
+################################################################################
+
+from enum import Enum
+import struct
+import math
+
+class Mode(Enum):
+	# ECB = 0x10 -- not yet supported
+	CTR_XOR = 0x20
+	# CBC = 0x30
+
+def _format_encode(val):
+	"""
+	Encode the value into an encryptable form. Raises a ValueError if it can't
+	be formatted.
+	"""
+	
+	t = type(val)
+	
+	if (t == bytes or t == bytearray):
+		return val
+	elif (t == str):
+		return val.encode()
+	elif (t == int):
+		return val.to_bytes(math.ceil(math.log(val, 2) / 8), "little")
+	elif (t == float):
+		return struct.pack("<d", val)
+	else:
+		raise ValueError(f"Cannot encode value {val} of type {t} for encryption")
+
+def encrypt(key, plaintext, mode = Mode.CTR_XOR):
+	"""
+	Encrypt the plaintext with XTEA using the given mode and key. Note that the
+	data is NOT authenticated, so it could be tampered with.
+	
+	Return values:
+	ECB mode    -> ciphertext
+	CTR modes   -> (nonce, ciphertext) tuple
+	"""
+	
+	if (mode == Mode.CTR_XOR):
+		return process_bytes_ctr(key, _format_encode(plaintext))
+	else:
+		return None
+
+def decrypt(nonce, key, ciphertext, mode = Mode.CTR_XOR):
+	"""
+	Decrypt the ciphertext with XTEA using the given mode, key and nonce. Note
+	that the data is NOT authenticated, so it could have been tampered with.
+	
+	Always returns the plaintext
+	"""
+	
+	if (mode == Mode.CTR_XOR):
+		return process_bytes_ctr(key, ciphertext, nonce)[1]
+	else:
+		return None
+
+def test():
+	"""
+	Run some basic tests
+	"""
+	
+	import binascii
+	
 	print("Testing block ....")
 	
 	print("Encrypt block of zeros with key 0x8000...00")
@@ -108,3 +180,18 @@ if __name__ == "__main__":
 	n, pt = process_bytes_ctr(b"\0\0\0\0\0\0\0\0", ct, nonce = n)
 	
 	print(n, ct, "decrpted", pt)
+	
+	print("\nTest user facing encryption functions ...")
+	L = [b"Awoo", b"HelloWor", b"Long data test for TEA", "String encrypt test", 0x133713371337, 13.37]
+	k = b"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f"
+	
+	for p in L:
+		print(f"plaintext {p}")
+		n, ct = encrypt(k, p)
+		print(f"nonce/ciphertext {binascii.hexlify(n)}, {binascii.hexlify(ct)}")
+		pt = decrypt(n, k, ct)
+		print(f"plaintext again {pt}")
+		print()
+
+if __name__ == "__main__":
+	test()
