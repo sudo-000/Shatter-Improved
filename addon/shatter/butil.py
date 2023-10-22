@@ -120,6 +120,10 @@ class UIDrawingHelper():
 			self.end()
 		
 		return self.get(symbol)
+	
+	def warn(self, message):
+		self.region("ERROR", message, new = False)
+		self.end()
 
 def find_assets_paths(*, search_default = True, search_apk = True):
 	"""

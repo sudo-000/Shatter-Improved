@@ -76,18 +76,6 @@ def download_and_install_update(source):
 	p = Process(target = update_downloader, args = (source,))
 	p.start()
 
-# def show_message(title = "Info", message = "", icon = "INFO"):
-# 	"""
-# 	Show a message as a popup
-# 	"""
-# 	
-# 	import bpy, functools
-# 	
-# 	def draw(self, context):
-# 		self.layout.label(text = message)
-# 	
-# 	bpy.context.window_manager.popup_menu(draw, title = title, icon = icon)
-# 
 def version_compare(current, candidate, or_eq = False):
 	"""
 	Return True if candidate is greater than (or, if or_eq is set, if it's equal

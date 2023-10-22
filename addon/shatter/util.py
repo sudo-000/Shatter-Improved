@@ -224,8 +224,14 @@ def http_get_signed(url, sigurl = None):
 	PublicKey = rsa.PublicKey
 	
 	# Download data and signature
-	data = requests.get(url)
-	signature = requests.get(url + ".sig" if not sigurl else sigurl)
+	data = None
+	signature = None
+	
+	try:
+		data = requests.get(url)
+		signature = requests.get(url + ".sig" if not sigurl else sigurl)
+	except:
+		return None
 	
 	if (data.status_code != 200 or signature.status_code != 200):
 		return None

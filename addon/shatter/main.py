@@ -1043,6 +1043,12 @@ class sh_AddonPreferences(AddonPreferences):
 		default = True,
 	)
 	
+	resolve_templates: BoolProperty(
+		name = "Resolve templates at export time",
+		description = "Solves templates when a segment is exported. This avoids the need for adding used templates to templates.xml, but makes the filesize larger and the XML file less readable",
+		default = False,
+	)
+	
 	compact_ui: BoolProperty(
 		name = "Compact UI mode",
 		description = "Avoids drawing any excessive UI elements that would make the UI larger than needed",
@@ -1091,28 +1097,16 @@ class sh_AddonPreferences(AddonPreferences):
 		default = False,
 	)
 	
-	segment_originality_service_tos: BoolProperty(
-		name = "I agree to the Segement Claim Service terms of service",
-		description = "In order to use the Segment Claim Service (the \"Service\"), you agree that we can store your data on our servers (the \"Servers\"). This data includes things like the time you sign up, your creator name, your Shatter user ID, hashes of segment files, times of segment claim submission and other metadata that we need to provide the Service. You agree that we may make any collected information available to the public for an unlimited peroid of time. You can delete non-public account data at https://smashhitlab.000webhostapp.com/shatter/api.php?action=weak-user-login-ui by logging in any time you like. Public data is stored permantently on our Servers as doing otherwise would defeat the purpose of the Service, which is to keep an ongoing correlation between user IDs and segments",
+	segment_encrypt: BoolProperty(
+		name = "Obfuscate exported segments (alpha)",
+		description = "This will encrypt segments using a very basic implementation of the XTEA-CTR cipher. THIS IS NOT INTENDED TO BE SECURE OR CONFIDENTIAL IN ANY WAY. Note: In the future there may be mods that allow loading encrypted segments and providing some protection against copying, but this does not exist yet and so this is only for development right now",
 		default = False,
 	)
 	
-	segment_originality_service: BoolProperty(
-		name = "Enable the Segment Claim Service",
-		description = "This option will send any exported segments to the Segment Claim server, where they are hashed and kept for reference. This will allow you to claim segments as being originally made by you, and allow other users to upload your segment to see who made it",
-		default = False,
-	)
-	
-	creator: StringProperty(
-		name = "Display name",
-		description = "The name you would like to be known as when people look up your segment",
-		default = "",
-		update = remote_api.creator_name_updated_callback,
-	)
-	
-	report_info: StringProperty(
-		name = "Report info",
-		description = "A link or directions to a social profile that users can click on or follow to report stolen segments",
+	segment_encrypt_password: StringProperty(
+		name = "Magic value",
+		description = "The (ATM) raw encryption key to use for encrypting segments. It should be a valid and random 128-bit integer in base10",
+		subtype = "PASSWORD",
 		default = "",
 	)
 	
@@ -1127,28 +1121,39 @@ class sh_AddonPreferences(AddonPreferences):
 	def draw(self, context):
 		main = self.layout
 		
-		ui = main.box()
-		ui.label(text = "General options", icon = "PREFERENCES")
-		ui.prop(self, "default_assets_path")
-		ui.prop(self, "enable_segment_warnings")
-		ui.prop(self, "compact_ui")
+		ui = butil.UIDrawingHelper(context, self.layout, self)
 		
-		ui = main.box()
-		ui.label(text = "Network features", icon = "WORLD")
-		ui.label(text = f"Your unique user ID: {self.uid}")
-		ui.prop(self, "enable_quick_test_server")
-		ui.prop(self, "enable_update_notifier")
-		ui.prop(self, "updater_channel")
+		ui.region("PREFERENCES", "General options")
+		ui.prop("default_assets_path")
+		ui.prop("enable_segment_warnings")
+		ui.prop("resolve_templates")
+		ui.prop("compact_ui")
+		ui.end()
+		
+		ui.region("WORLD", "Network features")
+		ui.label(f"Your unique user ID: {self.uid}")
+		ui.prop("enable_quick_test_server")
+		ui.prop("enable_update_notifier")
+		ui.prop("updater_channel")
+		
 		if (self.enable_update_notifier):
-			ui.prop(self, "enable_auto_update")
+			ui.prop("enable_auto_update")
+			
 			if (self.enable_auto_update):
-				box = ui.box()
-				box.label(icon = "ERROR", text = "Please note: If a bad update is released, it might break Shatter. Be careful!")
-		ui.prop(self, "enable_bad_check")
+				ui.warn("Please note: If a bad update is released, it might break Shatter. Be careful!")
 		
-		ui = main.box()
-		ui.label(text = "Protection", icon = "LOCKED")
-		ui.prop(self, "force_disallow_import")
+		ui.prop("enable_bad_check")
+		ui.end()
+		
+		ui.region("LOCKED", "Protection")
+		ui.prop("force_disallow_import")
+		ui.prop("segment_encrypt")
+		
+		if (self.segment_encrypt):
+			ui.prop("segment_encrypt_password")
+			ui.warn("Segment obfuscation is not supported ingame. Developers only!")
+		
+		ui.end()
 
 class sh_SegmentPanel(Panel):
 	bl_label = "Smash Hit"

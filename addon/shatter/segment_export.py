@@ -11,13 +11,14 @@ import pathlib
 import tempfile
 import json
 import pathlib
-import common as common
-import bake_mesh as bake_mesh
-import segstrate as segstrate
-import obstacle_db as obstacle_db
-import remote_api as remote_api
-import util as util
-import butil as butil
+import common
+import bake_mesh
+import segstrate
+import obstacle_db
+import remote_api
+import util
+import butil
+import xtea
 
 from bpy.props import (
 	StringProperty,
@@ -634,15 +635,15 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 	# Export to xml string
 	content = createSegmentText(context, params)
 	
+	# Get templates path, needed for later
+	templates = params.get("sh_meshbake_template", None)
+	
 	##
 	## Handle test server mode
 	##
 	
 	# TODO: Split into function exportSegmentTest
 	if (params.get("sh_test_server", False) == True):
-		# Get templates path
-		templates = params.get("sh_meshbake_template", None)
-		
 		# Solve templates if we have them
 		if (templates):
 			content = solveTemplates(content, parseTemplatesXml(templates))
@@ -705,21 +706,29 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 	
 	context.window_manager.progress_update(0.8)
 	
+	# Preform template resolution if it is enabled for all segments
+	if (context.preferences.addons["shatter"].preferences.resolve_templates and templates):
+		content = solveTemplates(content, parseTemplatesXml(templates))
+	
 	# Do segstrate protection if we need that
 	if (segstrate_path):
 		content = segstrate.replace_tags(content, util.get_file_json(segstrate_path))
 	
-	# Write out file
-	if (not compress):
-		with open(filepath, "wb") as f:
-			f.write(content.encode())
-	else:
-		with gzip.open(filepath, "wb") as f:
-			f.write(content.encode())
+	# Encode the data as bytes
+	content = content.encode()
 	
-	# If segment claiming is enabled, then submit this segment.
-	# if (context.preferences.addons["shatter"].preferences.segment_originality_service):
-	# 	remote_api.claim_segment_text(context, content)
+	# Segment encryption, if this has been requested
+	# TODO Compress before encrypt since otherwise compression is just overhead
+	# TODO Check that this is actually okay
+	if (context.preferences.addons["shatter"].preferences.segment_encrypt):
+		key = int(context.preferences.addons["shatter"].preferences.segment_encrypt_password).to_bytes(16, "little")
+		nonce, ct = xtea.encrypt(key, content)
+		print(f"nonce is {nonce}")
+		content = nonce + ct
+	
+	# Write out file
+	with (gzip.open(filepath, "wb") if compress else open(filepath, "wb")) as f:
+		f.write(content)
 	
 	# Display export warnings, if any and if enabled
 	params["warnings"].display()
