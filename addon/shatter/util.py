@@ -18,6 +18,7 @@ import gzip
 import shutil
 import sys
 import importlib.util
+import secrets
 
 def get_time():
 	"""
@@ -33,12 +34,21 @@ def get_timestamp():
 	
 	return datetime.datetime.utcnow().strftime("%Y-%m-%d %H%M%S")
 
-def get_sha1_hash(data):
+def sha1(data):
 	"""
 	Compute the SHA1 hash of a utf8 string
 	"""
 	
 	return hashlib.sha1(data.encode('utf-8')).hexdigest()
+
+get_sha1_hash = sha1
+
+def shake256(data, length = 16):
+	"""
+	Compute the SHAKE-256 hash of the given data of the given length
+	"""
+	
+	return hashlib.shake_256(data.encode('utf-8')).digest(length)
 
 def sha3_256(data):
 	"""
@@ -46,6 +56,22 @@ def sha3_256(data):
 	"""
 	
 	return hashlib.sha3_256(data.encode('utf-8')).hexdigest()
+
+def randpw(bits = 128):
+	"""
+	Generate a random password
+	"""
+	
+	alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_+-=,.!?\"\'@#%^&*~/\\:; "
+	l = math.ceil(math.log(2 ** bits, len(alpha)))
+	print(f"Generate {bits} bit password using {len(alpha)} symbols in alphabet * {l} symbol in phrase")
+	pw = ""
+	
+	for i in range(l):
+		nextchar = alpha[secrets.randbelow(len(alpha))]
+		pw += nextchar
+	
+	return pw
 
 gLocalIPAddressCache = ""
 

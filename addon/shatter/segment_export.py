@@ -721,7 +721,9 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 	# TODO Compress before encrypt since otherwise compression is just overhead
 	# TODO Check that this is actually okay
 	if (context.preferences.addons["shatter"].preferences.segment_encrypt):
-		key = int(context.preferences.addons["shatter"].preferences.segment_encrypt_password).to_bytes(16, "little")
+		# We should technically use an actual KDF for this, but I highly dobut
+		# it actually matters for *obfuscating* game assets.
+		key = util.shake256(context.preferences.addons["shatter"].preferences.segment_encrypt_password)
 		nonce, ct = xtea.encrypt(key, content)
 		print(f"nonce is {nonce}")
 		content = nonce + ct

@@ -135,7 +135,7 @@ class sh_export(sh_ExportCommon):
 	Uncompressed segment export
 	"""
 	
-	bl_idname = "sh.export"
+	bl_idname = "shatter.export"
 	bl_label = "Export Segment"
 	
 	filename_ext = ".xml.mp3"
@@ -160,14 +160,14 @@ class sh_export(sh_ExportCommon):
 		return result
 
 def sh_draw_export(self, context):
-	self.layout.operator("sh.export", text="Segment (.xml.mp3)")
+	self.layout.operator("shatter.export", text="Segment (.xml.mp3)")
 
 class sh_export_gz(sh_ExportCommon):
 	"""
 	Compressed segment export
 	"""
 	
-	bl_idname = "sh.export_compressed"
+	bl_idname = "shatter.export_compressed"
 	bl_label = "Export Compressed Segment"
 	
 	filename_ext = ".xml.gz.mp3"
@@ -193,14 +193,14 @@ class sh_export_gz(sh_ExportCommon):
 		return result
 
 def sh_draw_export_gz(self, context):
-	self.layout.operator("sh.export_compressed", text="Compressed Segment (.xml.gz.mp3)")
+	self.layout.operator("shatter.export_compressed", text="Compressed Segment (.xml.gz.mp3)")
 
 class sh_export_auto(bpy.types.Operator):
 	"""
 	Auto find APK path and use level/room/segment name to export
 	"""
 	
-	bl_idname = "sh.export_auto"
+	bl_idname = "shatter.export_auto"
 	bl_label = "Export to APK"
 	
 	def execute(self, context):
@@ -224,15 +224,15 @@ class sh_export_auto(bpy.types.Operator):
 		return result
 
 def sh_draw_export_auto(self, context):
-	self.layout.operator("sh.export_auto", text="Shatter: Export to APK")
+	self.layout.operator("shatter.export_auto", text="Shatter: Export to APK")
 
 class sh_export_test(Operator):
 	"""
 	Compressed segment export
 	"""
 	
-	bl_idname = "sh.export_test_server"
-	bl_label = "Export Segment to Test Server"
+	bl_idname = "shatter.export_test_server"
+	bl_label = "Export segment to test server"
 	
 	def execute(self, context):
 		sh_properties = context.scene.sh_properties
@@ -254,14 +254,14 @@ class sh_export_test(Operator):
 		return result
 
 def sh_draw_export_test(self, context):
-	self.layout.operator("sh.export_test_server", text="Shatter: Quick Test Server")
+	self.layout.operator("shatter.export_test_server", text="Shatter: Quick Test Server")
 
 class sh_export_binary(sh_ExportCommon):
 	"""
 	Binary segment export
 	"""
 	
-	bl_idname = "sh.export_bin"
+	bl_idname = "shatter.export_bin"
 	bl_label = "Export Binary Segment"
 	
 	filename_ext = ".bin"
@@ -287,7 +287,7 @@ class sh_export_binary(sh_ExportCommon):
 		return result
 
 def sh_draw_export_binary(self, context):
-	self.layout.operator("sh.export_bin", text="Binary Segment (.bin)")
+	self.layout.operator("shatter.export_bin", text="Binary Segment (.bin)")
 
 # UI-related
 
@@ -296,7 +296,7 @@ class sh_import(bpy.types.Operator, ImportHelper):
 	Import for uncompressed segments
 	"""
 	
-	bl_idname = "sh.import"
+	bl_idname = "shatter.import"
 	bl_label = "Import Segment"
 	
 	check_extension = False
@@ -307,14 +307,14 @@ class sh_import(bpy.types.Operator, ImportHelper):
 		return segment_import.sh_import_segment(self.filepath, context)
 
 def sh_draw_import(self, context):
-	self.layout.operator("sh.import", text="Segment (.xml.mp3)")
+	self.layout.operator("shatter.import", text="Segment (.xml.mp3)")
 
 class sh_import_gz(bpy.types.Operator, ImportHelper):
 	"""
 	Import for compressed segments
 	"""
 	
-	bl_idname = "sh.import_gz"
+	bl_idname = "shatter.import_gz"
 	bl_label = "Import Compressed Segment"
 	
 	check_extension = False
@@ -325,14 +325,14 @@ class sh_import_gz(bpy.types.Operator, ImportHelper):
 		return segment_import.sh_import_segment(self.filepath, context, True)
 
 def sh_draw_import_gz(self, context):
-	self.layout.operator("sh.import_gz", text="Compressed Segment (.xml.gz.mp3)")
+	self.layout.operator("shatter.import_gz", text="Compressed Segment (.xml.gz.mp3)")
 
 class sh_shl_login(bpy.types.Operator):
 	"""
 	Log in to the online service
 	"""
 	
-	bl_idname = "sh.shl_login"
+	bl_idname = "shatter.shl_login"
 	bl_label = "Log in to Shatter Online Service"
 	
 	def execute(self, context):
@@ -343,7 +343,7 @@ class sh_auto_setup_segstrate(bpy.types.Operator):
 	Set up segstrate segment protection
 	"""
 	
-	bl_idname = "sh.segstrate_auto"
+	bl_idname = "shatter.segstrate_auto"
 	bl_label = "One-click setup segstrate protection"
 	
 	def execute(self, context):
@@ -366,7 +366,7 @@ class sh_static_segstrate(bpy.types.Operator, ImportHelper):
 	Segstrate locking for when you have an APK you want to lock
 	"""
 	
-	bl_idname = "sh.segstrate_static"
+	bl_idname = "shatter.segstrate_static"
 	bl_label = "Permanently lock APK with Segstrate"
 	
 	agreement: BoolProperty(
@@ -390,7 +390,7 @@ class sh_rebake_meshes(bpy.types.Operator, ImportHelper):
 	Rebake many meshes from a folder
 	"""
 	
-	bl_idname = "sh.rebake_meshes"
+	bl_idname = "shatter.rebake_meshes"
 	bl_label = "Rebake multipule meshes"
 	
 	def execute(self, context):
@@ -1099,14 +1099,17 @@ class sh_AddonPreferences(AddonPreferences):
 	
 	segment_encrypt: BoolProperty(
 		name = "Obfuscate exported segments (alpha)",
-		description = "This will encrypt segments using a very basic implementation of the XTEA-CTR cipher. THIS IS NOT INTENDED TO BE SECURE OR CONFIDENTIAL IN ANY WAY. Note: In the future there may be mods that allow loading encrypted segments and providing some protection against copying, but this does not exist yet and so this is only for development right now",
+		description = "This will obfuscate segments using a very basic implementation of the XTEA-CTR cipher. THIS IS NOT INTENDED TO BE SECURE OR CONFIDENTIAL IN ANY WAY. Note: In the future there may be mods that allow loading encrypted segments and providing some protection against copying, but this does not exist yet and so this is only for development right now",
 		default = False,
 	)
 	
+	# Yes, I technically imply that this is not a "password" even though it is.
+	# But really I don't want ppl to use their one password for everything (ugh)
+	# in this. Maybe it would be better to switch to a keyfile of some kind?
 	segment_encrypt_password: StringProperty(
-		name = "Magic value",
-		description = "The (ATM) raw encryption key to use for encrypting segments. It should be a valid and random 128-bit integer in base10",
-		subtype = "PASSWORD",
+		name = "Keyphrase",
+		description = "The unique keyphrase to obfuscate segments with. This should be a mix of random symbols, similar to a password, but does not need to be memorable",
+		# subtype = "PASSWORD",
 		default = "",
 	)
 	
@@ -1151,9 +1154,19 @@ class sh_AddonPreferences(AddonPreferences):
 		
 		if (self.segment_encrypt):
 			ui.prop("segment_encrypt_password")
+			ui.op("shatter.obfuscation_randomise_keyphrase")
 			ui.warn("Segment obfuscation is not supported ingame. Developers only!")
 		
 		ui.end()
+
+class RandomiseKeyphrase(Operator):
+	bl_idname = "shatter.obfuscation_randomise_keyphrase"
+	bl_label = "Randomise keyphrase"
+	
+	def execute(self, context):
+		p = get_prefs()
+		p.segment_encrypt_password = util.randpw()
+		return {"FINISHED"}
 
 class sh_SegmentPanel(Panel):
 	bl_label = "Smash Hit"
@@ -1353,7 +1366,7 @@ class sh_CreateBox(Operator):
 	Operator to create a box
 	"""
 	
-	bl_idname = "sh.create_box"
+	bl_idname = "shatter.create_box"
 	bl_label = "Create box"
 	
 	def execute(self, context):
@@ -1366,7 +1379,7 @@ class sh_CreateObstacle(Operator):
 	Operator to create a obstacle
 	"""
 	
-	bl_idname = "sh.create_obstacle"
+	bl_idname = "shatter.create_obstacle"
 	bl_label = "Create obstacle"
 	
 	def execute(self, context):
@@ -1380,7 +1393,7 @@ class sh_CreateDecal(Operator):
 	Operator to create a decal
 	"""
 	
-	bl_idname = "sh.create_decal"
+	bl_idname = "shatter.create_decal"
 	bl_label = "Create decal"
 	
 	def execute(self, context):
@@ -1394,7 +1407,7 @@ class sh_CreatePowerup(Operator):
 	Operator to create a powerup
 	"""
 	
-	bl_idname = "sh.create_powerup"
+	bl_idname = "shatter.create_powerup"
 	bl_label = "Create powerup"
 	
 	def execute(self, context):
@@ -1408,7 +1421,7 @@ class sh_CreateWater(Operator):
 	Operator to create a water
 	"""
 	
-	bl_idname = "sh.create_water"
+	bl_idname = "shatter.create_water"
 	bl_label = "Create water"
 	
 	def execute(self, context):
@@ -1421,19 +1434,19 @@ class Shatter_MT_3DViewportMenuExtras(Menu):
 	bl_label = "Extra features"
 	
 	def draw(self, context):
-		self.layout.operator("sh.export_level_package")
+		self.layout.operator("shatter.export_level_package")
 		self.layout.separator()
-		self.layout.operator("sh.rebake_meshes")
+		self.layout.operator("shatter.rebake_meshes")
 		self.layout.separator()
-		self.layout.operator("sh.segstrate_auto")
-		self.layout.operator("sh.segstrate_static")
+		self.layout.operator("shatter.segstrate_auto")
+		self.layout.operator("shatter.segstrate_static")
 
 class sh_ClaimServiceDeleteAccount(Operator):
 	"""
 	Operator to create a water
 	"""
 	
-	bl_idname = "sh.open_shatter_service_delete_account"
+	bl_idname = "shatter.open_shatter_service_delete_account"
 	bl_label = "Delete account"
 	
 	def execute(self, context):
@@ -1448,7 +1461,7 @@ class sh_ClaimServiceLookup(Operator):
 	Operator to create a water
 	"""
 	
-	bl_idname = "sh.open_shatter_service_lookup"
+	bl_idname = "shatter.open_shatter_service_lookup"
 	bl_label = "Lookup segment"
 	
 	def execute(self, context):
@@ -1467,12 +1480,12 @@ class Shatter_MT_3DViewportMenu(Menu):
 		self.layout.separator()
 		
 		for t in [("box", "MESH_CUBE"), ("obstacle", "MESH_CONE"), ("decal", "TEXTURE"), ("powerup", "SOLO_OFF"), ("water", "MATFLUID")]:
-			self.layout.operator(f"sh.create_{t[0]}", icon = t[1])
+			self.layout.operator(f"shatter.create_{t[0]}", icon = t[1])
 		
 		self.layout.separator()
 		
-		self.layout.operator("sh.export_auto", icon = "MOD_BEVEL")
-		self.layout.operator("sh.export_test_server", icon = "AUTO")
+		self.layout.operator("shatter.export_auto", icon = "MOD_BEVEL")
+		self.layout.operator("shatter.export_test_server", icon = "AUTO")
 
 def Shatter_MT_3DViewportMenu_draw(self, context):
 	self.layout.menu("Shatter_MT_3DViewportMenu")
@@ -1679,7 +1692,7 @@ class AutogenPanel(Panel):
 		sub.prop(props, "auto_randomise")
 		if (not props.auto_randomise):
 			sub.prop(props, "seed")
-			sub.operator("sh.randomise_autogen_seed", text = "Randomise seed")
+			sub.operator("shatter.randomise_autogen_seed", text = "Randomise seed")
 		
 		sub = layout.box()
 		sub.label(text = "Generate", icon = "BRUSHES_ALL")
@@ -1716,7 +1729,7 @@ class AutogenPanel(Panel):
 		if (props.type == "ArchWay"):
 			sub.prop(props, "arch_top_parts")
 		
-		sub.operator("sh.run_autogen", text = "Generate")
+		sub.operator("shatter.run_autogen", text = "Generate")
 		
 		layout.separator()
 
@@ -1725,7 +1738,7 @@ class RunRandomiseSeedAction(bpy.types.Operator):
 	Run the seed randomiser action
 	"""
 	
-	bl_idname = "sh.randomise_autogen_seed"
+	bl_idname = "shatter.randomise_autogen_seed"
 	bl_label = "Randomise Autogen Seed"
 	
 	def execute(self, context):
@@ -1852,7 +1865,7 @@ class RunAutogenAction(bpy.types.Operator):
 	Run the automatic generator
 	"""
 	
-	bl_idname = "sh.run_autogen"
+	bl_idname = "shatter.run_autogen"
 	bl_label = "Run Shatter Autogen"
 	
 	def execute(self, context):
@@ -1957,16 +1970,17 @@ classes = (
 	RunRandomiseSeedAction,
 	RunAutogenAction,
 	level_pack_ui.ExportLevelPackage,
+	RandomiseKeyphrase,
 )
 
 keymaps = {
-	"D": "sh.create_box",
-	"F": "sh.create_obstacle",
-	"X": "sh.create_decal",
-	"C": "sh.create_powerup",
-	"V": "sh.create_water",
-	"R": "sh.export_auto",
-	"E": "sh.export_test_server",
+	"D": "shatter.create_box",
+	"F": "shatter.create_obstacle",
+	"X": "shatter.create_decal",
+	"C": "shatter.create_powerup",
+	"V": "shatter.create_water",
+	"R": "shatter.export_auto",
+	"E": "shatter.export_test_server",
 }
 
 keymaps_registered = []

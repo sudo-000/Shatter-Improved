@@ -24,8 +24,8 @@ from bpy.types import (
 )
 
 class ExportLevelPackage(bpy_extras.io_utils.ExportHelper, Operator):
-	bl_idname = "sh.export_level_package"
-	bl_label = "Create Level Package"
+	bl_idname = "shatter.export_level_package"
+	bl_label = "Create level package"
 	
 	filename_ext = ".zip"
 	

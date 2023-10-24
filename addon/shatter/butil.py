@@ -121,6 +121,11 @@ class UIDrawingHelper():
 		
 		return self.get(symbol)
 	
+	def op(self, opname):
+		self.layout[-1].operator(opname)
+		
+		return self
+	
 	def warn(self, message):
 		self.region("ERROR", message, new = False)
 		self.end()

@@ -5,6 +5,7 @@ Common constants and tools between blender-specific modules
 import pathlib
 import os
 import os.path
+import shutil
 
 """
 Addon info
@@ -50,7 +51,15 @@ SHATTER_API = "https://smashhitlab.000webhostapp.com/shatter/api.php?action="
 Blender Tools configuration directory
 """
 HOME_FOLDER = str(pathlib.Path.home())
-TOOLS_HOME_FOLDER = HOME_FOLDER + "/Shatter"
+TOOLS_HOME_FOLDER = (os.environ["APPDATA"] + "/Shatter Team/Shatter") if "APPDATA" in os.environ else (HOME_FOLDER + "/.shatter")
+TOOLS_HOME_FOLDER_OLD = HOME_FOLDER + "/Shatter"
+
+# Move old home folder to new location
+if (os.path.exists(TOOLS_HOME_FOLDER_OLD) and not os.path.exists(TOOLS_HOME_FOLDER)):
+	print("Moving old shatter homedir to new location...")
+	# HACK Yes the joins and splits are hacks but I dont care and they work.
+	os.makedirs("/".join(TOOLS_HOME_FOLDER.split("/")[:-1]), exist_ok = True)
+	shutil.move(TOOLS_HOME_FOLDER_OLD, TOOLS_HOME_FOLDER)
 
 # Create shatter folder if it does not exist
 os.makedirs(TOOLS_HOME_FOLDER, exist_ok = True)
