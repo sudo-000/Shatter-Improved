@@ -1,6 +1,6 @@
 # Credits
 
-This file contains every person who has contributed to Smash Hit Blender Tools in some way.
+This file contains every person who has contributed to Shatter (formerly Smash Hit Blender Tools) in some way.
 
 ## Code and design
 
@@ -8,19 +8,26 @@ Everyone that has helped with the codebase(s) directly in some way.
 
 ### Main addon
 
-* [Knot126](https://github.com/knot126) &mdash; Main developer, most of the code
+* [Knot126](https://github.com/knot126) &mdash; Main developer, 99% of the code, docs, website
 * [H-A-M-G-E-R](https://github.com/H-A-M-G-E-R) &mdash; A few quality of life updates
+* [OverloadedTech](https://github.com/OverloadedTech) &mdash; Readme correction
 
 ### Test client
 
 * [Knot126](https://github.com/knot126) &mdash; Initial test client implementation, binary patches, some of the UI and graphics
-* [Yorshex](https://github.com/yorshex) &mdash; Recent UI and graphics for the client
+* [Yorshex](https://github.com/yorshex) &mdash; Some UI and graphics for the client
+
+### Third party libraries used
+
+* [Python RSA](https://stuvel.eu/software/rsa/) &mdash; Creating and verifying update signatures
+* [Requests](https://docs.python-requests.org/en/latest/index.html) &mdash; Downloading updates and making web API calls
+* Simple XTEA &mdash; Segment obfuscation
 
 ## Thanks to
 
 * [Northen, Commuter and other SHW/Smash Hit Lab staff](https://smashhitlab.fandom.com/)
 * [Megadron](https://github.com/MegadronA03) &mdash; Created the first mod that really go me into modding and also the first segment viewer
-* [Yorshex](https://github.com/yorshex) &mdash; A lot of help in various places, encouaged me (knot) to rewreite the test server
+* [Yorshex](https://github.com/yorshex) &mdash; Good brown doggy friendo =3
 * One of my cousin's &mdash; for introducing me to Smash Hit at a party
 * One of my anuts on my mother's side &mdash; some emotional support
 * You &mdash; for bothering to read the credits at all <3
