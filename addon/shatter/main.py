@@ -52,6 +52,9 @@ from bpy_extras.io_utils import ImportHelper
 # be disabled.
 g_process_test_server = True
 
+# :-3
+g_got_ricked = False
+
 def get_prefs():
 	"""
 	Get a reference to the addon preferences
@@ -1158,6 +1161,18 @@ class sh_AddonPreferences(AddonPreferences):
 			ui.warn("Segment obfuscation is not supported ingame. Developers only!")
 		
 		ui.end()
+		
+		ui.region("INFO", "About Shatter")
+		ui.op("shatter.open_credits_page")
+		ui.op("shatter.open_privacy_page")
+		
+		if (g_got_ricked):
+			ui.region("INFO", "Trolled !!!", new = False)
+			ui.label("Anyway, I hope you are doing well in life :)")
+			ui.label("-- Knot126")
+			ui.end()
+		
+		ui.end()
 
 class RandomiseKeyphrase(Operator):
 	bl_idname = "shatter.obfuscation_randomise_keyphrase"
@@ -1441,34 +1456,33 @@ class Shatter_MT_3DViewportMenuExtras(Menu):
 		self.layout.operator("shatter.segstrate_auto")
 		self.layout.operator("shatter.segstrate_static")
 
-class sh_ClaimServiceDeleteAccount(Operator):
+class OpenShatterCreditsPage(Operator):
 	"""
 	Operator to create a water
 	"""
 	
-	bl_idname = "shatter.open_shatter_service_delete_account"
-	bl_label = "Delete account"
+	bl_idname = "shatter.open_credits_page"
+	bl_label = "Credits and Third Party Libraries"
 	
 	def execute(self, context):
-		weak = remote_api.load_weak_user(get_prefs().uid)
-		
-		webbrowser.open(f"https://smashhitlab.000webhostapp.com/shatter/api.php?action=weak-user-login-ui&submit=1&uid={weak.uid}&token={weak.token}")
-		
+		if (secrets.randbelow(150) == 0):
+			global g_got_ricked
+			webbrowser.open(f"https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+			g_got_ricked = True
+		else:
+			webbrowser.open(f"https://github.com/Shatter-Team/Shatter/blob/trunk/CREDITS.md")
 		return {"FINISHED"}
 
-class sh_ClaimServiceLookup(Operator):
+class OpenShatterPrivacyPage(Operator):
 	"""
 	Operator to create a water
 	"""
 	
-	bl_idname = "shatter.open_shatter_service_lookup"
-	bl_label = "Lookup segment"
+	bl_idname = "shatter.open_privacy_page"
+	bl_label = "Privacy and Security Statement"
 	
 	def execute(self, context):
-		weak = remote_api.load_weak_user(get_prefs().uid)
-		
-		webbrowser.open(f"https://smashhitlab.000webhostapp.com/shatter/api.php?action=segment-lookup-ui")
-		
+		webbrowser.open(f"https://shatter-team.github.io/Shatter/privacy.html")
 		return {"FINISHED"}
 
 class Shatter_MT_3DViewportMenu(Menu):
@@ -1963,8 +1977,8 @@ classes = (
 	sh_CreateDecal,
 	sh_CreatePowerup,
 	sh_CreateWater,
-	sh_ClaimServiceDeleteAccount,
-	sh_ClaimServiceLookup,
+	OpenShatterCreditsPage,
+	OpenShatterPrivacyPage,
 	AutogenProperties,
 	AutogenPanel,
 	RunRandomiseSeedAction,
