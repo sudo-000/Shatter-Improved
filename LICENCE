@@ -2,7 +2,7 @@ The following licence applies only for *.py files in the root directory. For the
 licence of shipped dependencies, please see the "thirdparty-info" folder and the
 LICENCE file in each of the project's folders.
 
-FOXXED SOFTWARE LICENSE 1.0
+KNOT'S SOFTWARE LICENSE 1.1
 
 This Software is Copyright © 2023 Knot126 and Shatter Team Contributors
 
@@ -23,13 +23,17 @@ the Software, subject to the following conditions:
   3. If the User is an organization with owners, then all owners are workers and
      all workers are owners with equal equity and/or equal vote.
 
-  4. If the User is an organization, then the User is not law enforcement,
+  4. If the User is an organization, then the User must not be law enforcement,
      military or any other government organisation, or working for or under
      either.
 
-  5. This software shall be used for Good, and not for Evil. The copyright
-     holder has the right to decide what qualifies as "Good" and "Evil" per
-     use of this software.
+  5. The Software and its source code may not be used for training or development
+     of any machine learning models, including but not limited to artificial
+     neural networks, deep learning, and reinforcement learning.
+
+  6. This software shall be used for Good, and not for Evil. The copyright
+     holder has the right to decide what qualifies as "Good" and "Evil" for
+     every use of this software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT EXPRESS OR IMPLIED WARRANTY OF ANY
 KIND, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
