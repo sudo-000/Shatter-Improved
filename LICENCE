@@ -1,15 +1,42 @@
-The following licence applies only for *.py files in the root directory. For the licence of shipped dependencies, please see the thirdparty-info folder and the LICENCE file in each of the project's folders.
+The following licence applies only for *.py files in the root directory. For the
+licence of shipped dependencies, please see the "thirdparty-info" folder and the
+LICENCE file in each of the project's folders.
 
-MIT License (Modified for Machine Learning, Government Use, and International Law)
+FOXXED SOFTWARE LICENSE 1.0
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, subject to the following conditions:
+This Software is Copyright © 2023 Knot126 and Shatter Team Contributors
 
-1. The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- 
-2. The Software may not be used for training or development of any machine learning models, including but not limited to artificial neural networks, deep learning, and reinforcement learning.
- 
-3. The Software may not be used by or for any government agency, department, or project, whether local, state, national, or international. This includes any use by employees, contractors, or other agents of such organizations.
+Permission is hereby granted, free of charge, to any person or organization (the
+"User") obtaining a copy of this software and associated documentation files
+(the "Software"), to use, copy, modify, merge, distribute, and/or sell copies of
+the Software, subject to the following conditions:
 
-4. The Software may not be used in the design, development, or manufacture of weapons of any kind, nor in any way that supports or contributes to any act that constitutes a war crime under international law, including but not limited to acts of genocide, torture, rape, or forced displacement of civilian populations.
+  1. The above copyright notice and this permission notice shall be included in
+     all copies or modified versions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  2. The User is one of the following:
+    A. An individual person, working for themselves
+    B. A non-profit organization
+    C. An organization that seeks shared profit for all of its members, and
+       allows non-members to set the cost of their labor
+
+  3. If the User is an organization with owners, then all owners are workers and
+     all workers are owners with equal equity and/or equal vote.
+
+  4. If the User is an organization, then the User is not law enforcement,
+     military or any other government organisation, or working for or under
+     either.
+
+  5. This software shall be used for Good, and not for Evil. The copyright
+     holder has the right to decide what qualifies as "Good" and "Evil" per
+     use of this software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT EXPRESS OR IMPLIED WARRANTY OF ANY
+KIND, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Note: This licence has been derived from the Anti-Capitialist Software Licence,
+available at https://anticapitalist.software/.
