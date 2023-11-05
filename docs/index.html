@@ -1,93 +1,151 @@
 <!DOCTYPE html>
-<html>
-	<head>
-		<meta charset="utf-8"/>
-		<link rel="shortcut icon" type="image/png" href="./res/icon.png"/>
-		<title>Shatter &mdash; Smash Hit Level Editor</title>
-		<!-- Metadata -->
-		<meta name="description" content="Shatter is an addon for the 3D modeling software Blender that allows the creation of Smash Hit segments."/>
-		<meta name="keywords" content="Smash Hit, Modding, Blender, Level Editor, Segment Editor, Smash Hit Blender Tools, Carambola, Shatter, Shatter for Blender"/>
-		<!-- Kumbh Sans font -->
-		<link rel="preconnect" href="https://fonts.googleapis.com">
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-		<link href="https://fonts.googleapis.com/css2?family=Red+Hat+Display:wght@400;500;700&display=swap" rel="stylesheet">
-		<!-- This site is simple enough to keep the css inline. -->
-		<style>
-			* {
-				padding: 0;
-				margin: 0;
-			}
-			
-			:root {
-				--font-family: "Red Hat Display", sans-serif;
-			}
-			
-			.content-main {
-				background-image: linear-gradient(0.3turn, #005266, #002933);
-				height: 100vh;
-				width: 100vw;
-			}
-			
-			.items {
-				position: fixed;
-				top: 50vh;
-				left: 50vw;
-				transform: translate(-50%, -50%);
-				width: 40em;
-			}
-			
-			.text-row, .link-row, a {
-				color: #fff;
-				font-size: 24pt;
-				font-family: var(--font-family);
-				text-shadow: 0 0.125em 0.25em #0006;
-				text-align: center;
-				text-decoration: none;
-				margin-bottom: 0.8em;
-			}
-			
-			.link-row {
-				font-weight: bold;
-			}
-			
-			a:hover {
-				color: #66e0ff;
-			}
-			
-			.items-spacer {
-				display: inline-block;
-				width: 1em;
-				height: 1px;
-			}
-			
-			::selection {
-				background: #00a3cc60;
-			}
-		</style>
-	</head>
-	<body>
-		<div class="content-main">
-			<div class="items">
-				<!-- - - - - - - - - - - - - -->
-				<div class="head-row">
-					<img src="./res/logo.svg" width="100%" style="margin-bottom: 3em;"/>
-				</div>
-				<!-- - - - - - - - - - - - - -->
-				<div class="text-row">
-					<p>Build the Smash Hit levels of your dreams.</p>
-				</div>
-				<!-- - - - - - - - - - - - - -->
-				<div class="link-row">
-					<a href="https://github.com/Shatter-Team/Shatter">Releases</a>
-					<span class="items-spacer"></span>
-					<a href="https://github.com/Shatter-Team/Shatter/issues">Issues</a>
-					<span class="items-spacer"></span>
-					<a href="https://discord.gg/28kHvwVP9z">Discord</a>
-					<span class="items-spacer"></span>
-					<a href="./privacy.html">Privacy</a>
-				</div>
-				<!-- - - - - - - - - - - - - -->
-			</div>
-		</div>
-	</body>
-</html>
+<html lang="en"><head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title></title>
+<meta name="Cache-Control" content="max-age=172800, must-revalidate" />
+<meta name="description" content="">
+<meta name="keywords" content="" />
+<meta name="pf:SiteID" content="4fb1f0fb-f410-4a42-94af-628cad087edb-3d23c688-238e-4151-9800-f8c7367e8375" />
+<meta name="pf:PageID" content="233e13e9-6157-4b27-94a9-e98eeedf2569" />
+<link rel="canonical" href="https://shatter-team.github.io/Shatter/en/index.html" />
+<link rel="stylesheet" href="assets/css/theme.css?v=22efebda" />
+<script   src="assets/scripts/PageFabric.Dependencies.JQuery.jquery.min.js?v=22efebda"></script>
+<script   src="assets/scripts/PageFabric.Dependencies.ChartJs.jscharts.min.js?v=22efebda"></script>
+<link rel="stylesheet" href="assets/css/PageFabric.Dependencies.CookieConsent.cookieconsent.min.css?v=22efebda">
+<script   src="assets/scripts/PageFabric.Dependencies.CookieConsent.cookieconsent.min.js?v=22efebda"></script>
+<script   src="assets/scripts/PageFabric.Dependencies.MediumZoom.mediumzoom.min.js?v=22efebda"></script>
+<link rel="stylesheet" href="assets/css/PageFabric.Dependencies.Prism.prism.min.css?v=22efebda">
+<script   src="assets/scripts/PageFabric.Dependencies.Prism.prism.min.js?v=22efebda"></script>
+<script   src="assets/scripts/PageFabric.Framework.PageFabricFramework.min.js?v=22efebda"></script>
+<link rel="stylesheet" href="assets/css/PageFabric.Framework.default.min.css?v=22efebda">
+<link rel="stylesheet" href="assets/css/PageFabric.Framework.default2.min.css?v=22efebda">
+<link rel="stylesheet" href="assets/css/PageFabric.Framework.controls.min.css?v=22efebda">
+<link rel="stylesheet" href="assets/css/PageFabric.Framework.symbolfonts.min.css?v=22efebda">
+<link rel="stylesheet" href="assets/css/PageFabric.Themes.Fluent.default.min.css?v=22efebda">
+<link rel="stylesheet" href="assets/css/userstyles.css?v=22efebda" />
+<script  src="assets/scripts/config.js?v=22efebda"></script>
+<script type='text/javascript'>
+var PageFunctions = {};
+</script>
+
+</head><body class="">
+
+    
+    <header>
+<div class="pfBox height-auto background-primary">
+<div class="pfBox width-m"><nav class='pfHNav'><a href="javascript:void(0);" rel="nofollow" class="icon"><i class="menuHamburgerIcon"></i></a><span class='menuTitle'>Shatter Team</span><del></del><div class="menuSpaceLeft"></div><ul><li><a href="index.html" class="currentPage">Home</a></li><li><a href="https://github.com/Shatter-Team/Shatter/releases" rel="noreferrer" target="_blank">Download</a></li><li><a href="https://github.com/Shatter-Team/Shatter/wiki" rel="noreferrer" target="_blank">Manual</a></li><li><a href="about.html">About</a></li></ul><div class="menuSpaceRight"></div><div style='clear:both'></div></nav>
+</div><div class="pfBox padding-5 text-white background-darker">
+    <div class="boxContent">
+      <p style="text-align: center;"><strong>Welcome to the new Shatter website!</strong></p>
+      </div>
+    </div></div>
+</header>
+    
+    <div class="pageWrapper pageWithCols">
+
+      <div class="pageColumn-center pageColumn-justifiedCenter pageColumn-75">
+      <div class="innerPageColumn">
+        <main>
+<div class="pfBox padding-15 margin-0 content-horizontal-align-default content-vertical-align-default syncWithContentWidth height-auto width-auto background-themeTertiary boxdecoration-none"><div class="pfBox padding-0 content-vertical-align-default height-auto"><div class="pfStackPanel stack-vertical space-10"><h1 id="shatter">Shatter</h1><article class="height-auto">
+    <p>Shatter is a way to edit segments for the 2014 mobile game Smash Hit using Blender 3D.</p>
+    </article><div class="pfBox height-75"></div><div class="pfStackPanel space-20 stack-horizontal"><a class="pfButton button-primay button-size-medium" href="https://github.com/Shatter-Team/Shatter/releases"  rel="noreferrer">Download add-on</a><a class="pfButton button-size-medium button-invert" href="https://github.com/Shatter-Team/Shatter/wiki"  rel="noreferrer">Manual</a></div></div></div></div><div class="pfBox">
+<div class="pfCardContainer cardsColumns columns-33"><div class="pfCard boxdecoration-none content-horizontal-align-center content-vertical-align-center padding-0 background-trans">
+  <div class="cardPlaceholder">
+  <div class="cardFill">
+    
+    <div class="cardContent heightSizeToContent"><div class="pfBox height-fill content-horizontal-align-default content-vertical-align-default"><div class="pfStackPanel stack-vertical space-20 content-horizontal-align-left"><img src="assets/images/Screenshot 2023-11-05 104625.png" class="img-decoration-8"><h4 id="create-the-levels-of-your-dreams">
+    Create the levels of your dreams</h4><article class="text-align-default">
+    <p>You can create basically any segment you want, so long as it meets Smash Hit's limitations.</p>
+    </article></div></div></div>
+  </div>
+  </div>
+</div><div class="pfCard boxdecoration-none content-horizontal-align-center content-vertical-align-center padding-0 background-trans">
+  <div class="cardPlaceholder">
+  <div class="cardFill">
+    
+    <div class="cardContent heightSizeToContent"><div class="pfBox height-fill content-horizontal-align-default content-vertical-align-default"><div class="pfStackPanel stack-vertical space-20 content-horizontal-align-left"><img src="assets/images/Screenshot 2023-11-05 104818.png" class="img-decoration-8"><h4 id="import-and-analyse">
+    Import and analyse</h4><article class="text-align-default">
+    <p>You can import and analyse segments to learn how they are made and edit them.</p>
+    </article></div></div></div>
+  </div>
+  </div>
+</div><div class="pfCard boxdecoration-none content-horizontal-align-center content-vertical-align-center padding-0 background-trans">
+  <div class="cardPlaceholder">
+  <div class="cardFill">
+    
+    <div class="cardContent heightSizeToContent"><div class="pfBox height-fill content-horizontal-align-default content-vertical-align-default"><div class="pfStackPanel stack-vertical space-20 content-horizontal-align-left"><img src="assets/images/Screenshot_20231105-105008_Shatter Client.png" class="img-decoration-8"><h4 id="quickly-test-your-changes">
+    Quickly test your changes</h4><article class="text-align-default">
+    <p>You can quickly test changes that you make to your segments using an easy to set up client and server.</p>
+    </article></div></div></div>
+  </div>
+  </div>
+</div><div class="pfCard boxdecoration-none content-horizontal-align-center content-vertical-align-center padding-0 background-trans">
+  <div class="cardPlaceholder">
+  <div class="cardFill">
+    
+    <div class="cardContent heightSizeToContent"><div class="pfBox height-fill content-horizontal-align-default content-vertical-align-default"><div class="pfStackPanel stack-vertical space-20 content-horizontal-align-left"><img src="assets/images/Screenshot 2023-11-05 104546.png" class="img-decoration-8"><h4 id="generate-repetitive-structures">
+    Generate repetitive structures</h4><article class="text-align-default">
+    <p>Autogen, a new feature, allows you to automatically generate structures that are common in levels.</p>
+    </article></div></div></div>
+  </div>
+  </div>
+</div><div class="pfCard boxdecoration-none content-horizontal-align-center content-vertical-align-center padding-0 background-trans">
+  <div class="cardPlaceholder">
+  <div class="cardFill">
+    
+    <div class="cardContent heightSizeToContent"><div class="pfBox height-fill content-horizontal-align-default content-vertical-align-default"><div class="pfStackPanel stack-vertical space-20 content-horizontal-align-left"><img src="assets/images/Screenshot_20231105-112746_Shatter Client.png" class="img-decoration-8"><h4 id="light-segments-like-never-before">
+    Light segments like never before</h4><article class="text-align-default">
+    <p>You can use advanced lighting to set the mood of your levels more percisely.</p>
+    </article></div></div></div>
+  </div>
+  </div>
+</div><div class="pfCard boxdecoration-none content-horizontal-align-center content-vertical-align-center padding-0 background-trans">
+  <div class="cardPlaceholder">
+  <div class="cardFill">
+    
+    <div class="cardContent heightSizeToContent"><div class="pfBox height-fill content-horizontal-align-default content-vertical-align-default"><div class="pfStackPanel stack-vertical space-20 content-horizontal-align-left"><img src="assets/images/Screenshot_20231105-111702_Shatter Client.png" class="img-decoration-8"><h4 id="ease-of-use-is-a-priority">
+    Ease of use is a priority</h4><article class="text-align-default">
+    <p>We are focused on creating an easy to use level editor and update Shatter to make it easier to use.</p>
+    </article></div></div></div>
+  </div>
+  </div>
+  </div>
+</div></div>
+<div class="pfBox">
+<div class="pfCardContainer cardsColumns columns-50"><div class="pfCard boxdecoration-none content-horizontal-align-center content-vertical-align-center padding-40 background-shared-grad02">
+  <div class="cardPlaceholder">
+  <div class="cardFill">
+    
+    <div class="cardContent heightSizeToContent"><div class="pfBox height-fill content-horizontal-align-default content-vertical-align-center"><div class="pfStackPanel stack-vertical space-20 content-horizontal-align-center"><h4 class="text-white" id="tweak-tool">
+    Tweak Tool</h4><article class="text-align-center text-white">
+    <p>The Smash Hit Tweak Tool allows you to make patches to libsmashhit.so that change the gameplay.</p>
+    </article><a class="pfButton button-size-medium button-invert" href="https://github.com/Shatter-Team/Tweak-Tool/releases"  rel="noreferrer">Download</a></div></div></div>
+  </div>
+  </div>
+</div><div class="pfCard boxdecoration-none content-horizontal-align-center content-vertical-align-center padding-40 background-shared-grad01">
+  <div class="cardPlaceholder">
+  <div class="cardFill">
+    
+    <div class="cardContent heightSizeToContent"><div class="pfBox height-fill content-horizontal-align-default content-vertical-align-center"><div class="pfStackPanel stack-vertical space-20 content-horizontal-align-center"><h4 class="text-white" id="frosted-wip">
+    Frosted (WIP)</h4><article class="text-align-center text-white">
+    <p>Frosted is a new mesh baker designed to be fast and accurate.</p>
+    </article><a class="pfButton button-size-medium button-invert" href="https://github.com/Shatter-Team/Frosted"  rel="noreferrer">Learn more</a></div></div></div>
+  </div>
+  </div>
+  </div>
+</div></div></main>
+      </div>
+      </div>
+      
+    </div>
+    
+    <footer>
+<div class="pfBox padding-0 content-vertical-align-center height-180 background-primary"><div class="pfBox height-auto background-trans"><div class="pfBox background-primary"><div class="pfStackPanel stack-horizontal space-10 content-horizontal-align-center"><a class="pfButton button-arrow-right button-size-default button-flat-primary" href="https://github.com/Shatter-Team"  rel="noreferrer">Organisation on GitHub</a><a class="pfButton button-arrow-right button-size-default button-flat-primary" href="https://cohost.org/ShatterTeam"  rel="noreferrer">Shatter Team on Cohost</a></div><article class="height-75 text-align-center">
+    <p>Copyright © 2020 - 2023 Shatter Team</p>
+    </article></div></div></div>
+</footer>
+    
+    
+
+</body></html>
