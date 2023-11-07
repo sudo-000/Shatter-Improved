@@ -47,7 +47,7 @@ def update_downloader(url):
 		data = util.http_get_signed(url)
 		
 		if (not data):
-			print("Update failed to download or verify properly")
+			print("Update zip file failed to download or verify properly")
 			os._exit(0)
 		
 		# Get the local file path
@@ -112,14 +112,27 @@ def get_latest_version(current_version, release_channel, current_blender):
 	
 	# Fake info for updater test
 	if (release_channel == "updatertest"):
-		info = {"updatertest": {
-			"version": [9999, 99, 99],
-			"blender_version": [3, 0, 0],
-			"download": "https://example.invalid/file.zip",
-		}}
+		info = {
+			"updatertest": {
+				"version": [9999, 99, 99],
+				"blender_version": [3, 0, 0],
+				"download": "https://example.invalid/file.zip",
+			},
+			"vt_min": 0,
+			"vt_max": 2699330830,
+		}
 	
 	if (not info):
 		print("No update info (bad signature?)")
+		return None
+	
+	if ("vt_min" not in info or info["vt_min"] > util.get_time()):
+		print("Update info file is too new (clock is probably set wrong) or missing 'vt_min'")
+		return None
+	
+	if ("vt_max" not in info or info["vt_max"] < util.get_time()):
+		daysAgo = (util.get_time() - info["vt_max"]) // 86400
+		print(f"Update info file is too old (expired {daysAgo} days ago) or missing 'vt_max'")
 		return None
 	
 	info = info.get(release_channel, None)

@@ -1445,7 +1445,7 @@ class sh_CreateWater(Operator):
 		
 		return {"FINISHED"}
 
-class Shatter_MT_3DViewportMenuExtras(Menu):
+class SHATTER_MT_3DViewportMenuExtras(Menu):
 	bl_label = "Extra features"
 	
 	def draw(self, context):
@@ -1485,11 +1485,11 @@ class OpenShatterPrivacyPage(Operator):
 		webbrowser.open(f"https://shatter-team.github.io/Shatter/privacy.html")
 		return {"FINISHED"}
 
-class Shatter_MT_3DViewportMenu(Menu):
+class SHATTER_MT_3DViewportMenu(Menu):
 	bl_label = "Shatter"
 	
 	def draw(self, context):
-		self.layout.menu("Shatter_MT_3DViewportMenuExtras")
+		self.layout.menu("SHATTER_MT_3DViewportMenuExtras")
 		
 		self.layout.separator()
 		
@@ -1501,8 +1501,8 @@ class Shatter_MT_3DViewportMenu(Menu):
 		self.layout.operator("shatter.export_auto", icon = "MOD_BEVEL")
 		self.layout.operator("shatter.export_test_server", icon = "AUTO")
 
-def Shatter_MT_3DViewportMenu_draw(self, context):
-	self.layout.menu("Shatter_MT_3DViewportMenu")
+def SHATTER_MT_3DViewportMenu_draw(self, context):
+	self.layout.menu("SHATTER_MT_3DViewportMenu")
 
 ################################################################################
 # UTILITIES AND STUFF
@@ -1970,8 +1970,8 @@ classes = (
 	sh_auto_setup_segstrate,
 	sh_static_segstrate,
 	sh_rebake_meshes,
-	Shatter_MT_3DViewportMenuExtras,
-	Shatter_MT_3DViewportMenu,
+	SHATTER_MT_3DViewportMenuExtras,
+	SHATTER_MT_3DViewportMenu,
 	sh_CreateBox,
 	sh_CreateObstacle,
 	sh_CreateDecal,
@@ -2020,7 +2020,7 @@ def register():
 	bpy.types.TOPBAR_MT_file_import.append(sh_draw_import_gz)
 	
 	# Add Shatter menu in 3D viewport
-	bpy.types.VIEW3D_MT_editor_menus.append(Shatter_MT_3DViewportMenu_draw)
+	bpy.types.VIEW3D_MT_editor_menus.append(SHATTER_MT_3DViewportMenu_draw)
 	
 	# Register keymaps
 	window_manager = bpy.context.window_manager
@@ -2066,7 +2066,7 @@ def unregister():
 	bpy.types.TOPBAR_MT_file_import.remove(sh_draw_import_gz)
 	
 	# Remove editor menu UI
-	bpy.types.VIEW3D_MT_editor_menus.remove(Shatter_MT_3DViewportMenu_draw)
+	bpy.types.VIEW3D_MT_editor_menus.remove(SHATTER_MT_3DViewportMenu_draw)
 	
 	# Delete property types
 	del bpy.types.Scene.sh_properties
