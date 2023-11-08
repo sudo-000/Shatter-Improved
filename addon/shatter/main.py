@@ -341,39 +341,20 @@ class sh_shl_login(bpy.types.Operator):
 	def execute(self, context):
 		return {"FINISHED"}
 
-class sh_auto_setup_segstrate(bpy.types.Operator):
-	"""
-	Set up segstrate segment protection
-	"""
-	
-	bl_idname = "shatter.segstrate_auto"
-	bl_label = "One-click setup segstrate protection"
-	
-	def execute(self, context):
-		context.window.cursor_set('WAIT')
-		
-		apk_path = butil.find_apk(no_override = True)
-		
-		if (not apk_path):
-			raise butil.show_message("Segstrate error", "Could not find an APK path to use for segstrate. Please open an APK in APK Editor Studio. Note: To prevent accidently corrupting files, using an overridden assets directory is not allowed.")
-			return {"FINISHED"}
-		
-		segstrate.setup_apk(util.absolute_path(f"{apk_path}/../"))
-		
-		context.window.cursor_set('DEFAULT')
-		
-		return {"FINISHED"}
-
 class sh_static_segstrate(bpy.types.Operator, ImportHelper):
 	"""
-	Segstrate locking for when you have an APK you want to lock
+	Allows you to permantently lock an APK file using segstrate. You won't be
+	able to add any new segments after this! Segstrate makes it harder to copy
+	any segments in your mod, but it is still possible for someone with
+	exprience. To use it, select the main folder of the mod (e.g. the one where
+	you can see assets, lib, res, etc.) and then click the main button.
 	"""
 	
 	bl_idname = "shatter.segstrate_static"
-	bl_label = "Permanently lock APK with Segstrate"
+	bl_label = "Lock APK with Segstrate"
 	
 	agreement: BoolProperty(
-		name = "I understand the conseqences of locking my APK permantently.",
+		name = "Agree to notice (hover to see)",
 		description = "Locking your APK will make you unable to import or export any segments to the APK. Please only use this when you are making a copy of the APK that you want to distribute.",
 		default = False,
 	)
@@ -390,7 +371,7 @@ class sh_static_segstrate(bpy.types.Operator, ImportHelper):
 
 class sh_rebake_meshes(bpy.types.Operator, ImportHelper):
 	"""
-	Rebake many meshes from a folder
+	Rebake many meshes from a selected folder
 	"""
 	
 	bl_idname = "shatter.rebake_meshes"
@@ -1450,10 +1431,7 @@ class SHATTER_MT_3DViewportMenuExtras(Menu):
 	
 	def draw(self, context):
 		self.layout.operator("shatter.export_level_package")
-		self.layout.separator()
 		self.layout.operator("shatter.rebake_meshes")
-		self.layout.separator()
-		self.layout.operator("shatter.segstrate_auto")
 		self.layout.operator("shatter.segstrate_static")
 
 class OpenShatterCreditsPage(Operator):
@@ -1967,7 +1945,6 @@ classes = (
 	sh_import,
 	sh_import_gz,
 	sh_shl_login,
-	sh_auto_setup_segstrate,
 	sh_static_segstrate,
 	sh_rebake_meshes,
 	SHATTER_MT_3DViewportMenuExtras,
