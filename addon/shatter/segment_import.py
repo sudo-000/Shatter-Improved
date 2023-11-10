@@ -83,9 +83,11 @@ def sh_parse_colour(s):
 			(float(a[6]), float(a[7]), float(a[8]))
 		]
 
-def sh_parse_string_array(string, T = float):
+def sh_parse_string_array(string, T = float, fallbacks = None):
 	"""
-	Generic utility to parse a string of type T
+	Generic utility to parse a string of type T. It also supports fallback
+	values if e.g. something stupid like difficulty=" " appears (e.g.
+	city/narrow/16_5)
 	"""
 	
 	string = string.split()
@@ -94,6 +96,11 @@ def sh_parse_string_array(string, T = float):
 	
 	for item in string:
 		data.append(T(item))
+	
+	# If we don't have enough items, start appending the zero element
+	if (fallbacks != None and len(data) < len(fallbacks)):
+		for i in range(len(data), len(fallbacks)):
+			data.append(fallbacks[i])
 	
 	return data
 
@@ -371,7 +378,7 @@ def sh_import_segment(fp, context, compressed = False):
 			o.sh_properties.sh_obstacle = properties.get("type", "")
 			o.sh_properties.sh_template = properties.get("template", "")
 			o.sh_properties.sh_mode = sh_import_modes(properties.get("mode", "255"))
-			o.sh_properties.sh_difficulty = sh_parse_string_array(properties.get("difficulty", "0 1"))
+			o.sh_properties.sh_difficulty = sh_parse_string_array(properties.get("difficulty", "0 1"), fallbacks = [0, 1])
 			o.sh_properties.sh_param0 = properties.get("param0", "")
 			o.sh_properties.sh_param1 = properties.get("param1", "")
 			o.sh_properties.sh_param2 = properties.get("param2", "")
@@ -426,7 +433,7 @@ def sh_import_segment(fp, context, compressed = False):
 			o.sh_properties.sh_hidden = (properties.get("hidden", "0") == "1")
 			
 			# Set the difficulty
-			o.sh_properties.sh_difficulty = sh_parse_string_array(properties.get("difficulty", "0 1"))
+			o.sh_properties.sh_difficulty = sh_parse_string_array(properties.get("difficulty", "0 1"), fallbacks = [0, 1])
 			
 			# Size
 			o.sh_properties.sh_size = sh_parse_tile_size(properties.get("size", "1 1"))[0:2]
@@ -442,7 +449,7 @@ def sh_import_segment(fp, context, compressed = False):
 			o.sh_properties.sh_powerup = properties.get("type", "ballfrenzy")
 			
 			# Set difficulty
-			o.sh_properties.sh_difficulty = sh_parse_string_array(properties.get("difficulty", "0 1"))
+			o.sh_properties.sh_difficulty = sh_parse_string_array(properties.get("difficulty", "0 1"), fallbacks = [0, 1])
 			
 			# Set hidden
 			o.sh_properties.sh_hidden = (properties.get("hidden", "0") == "1")
