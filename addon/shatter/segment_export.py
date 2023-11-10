@@ -573,6 +573,9 @@ def writeQuicktestInfo(tempdir, scene):
 	if (scene.sh_echo):
 		info["echo"] = scene.sh_echo
 	
+	if (scene.sh_rotation):
+		info["rot"] = scene.sh_rotation
+	
 	if (scene.sh_difficulty > 0.0):
 		info["difficulty"] = scene.sh_difficulty
 	

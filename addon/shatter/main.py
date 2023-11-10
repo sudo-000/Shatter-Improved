@@ -611,6 +611,12 @@ class sh_SceneProperties(PropertyGroup):
 		default = "",
 	)
 	
+	sh_rotation: StringProperty(
+		name = "Rotation",
+		description = "The rotation of the room in quick test. The first param is required and is the amount of rotations to do, the second is optional and is the angle of the rotations in radians",
+		default = "",
+	)
+	
 	sh_particles: EnumProperty(
 		name = "Particles",
 		description = "The particles that appear when looking at the stage in quick test",
@@ -1056,7 +1062,7 @@ class sh_AddonPreferences(AddonPreferences):
 		name = "Update freqency",
 		description = "This controls how frequently you will recieve updates, tweaks and new features. Faster updates might be buggier and break your workflow but contain better features, while slower updates will give a better exprience without newer features",
 		items = [
-			('stable', "Fast", "Contains new updates and features as soon as they are available, but might also break sometimes."),
+			('stable', "Normal", "Contains new updates and features as soon as they are available, but might also break sometimes."),
 			('updatertest', "Updater test", "A testing channel. This doesn't get real updates."),
 		],
 		default = "stable",
@@ -1126,10 +1132,10 @@ class sh_AddonPreferences(AddonPreferences):
 		if (self.enable_update_notifier):
 			ui.prop("enable_auto_update")
 			
-			if (self.enable_auto_update):
-				ui.warn("Please note: If a bad update is released, it might break Shatter. Be careful!")
+			# if (self.enable_auto_update):
+				# ui.warn("Please note: If a bad update is released, it might break Shatter. Be careful!")
 		
-		ui.prop("enable_bad_check")
+		# ui.prop("enable_bad_check")
 		ui.end()
 		
 		ui.region("LOCKED", "Protection")
@@ -1144,6 +1150,7 @@ class sh_AddonPreferences(AddonPreferences):
 		ui.end()
 		
 		ui.region("INFO", "About Shatter")
+		ui.op("shatter.open_discord")
 		ui.op("shatter.open_credits_page")
 		ui.op("shatter.open_privacy_page")
 		
@@ -1242,6 +1249,7 @@ class sh_SegmentPanel(Panel):
 			sub.prop(sh_properties, "sh_music")
 			sub.prop(sh_properties, "sh_echo")
 			sub.prop(sh_properties, "sh_reverb")
+			sub.prop(sh_properties, "sh_rotation")
 			sub.prop(sh_properties, "sh_particles")
 			sub.prop(sh_properties, "sh_difficulty")
 			sub.prop(sh_properties, "sh_extra_code")
@@ -1461,6 +1469,18 @@ class OpenShatterPrivacyPage(Operator):
 	
 	def execute(self, context):
 		webbrowser.open(f"https://shatter-team.github.io/Shatter/privacy.html")
+		return {"FINISHED"}
+
+class OpenShatterDiscord(Operator):
+	"""
+	Operator to open shatter discrd
+	"""
+	
+	bl_idname = "shatter.open_discord"
+	bl_label = "Join the Shatter Discord"
+	
+	def execute(self, context):
+		webbrowser.open(f"https://discord.gg/RKYsx9pCSM")
 		return {"FINISHED"}
 
 class SHATTER_MT_3DViewportMenu(Menu):
@@ -1956,6 +1976,7 @@ classes = (
 	sh_CreateWater,
 	OpenShatterCreditsPage,
 	OpenShatterPrivacyPage,
+	OpenShatterDiscord,
 	AutogenProperties,
 	AutogenPanel,
 	RunRandomiseSeedAction,

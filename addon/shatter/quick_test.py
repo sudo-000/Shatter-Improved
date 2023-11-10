@@ -68,6 +68,7 @@ def getSegmentOptions():
 	particles = attrib.get("particles", None)
 	reverb = toCommaArray(attrib.get("reverb", ""))
 	echo = toCommaArray(attrib.get("echo", ""))
+	rot = toCommaArray(attrib.get("rot", ""))
 	length = attrib.get("length", 90)
 	gravity = attrib.get("gravity", 1.0)
 	difficulty = attrib.get("difficulty", 0.0)
@@ -80,6 +81,7 @@ def getSegmentOptions():
 		"particles": particles,
 		"reverb": reverb,
 		"echo": echo,
+		"rot": rot,
 		"length": length,
 		"gravity": gravity,
 		"difficulty": difficulty,
@@ -119,6 +121,7 @@ def generateRoomText(hostname, options):
 	particles = options["particles"]
 	reverb = options["reverb"]
 	echo = options["echo"]
+	rot = options["rot"]
 	gravity = options["gravity"]
 	difficulty = options["difficulty"]
 	length = options["length"] 
@@ -128,11 +131,12 @@ def generateRoomText(hostname, options):
 	particles = (f"\n\tmgParticles(\"{particles}\")") if particles else ""
 	reverb = (f"\n\tmgReverb({reverb})") if reverb else ""
 	echo = (f"\n\tmgEcho({echo})") if echo else ""
+	rot = (f"\n\tmgSetRotation({rot})") if rot else ""
 	difficulty = (f"\n\tmgSetDifficulty({difficulty})") if difficulty > 0.0 else ""
 	
 	room = f"""function init()
 	mgMusic({music})
-	mgFogColor({options["fog"]}){echo}{reverb}{particles}{difficulty}
+	mgFogColor({options["fog"]}){echo}{reverb}{rot}{particles}{difficulty}
 	mgGravity({gravity})
 	{code}
 	
