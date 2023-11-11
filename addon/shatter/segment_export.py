@@ -443,19 +443,17 @@ def make_subelement_from_entity(level_root, scene, obj, params):
 		if (params["isLast"]):
 			el_stone.tail = "\n"
 
-def createSegmentText(context, params):
+def createSegmentText(scene, params):
 	"""
 	Export the XML part of a segment to a string
 	"""
 	
-	scene = context.scene.sh_properties
-	b_scene = context.scene
-	level_root = sh_create_root(scene, params)
+	level_root = sh_create_root(scene.sh_properties, params)
 	
 	# Set some params
-	params["stone_type"] = scene.sh_stone_obstacle_name
-	params["stone_legacy_colour_model"] = scene.sh_legacy_colour_model
-	params["stone_legacy_colour_default"] = scene.sh_legacy_colour_default
+	params["stone_type"] = scene.sh_properties.sh_stone_obstacle_name
+	params["stone_legacy_colour_model"] = scene.sh_properties.sh_legacy_colour_model
+	params["stone_legacy_colour_default"] = scene.sh_properties.sh_legacy_colour_default
 	
 	# Enumerate which objects we should export right now
 	
@@ -464,7 +462,7 @@ def createSegmentText(context, params):
 	# NOTE: 2023-10-10 This was changed so that it now uses objects only in the
 	# current selected scene in the blend file and not just exports all objects
 	# even if they are not in the current scene
-	objects = bpy.context.scene.objects
+	objects = scene.objects
 	
 	# A list of objects that will actually be exported (e.g. those that have
 	# sh_export set)
@@ -490,7 +488,7 @@ def createSegmentText(context, params):
 		if (i == (len(objects) - 1)):
 			params["isLast"] = True
 		
-		make_subelement_from_entity(level_root, scene, obj, params)
+		make_subelement_from_entity(level_root, scene.sh_properties, obj, params)
 	
 	# Check the warning for box count being zero
 	if (not params["box_counter"].has_any()):
@@ -596,9 +594,10 @@ def writeQuicktestInfo(tempdir, scene):
 def MB_progress_update_callback(value):
 	bpy.context.window_manager.progress_update(value)
 
-def sh_export_segment(filepath, context, *, compress = False, params = {}):
+def sh_export_segment_ext(filepath, context, scene, compress = False, params = {}):
 	"""
 	This function exports the blender scene to a Smash Hit compatible XML file.
+	(Mutli-scene-agnostic version)
 	"""
 	
 	# Set wait cursor
@@ -614,7 +613,7 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 	# If the filepath is None, then find it from the apk, force enable
 	# compression and enable segstrate (if wanted)
 	if (filepath == None and params.get("auto_find_filepath", False)):
-		props = context.scene.sh_properties
+		props = scene.sh_properties
 		
 		filepath = butil.find_apk()
 		
@@ -636,7 +635,7 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 		compress = True
 	
 	# Export to xml string
-	content = createSegmentText(context, params)
+	content = createSegmentText(scene, params)
 	
 	# Get templates path, needed for later
 	templates = params.get("sh_meshbake_template", None)
@@ -647,6 +646,8 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 	
 	# TODO: Split into function exportSegmentTest
 	if (params.get("sh_test_server", False) == True):
+		print("** Export to test server **")
+		
 		# Solve templates if we have them
 		if (templates):
 			content = solveTemplates(content, parseTemplatesXml(templates))
@@ -682,7 +683,7 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 		# Display export warnings, if any
 		params["warnings"].display()
 		
-		return {'FINISHED'}
+		return
 	
 	##
 	## Write the file
@@ -742,5 +743,39 @@ def sh_export_segment(filepath, context, *, compress = False, params = {}):
 	context.window_manager.progress_update(1.0)
 	context.window_manager.progress_end()
 	context.window.cursor_set('DEFAULT')
+
+def sh_export_all_segments(context):
+	for s in bpy.data.scenes:
+		print(f"Exporting a scene: {s} ...")
+		
+		sh_properties = s.sh_properties
+		
+		sh_export_segment_ext(None, context, s, True, params = {
+				"sh_vrmultiply": sh_properties.sh_vrmultiply,
+				"sh_box_bake_mode": sh_properties.sh_box_bake_mode,
+				"sh_meshbake_template": tryTemplatesPath(),
+				"bake_menu_segment": sh_properties.sh_menu_segment,
+				"bake_vertex_light": sh_properties.sh_ambient_occlusion,
+				"lighting_enabled": sh_properties.sh_lighting,
+				"auto_find_filepath": True,
+			})
+
+def sh_export_segment(filepath, context, compress = False, testserver = False):
+	sh_properties = context.scene.sh_properties
 	
-	return {"FINISHED"}
+	params = {
+		"sh_vrmultiply": sh_properties.sh_vrmultiply,
+		"sh_box_bake_mode": sh_properties.sh_box_bake_mode,
+		"bake_menu_segment": sh_properties.sh_menu_segment,
+		"bake_vertex_light": sh_properties.sh_ambient_occlusion,
+		"lighting_enabled": sh_properties.sh_lighting,
+		"sh_test_server": testserver,
+		"sh_meshbake_template": tryTemplatesPath(),
+		"auto_find_filepath": not testserver, # HACK to make this work
+	}
+	
+	print(f"Exporting a segment:\n\tfilepath = {filepath}\n\tcompress = {compress}\n\ttestserver = {testserver}")
+	
+	sh_export_segment_ext(filepath, context, context.scene, compress, params)
+
+

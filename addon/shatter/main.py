@@ -133,6 +133,9 @@ class sh_ExportCommon(bpy.types.Operator, ExportHelper2):
 		if (not self.sh_meshbake_template):
 			self.sh_meshbake_template = segment_export.tryTemplatesPath()
 
+################################################################################
+# UNCOMPRESSED
+################################################################################
 class sh_export(sh_ExportCommon):
 	"""
 	Uncompressed segment export
@@ -145,26 +148,16 @@ class sh_export(sh_ExportCommon):
 	filter_glob = bpy.props.StringProperty(default='*.xml.mp3', options={'HIDDEN'}, maxlen=255)
 	
 	def execute(self, context):
-		sh_properties = context.scene.sh_properties
+		segment_export.sh_export_segment(self.filepath, context)
 		
-		result = segment_export.sh_export_segment(
-			self.filepath,
-			context,
-			params = {
-				"sh_meshbake_template": self.sh_meshbake_template,
-				"sh_vrmultiply": sh_properties.sh_vrmultiply,
-				"sh_box_bake_mode": sh_properties.sh_box_bake_mode,
-				"bake_menu_segment": sh_properties.sh_menu_segment,
-				"bake_vertex_light": sh_properties.sh_ambient_occlusion,
-				"lighting_enabled": sh_properties.sh_lighting,
-			}
-		)
-		
-		return result
+		return {"FINISHED"}
 
 def sh_draw_export(self, context):
 	self.layout.operator("shatter.export", text="Segment (.xml.mp3)")
 
+################################################################################
+# COMPRESSED
+################################################################################
 class sh_export_gz(sh_ExportCommon):
 	"""
 	Compressed segment export
@@ -177,27 +170,16 @@ class sh_export_gz(sh_ExportCommon):
 	filter_glob = bpy.props.StringProperty(default='*.xml.gz.mp3', options={'HIDDEN'}, maxlen=255)
 	
 	def execute(self, context):
-		sh_properties = context.scene.sh_properties
+		segment_export.sh_export_segment(self.filepath, context, True)
 		
-		result = segment_export.sh_export_segment(
-			self.filepath,
-			context,
-			compress = True,
-			params = {
-				"sh_vrmultiply": sh_properties.sh_vrmultiply,
-				"sh_box_bake_mode": sh_properties.sh_box_bake_mode,
-				"sh_meshbake_template": self.sh_meshbake_template,
-				"bake_menu_segment": sh_properties.sh_menu_segment,
-				"bake_vertex_light": sh_properties.sh_ambient_occlusion,
-				"lighting_enabled": sh_properties.sh_lighting,
-			}
-		)
-		
-		return result
+		return {"FINISHED"}
 
 def sh_draw_export_gz(self, context):
 	self.layout.operator("shatter.export_compressed", text="Compressed Segment (.xml.gz.mp3)")
 
+################################################################################
+# AUTO EXPORT
+################################################################################
 class sh_export_auto(bpy.types.Operator):
 	"""
 	Auto find APK path and use level/room/segment name to export
@@ -207,28 +189,36 @@ class sh_export_auto(bpy.types.Operator):
 	bl_label = "Export to APK"
 	
 	def execute(self, context):
-		sh_properties = context.scene.sh_properties
+		segment_export.sh_export_segment(None, context, True)
 		
-		result = segment_export.sh_export_segment(
-			None,
-			context,
-			compress = True,
-			params = {
-				"sh_vrmultiply": sh_properties.sh_vrmultiply,
-				"sh_box_bake_mode": sh_properties.sh_box_bake_mode,
-				"sh_meshbake_template": segment_export.tryTemplatesPath(),
-				"bake_menu_segment": sh_properties.sh_menu_segment,
-				"bake_vertex_light": sh_properties.sh_ambient_occlusion,
-				"lighting_enabled": sh_properties.sh_lighting,
-				"auto_find_filepath": True,
-			}
-		)
-		
-		return result
+		return {"FINISHED"}
 
 def sh_draw_export_auto(self, context):
 	self.layout.operator("shatter.export_auto", text="Shatter: Export to APK")
 
+################################################################################
+# AUTO EXPORT ALL SCENES
+################################################################################
+class sh_export_all_auto(bpy.types.Operator):
+	"""
+	Auto find APK path and use level/room/segment name to export for all scenes
+	in this blender file
+	"""
+	
+	bl_idname = "shatter.export_all_auto"
+	bl_label = "Export all to APK"
+	
+	def execute(self, context):
+		segment_export.sh_export_all_segments(context)
+		
+		return {"FINISHED"}
+
+def sh_draw_export_all_auto(self, context):
+	self.layout.operator("shatter.export_all_auto", text="Shatter: Export All to APK")
+
+################################################################################
+# TESTSERVER
+################################################################################
 class sh_export_test(Operator):
 	"""
 	Compressed segment export
@@ -238,61 +228,12 @@ class sh_export_test(Operator):
 	bl_label = "Export segment to test server"
 	
 	def execute(self, context):
-		sh_properties = context.scene.sh_properties
+		segment_export.sh_export_segment(None, context, False, True)
 		
-		result = segment_export.sh_export_segment(
-			None,
-			context,
-			params = {
-				"sh_vrmultiply": sh_properties.sh_vrmultiply,
-				"sh_box_bake_mode": sh_properties.sh_box_bake_mode,
-				"bake_menu_segment": sh_properties.sh_menu_segment,
-				"bake_vertex_light": sh_properties.sh_ambient_occlusion,
-				"lighting_enabled": sh_properties.sh_lighting,
-				"sh_test_server": True,
-				"sh_meshbake_template": segment_export.tryTemplatesPath()
-			}
-		)
-		
-		return result
+		return {"FINISHED"}
 
 def sh_draw_export_test(self, context):
 	self.layout.operator("shatter.export_test_server", text="Shatter: Quick Test Server")
-
-class sh_export_binary(sh_ExportCommon):
-	"""
-	Binary segment export
-	"""
-	
-	bl_idname = "shatter.export_bin"
-	bl_label = "Export Binary Segment"
-	
-	filename_ext = ".bin"
-	filter_glob = bpy.props.StringProperty(default='*.bin', options={'HIDDEN'}, maxlen=255)
-	
-	def execute(self, context):
-		sh_properties = context.scene.sh_properties
-		
-		result = segment_export.sh_export_segment(
-			self.filepath,
-			context,
-			params = {
-				"sh_meshbake_template": self.sh_meshbake_template,
-				"sh_vrmultiply": sh_properties.sh_vrmultiply,
-				"sh_box_bake_mode": sh_properties.sh_box_bake_mode,
-				"bake_menu_segment": sh_properties.sh_menu_segment,
-				"bake_vertex_light": sh_properties.sh_ambient_occlusion,
-				"lighting_enabled": sh_properties.sh_lighting,
-				"binary": True,
-			}
-		)
-		
-		return result
-
-def sh_draw_export_binary(self, context):
-	self.layout.operator("shatter.export_bin", text="Binary Segment (.bin)")
-
-# UI-related
 
 class sh_import(bpy.types.Operator, ImportHelper):
 	"""
@@ -329,17 +270,6 @@ class sh_import_gz(bpy.types.Operator, ImportHelper):
 
 def sh_draw_import_gz(self, context):
 	self.layout.operator("shatter.import_gz", text="Compressed Segment (.xml.gz.mp3)")
-
-class sh_shl_login(bpy.types.Operator):
-	"""
-	Log in to the online service
-	"""
-	
-	bl_idname = "shatter.shl_login"
-	bl_label = "Log in to Shatter Online Service"
-	
-	def execute(self, context):
-		return {"FINISHED"}
 
 class sh_static_segstrate(bpy.types.Operator, ImportHelper):
 	"""
@@ -1438,6 +1368,7 @@ class SHATTER_MT_3DViewportMenuExtras(Menu):
 	bl_label = "Extra features"
 	
 	def draw(self, context):
+		self.layout.operator("shatter.export_all_auto")
 		self.layout.operator("shatter.export_level_package")
 		self.layout.operator("shatter.rebake_meshes")
 		self.layout.operator("shatter.segstrate_static")
@@ -1960,11 +1891,10 @@ classes = (
 	sh_export,
 	sh_export_gz,
 	sh_export_auto,
-	sh_export_binary,
+	sh_export_all_auto,
 	sh_export_test,
 	sh_import,
 	sh_import_gz,
-	sh_shl_login,
 	sh_static_segstrate,
 	sh_rebake_meshes,
 	SHATTER_MT_3DViewportMenuExtras,
@@ -1991,8 +1921,17 @@ keymaps = {
 	"X": "shatter.create_decal",
 	"C": "shatter.create_powerup",
 	"V": "shatter.create_water",
+	
 	"R": "shatter.export_auto",
+	"Q": "shatter.export_all_auto",
 	"E": "shatter.export_test_server",
+	"P": "shatter.export_compressed",
+	"L": "shatter.export",
+	
+	"I": "shatter.import",
+	"O": "shatter.import_gz",
+	
+	"Y": "shatter.segstrate_static",
 }
 
 keymaps_registered = []
@@ -2011,6 +1950,7 @@ def register():
 	bpy.types.TOPBAR_MT_file_export.append(sh_draw_export)
 	bpy.types.TOPBAR_MT_file_export.append(sh_draw_export_gz)
 	bpy.types.TOPBAR_MT_file_export.append(sh_draw_export_auto)
+	bpy.types.TOPBAR_MT_file_export.append(sh_draw_export_all_auto)
 	bpy.types.TOPBAR_MT_file_export.append(sh_draw_export_test)
 	
 	# Add import operators to menu
@@ -2057,6 +1997,7 @@ def unregister():
 	bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export)
 	bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export_gz)
 	bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export_auto)
+	bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export_all_auto)
 	bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export_test)
 	
 	# Remove import operators
