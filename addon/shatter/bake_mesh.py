@@ -19,7 +19,7 @@ import math
 import profile
 
 # Version of mesh baker
-VERSION = (0, 15, 3)
+VERSION = (0, 15, 4)
 
 # If the mesh baker version and bake info should be appended to the end of the
 # mesh data
@@ -561,6 +561,29 @@ class Box:
 		
 		return None
 
+def parseGradient(pos, size, gradient):
+	"""
+	Parse a gradient to the standard 12 length float list
+	"""
+	if (not gradient):
+		return []
+	elif (gradient.startswith('A ')):
+		return [float(x) for x in gradient[2:].split()]
+	else:
+		gradient = [float(x) for x in gradient.split()]
+		
+		# Convert first point to absolute coords
+		gradient[0] = pos.x + (size.x * gradient[0])
+		gradient[1] = pos.y + (size.y * gradient[1])
+		gradient[2] = pos.z + (size.z * gradient[2])
+		
+		# Convert second point to absolute coords
+		gradient[3] = pos.x + (size.x * gradient[3])
+		gradient[4] = pos.y + (size.y * gradient[4])
+		gradient[5] = pos.z + (size.z * gradient[5])
+		
+		return gradient
+
 def parseSegmentXML(data, templates = {}):
 	"""
 	Parse a segment string for its boxes, and resolve any templates if they are
@@ -606,7 +629,7 @@ def parseSegmentXML(data, templates = {}):
 				glow = float(getFromTemplate(a, templates, t, "glow", "0"))
 				
 				# Gradient
-				gradient = [float(x) for x in getFromTemplate(a, templates, t, "mb-gradient", "").split()]
+				gradient = parseGradient(pos, size, getFromTemplate(a, templates, t, "mb-gradient", ""))
 				
 				boxes.append(Box(seg, pos, size, colour, tile, tileSize, tileRot, glow, gradient))
 	

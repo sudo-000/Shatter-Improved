@@ -383,24 +383,7 @@ def make_subelement_from_entity(level_root, scene, obj, params):
 		
 		# Box gradients
 		if (obj.sh_properties.sh_gradientraw):
-			# Absolute mode
-			if (obj.sh_properties.sh_gradientraw.startswith("A ")):
-				properties["mb-gradient"] = obj.sh_properties.sh_gradientraw[2:]
-			# Relative mode (default)
-			else:
-				# Split the string for processing
-				properties["mb-gradient"] = [float(x) for x in obj.sh_properties.sh_gradientraw.split()]
-				
-				# Make it relative
-				properties["mb-gradient"][0] = position["X"] + (size["X"] * properties["mb-gradient"][0])
-				properties["mb-gradient"][1] = position["Y"] + (size["Y"] * properties["mb-gradient"][1])
-				properties["mb-gradient"][2] = position["Z"] + (size["Z"] * properties["mb-gradient"][2])
-				properties["mb-gradient"][3] = position["X"] + (size["X"] * properties["mb-gradient"][3])
-				properties["mb-gradient"][4] = position["Y"] + (size["Y"] * properties["mb-gradient"][4])
-				properties["mb-gradient"][5] = position["Z"] + (size["Z"] * properties["mb-gradient"][5])
-				
-				# Join again
-				properties["mb-gradient"] = " ".join([str(x) for x in properties["mb-gradient"]])
+			properties["mb-gradient"] = obj.sh_properties.sh_gradientraw
 	
 	# Set the tag name
 	element_type = "shbt-unknown-entity"
