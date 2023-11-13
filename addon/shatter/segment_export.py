@@ -193,6 +193,9 @@ def sh_create_root(scene, params):
 	
 	return level_root
 
+def list_to_str(List):
+	return " ".join([str(x) for x in List])
+
 def make_subelement_from_entity(level_root, scene, obj, params):
 	"""
 	This will add an obstacle to level_root. Note that there is no big
@@ -382,8 +385,36 @@ def make_subelement_from_entity(level_root, scene, obj, params):
 			properties["tileRot"] = exportList(obj.sh_properties.sh_tilerot)
 		
 		# Box gradients
-		if (obj.sh_properties.sh_gradientraw):
-			properties["mb-gradient"] = obj.sh_properties.sh_gradientraw
+		v = obj.sh_properties.sh_graddir
+		
+		# No gradient
+		if (v == "none"):
+			pass
+		# Points mode
+		elif (v == "relative" or v == "absolute"):
+			final = "" if v == "relative" else "A "
+			
+			final += list_to_str(obj.sh_properties.sh_gradpoint1)
+			final += " " + list_to_str(obj.sh_properties.sh_gradpoint2)
+			final += " " + list_to_str(obj.sh_properties.sh_gradcolour1)
+			final += " " + list_to_str(obj.sh_properties.sh_gradcolour2)
+			
+			properties["mb-gradient"] = final
+		# Basic mode
+		else:
+			final = {
+				"left": "1 0 0 -1 0 0",
+				"right": "-1 0 0 1 0 0",
+				"top": "0 -1 0 0 1 0",
+				"bottom": "0 1 0 0 -1 0",
+				"front": "0 0 -1 0 0 1",
+				"back": "0 0 1 0 0 -1",
+			}[v]
+			
+			final += " " + list_to_str(obj.sh_properties.sh_gradcolour1)
+			final += " " + list_to_str(obj.sh_properties.sh_gradcolour2)
+			
+			properties["mb-gradient"] = final
 	
 	# Set the tag name
 	element_type = "shbt-unknown-entity"

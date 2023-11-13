@@ -927,6 +927,53 @@ class sh_EntityProperties(PropertyGroup):
 		default = "",
 	)
 	
+	sh_graddir: EnumProperty(
+		name = "Direction",
+		description = "The game modes in which this obstacle should appear",
+		items = [
+			('none', "None", "The regular box colour will be used"),
+			('relative', "Relative points", "Pick two points for each axis that are in [-1, 1] and scale with the box"),
+			('absolute', "Absolute points", "Pick two points that are relative to the scene"),
+			('right', "To right", ""),
+			('left', "To left", ""),
+			('top', "To top", ""),
+			('bottom', "To bottom", ""),
+			('front', "To front", ""),
+			('back', "To back", ""),
+		],
+		default = "none",
+	)
+	
+	sh_gradpoint1: FloatVectorProperty(
+		name = "Point A",
+		description = "The first gradient colour",
+		subtype = "XYZ",
+		default = (0.0, 0.0, 0.0),
+	)
+	
+	sh_gradcolour1: FloatVectorProperty(
+		name = "Colour A",
+		description = "The colour for point A",
+		subtype = "COLOR_GAMMA",
+		default = (1.0, 1.0, 1.0), 
+		size = 3,
+	)
+	
+	sh_gradpoint2: FloatVectorProperty(
+		name = "Point B",
+		description = "The first gradient colour",
+		subtype = "XYZ",
+		default = (0.0, 0.0, 0.0),
+	)
+	
+	sh_gradcolour2: FloatVectorProperty(
+		name = "Colour B",
+		description = "The colour for point B",
+		subtype = "COLOR_GAMMA",
+		default = (1.0, 1.0, 1.0), 
+		size = 3,
+	)
+	
 	sh_blend: FloatProperty(
 		name = "Blend mode",
 		description = "How the colour of the decal and the existing colour will be blended. 1 = normal, 0 = added or numbers in between",
@@ -1255,7 +1302,19 @@ class sh_ItemPropertiesPanel(Panel):
 			
 			if (get_prefs().show_gradient_raw):
 				ui.region("NODE_TEXTURE", "Gradient")
-				ui.prop("sh_gradientraw", text = "", text_compact = "Gradient")
+				v = ui.prop("sh_graddir", text_compact = "Gradient direction")
+				
+				if (v == "none"):
+					pass
+				elif (v == "relative" or v == "absolute"):
+					ui.prop("sh_gradpoint1")
+					ui.prop("sh_gradcolour1")
+					ui.prop("sh_gradpoint2")
+					ui.prop("sh_gradcolour2")
+				else:
+					ui.prop("sh_gradcolour1", text = "From", text_compact = "Grad from")
+					ui.prop("sh_gradcolour2", text = "To", text_compact = "Grad to")
+				
 				ui.end()
 			
 			if (context.scene.sh_properties.sh_lighting):

@@ -565,6 +565,7 @@ def parseGradient(pos, size, gradient):
 	"""
 	Parse a gradient to the standard 12 length float list
 	"""
+	
 	if (not gradient):
 		return []
 	elif (gradient.startswith('A ')):
@@ -626,7 +627,7 @@ def parseSegmentXML(data, templates = {}):
 				tileRot = parseIntTriplet(getFromTemplate(a, templates, t, "tileRot", "0"))
 				
 				# Lighting: Glow -- intensity
-				glow = float(getFromTemplate(a, templates, t, "glow", "0"))
+				glow = float(getFromTemplate(a, templates, t, "mb-glow", "") or getFromTemplate(a, templates, t, "glow", "0"))
 				
 				# Gradient
 				gradient = parseGradient(pos, size, getFromTemplate(a, templates, t, "mb-gradient", ""))
