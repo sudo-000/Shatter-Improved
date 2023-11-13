@@ -241,11 +241,11 @@ def make_subelement_from_entity(level_root, scene, obj, params):
 	else:
 		properties["hidden"] = "0"
 	
+	# Again, swapped becuase of Smash Hit's demensions
+	size = {"X": obj.dimensions[1] / 2, "Y": obj.dimensions[2] / 2, "Z": obj.dimensions[0] / 2}
+	
 	# Add size for boxes
 	if (sh_type == "BOX"):
-		# Again, swapped becuase of Smash Hit's demensions
-		size = {"X": obj.dimensions[1] / 2, "Y": obj.dimensions[2] / 2, "Z": obj.dimensions[0] / 2}
-		
 		# VR Multiply setting
 		if (sh_vrmultiply != 1.0):
 			size["Z"] = size["Z"] * sh_vrmultiply
@@ -383,19 +383,24 @@ def make_subelement_from_entity(level_root, scene, obj, params):
 		
 		# Box gradients
 		if (obj.sh_properties.sh_gradientraw):
-			# Split the string for processing
-			properties["mb-gradient"] = [float(x) for x in obj.sh_properties.sh_gradientraw.split()]
-			
-			# Make it relative
-			properties["mb-gradient"][0] += position["X"]
-			properties["mb-gradient"][1] += position["Y"]
-			properties["mb-gradient"][2] += position["Z"]
-			properties["mb-gradient"][3] += position["X"]
-			properties["mb-gradient"][4] += position["Y"]
-			properties["mb-gradient"][5] += position["Z"]
-			
-			# Join again
-			properties["mb-gradient"] = " ".join([str(x) for x in properties["mb-gradient"]])
+			# Absolute mode
+			if (obj.sh_properties.sh_gradientraw.startswith("A ")):
+				properties["mb-gradient"] = obj.sh_properties.sh_gradientraw[2:]
+			# Relative mode (default)
+			else:
+				# Split the string for processing
+				properties["mb-gradient"] = [float(x) for x in obj.sh_properties.sh_gradientraw.split()]
+				
+				# Make it relative
+				properties["mb-gradient"][0] = position["X"] + (size["X"] * properties["mb-gradient"][0])
+				properties["mb-gradient"][1] = position["Y"] + (size["Y"] * properties["mb-gradient"][1])
+				properties["mb-gradient"][2] = position["Z"] + (size["Z"] * properties["mb-gradient"][2])
+				properties["mb-gradient"][3] = position["X"] + (size["X"] * properties["mb-gradient"][3])
+				properties["mb-gradient"][4] = position["Y"] + (size["Y"] * properties["mb-gradient"][4])
+				properties["mb-gradient"][5] = position["Z"] + (size["Z"] * properties["mb-gradient"][5])
+				
+				# Join again
+				properties["mb-gradient"] = " ".join([str(x) for x in properties["mb-gradient"]])
 	
 	# Set the tag name
 	element_type = "shbt-unknown-entity"

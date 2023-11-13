@@ -923,7 +923,7 @@ class sh_EntityProperties(PropertyGroup):
 	
 	sh_gradientraw: StringProperty(
 		name = "Linear gradient",
-		description = "A.x A.y A.z  B.x B.y B.z  A.r A.g A.b  B.r B.g B.b. All points have the orgin at the box but size is absolute",
+		description = "(\"A \"?) A.x A.y A.z  B.x B.y B.z  A.r A.g A.b  B.r B.g B.b. Normally relative where -1 and 1 are the extremes but prefix with 'A ' to get absolute mode",
 		default = "",
 	)
 	
