@@ -380,6 +380,22 @@ def make_subelement_from_entity(level_root, scene, obj, params):
 		# Tile rotation
 		if (obj.sh_properties.sh_tilerot[1] > 0.0 or obj.sh_properties.sh_tilerot[2] > 0.0 or obj.sh_properties.sh_tilerot[0] > 0.0):
 			properties["tileRot"] = exportList(obj.sh_properties.sh_tilerot)
+		
+		# Box gradients
+		if (obj.sh_properties.sh_gradientraw):
+			# Split the string for processing
+			properties["mb-gradient"] = [float(x) for x in obj.sh_properties.sh_gradientraw.split()]
+			
+			# Make it relative
+			properties["mb-gradient"][0] += position["X"]
+			properties["mb-gradient"][1] += position["Y"]
+			properties["mb-gradient"][2] += position["Z"]
+			properties["mb-gradient"][3] += position["X"]
+			properties["mb-gradient"][4] += position["Y"]
+			properties["mb-gradient"][5] += position["Z"]
+			
+			# Join again
+			properties["mb-gradient"] = " ".join([str(x) for x in properties["mb-gradient"]])
 	
 	# Set the tag name
 	element_type = "shbt-unknown-entity"

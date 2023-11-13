@@ -60,7 +60,7 @@ class UIDrawingHelper():
 		
 		self.layout.pop()
 	
-	def region(self, icon = "", title = "", new = True):
+	def region(self, icon = "", title = "", new = True, force = False):
 		"""
 		Create a new UI region (e.g. boxed area with title)
 		
@@ -68,7 +68,7 @@ class UIDrawingHelper():
 		the stack
 		"""
 		
-		if (self.compact):
+		if (self.compact and not force):
 			return self.beginFake()
 		
 		if (new and len(self.layout) > 1):

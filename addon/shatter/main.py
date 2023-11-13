@@ -921,6 +921,12 @@ class sh_EntityProperties(PropertyGroup):
 		max = 1.0
 	)
 	
+	sh_gradientraw: StringProperty(
+		name = "Linear gradient",
+		description = "A.x A.y A.z  B.x B.y B.z  A.r A.g A.b  B.r B.g B.b. All points have the orgin at the box but size is absolute",
+		default = "",
+	)
+	
 	sh_blend: FloatProperty(
 		name = "Blend mode",
 		description = "How the colour of the decal and the existing colour will be blended. 1 = normal, 0 = added or numbers in between",
@@ -966,6 +972,12 @@ class sh_AddonPreferences(AddonPreferences):
 	resolve_templates: BoolProperty(
 		name = "Resolve templates at export time",
 		description = "Solves templates when a segment is exported. This avoids the need for adding used templates to templates.xml, but makes the filesize larger and the XML file less readable",
+		default = False,
+	)
+	
+	show_gradient_raw: BoolProperty(
+		name = "Enable linear gradients in UI (testing)",
+		description = "Enable the raw linear gradient editor box. This feature is in testing and might be removed or changed in a breaking way later",
 		default = False,
 	)
 	
@@ -1050,6 +1062,7 @@ class sh_AddonPreferences(AddonPreferences):
 		ui.prop("default_assets_path")
 		ui.prop("enable_segment_warnings")
 		ui.prop("resolve_templates")
+		ui.prop("show_gradient_raw")
 		ui.prop("compact_ui")
 		ui.end()
 		
@@ -1102,7 +1115,7 @@ class RandomiseKeyphrase(Operator):
 		return {"FINISHED"}
 
 class sh_SegmentPanel(Panel):
-	bl_label = "Smash Hit"
+	bl_label = "Smash Hit Scene"
 	bl_idname = "OBJECT_PT_segment_panel"
 	bl_space_type = "VIEW_3D"
 	bl_region_type = "UI"
@@ -1194,7 +1207,7 @@ class sh_SegmentPanel(Panel):
 		layout.separator()
 
 class sh_ItemPropertiesPanel(Panel):
-	bl_label = "Smash Hit"
+	bl_label = "Smash Hit Item"
 	bl_idname = "OBJECT_PT_obstacle_panel"
 	bl_space_type = "VIEW_3D"   
 	bl_region_type = "UI"
@@ -1240,6 +1253,11 @@ class sh_ItemPropertiesPanel(Panel):
 				
 				ui.end()
 			
+			if (get_prefs().show_gradient_raw):
+				ui.region("NODE_TEXTURE", "Gradient")
+				ui.prop("sh_gradientraw", text = "", text_compact = "Gradient")
+				ui.end()
+			
 			if (context.scene.sh_properties.sh_lighting):
 				ui.region("LIGHT", "Light")
 				ui.prop("sh_glow")
@@ -1262,9 +1280,9 @@ class sh_ItemPropertiesPanel(Panel):
 			ui.prop("sh_difficulty")
 			ui.end()
 			
-			ui.region("SETTINGS", "Templates")
+			ui.region("SETTINGS", "Parameters", force = True)
 			for i in range(12):
-				ui.prop(f"sh_param{i}", text = "", text_compact = f"Param {i}", disabled = (i == 0) and (ui.get("sh_template") != ""))
+				ui.prop(f"sh_param{i}", text = "", disabled = (i == 0) and (ui.get("sh_template") != ""))
 			ui.end()
 		elif (t == "DEC"):
 			ui.region("TEXTURE", "Sprite")

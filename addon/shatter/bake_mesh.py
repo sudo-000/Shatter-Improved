@@ -19,7 +19,7 @@ import math
 import profile
 
 # Version of mesh baker
-VERSION = (0, 15, 2)
+VERSION = (0, 15, 3)
 
 # If the mesh baker version and bake info should be appended to the end of the
 # mesh data
@@ -125,8 +125,14 @@ class Vector3:
 		else:
 			return Vector3(other * self.x, other * self.y, other * self.z)
 	
+	def __rmul__(self, other):
+		return Vector3(other * self.x, other * self.y, other * self.z)
+	
 	def __truediv__(self, other):
-		return Vector3(self.x / other.x, self.y / other.y, self.z / other.z)
+		if (type(other) == Vector3):
+			return Vector3(self.x / other.x, self.y / other.y, self.z / other.z)
+		else:
+			return Vector3(self.x / other, self.y / other, self.z / other)
 	
 	def __format__(self, _unused):
 		return f"{self.x} {self.y} {self.z}"
@@ -271,7 +277,7 @@ class Quad:
 	Representation of a quadrelaterial (a shape with four sides)
 	"""
 	
-	def __init__(self, p1, p2, p3, p4, colour, tile, tileRot, seg, normal):
+	def __init__(self, p1, p2, p3, p4, colour, tile, tileRot, seg, normal, gradient):
 		self.p1 = p1
 		self.p2 = p2
 		self.p3 = p3
@@ -281,6 +287,7 @@ class Quad:
 		self.tileRot = tileRot
 		self.seg = seg
 		self.normal = normal
+		self.gradient = gradient
 	
 	def __format__(self, _unused):
 		return f"{{ {self.p1} {self.p2} {self.p3} {self.p4} }}"
@@ -293,14 +300,14 @@ class Quad:
 		Returns tuple of (vertex bytes, index bytes, number of vertexes, number of indicies)
 		"""
 		
-		p1, p2, p3, p4, col, gc, normal = self.p1, self.p2, self.p3, self.p4, self.colour, self.seg, self.normal
+		p1, p2, p3, p4, col, gc, normal, gradient = self.p1, self.p2, self.p3, self.p4, self.colour, self.seg, self.normal, self.gradient
 		tex = getTextureCoords(TILE_ROWS, TILE_COLS, TILE_BITE_ROW, TILE_BITE_COL, self.tileRot, self.tile)
 		
 		vertexes = bytearray()
-		vertexes += meshPointBytes(p1.x, p1.y, p1.z, tex[0][0], tex[0][1], col.x, col.y, col.z, col.a if hasattr(col, "a") else 1, gc, normal)
-		vertexes += meshPointBytes(p2.x, p2.y, p2.z, tex[1][0], tex[1][1], col.x, col.y, col.z, col.a if hasattr(col, "a") else 1, gc, normal)
-		vertexes += meshPointBytes(p3.x, p3.y, p3.z, tex[2][0], tex[2][1], col.x, col.y, col.z, col.a if hasattr(col, "a") else 1, gc, normal)
-		vertexes += meshPointBytes(p4.x, p4.y, p4.z, tex[3][0], tex[3][1], col.x, col.y, col.z, col.a if hasattr(col, "a") else 1, gc, normal)
+		vertexes += meshPointBytes(p1.x, p1.y, p1.z, tex[0][0], tex[0][1], col.x, col.y, col.z, col.a if hasattr(col, "a") else 1, gc, normal, gradient)
+		vertexes += meshPointBytes(p2.x, p2.y, p2.z, tex[1][0], tex[1][1], col.x, col.y, col.z, col.a if hasattr(col, "a") else 1, gc, normal, gradient)
+		vertexes += meshPointBytes(p3.x, p3.y, p3.z, tex[2][0], tex[2][1], col.x, col.y, col.z, col.a if hasattr(col, "a") else 1, gc, normal, gradient)
+		vertexes += meshPointBytes(p4.x, p4.y, p4.z, tex[3][0], tex[3][1], col.x, col.y, col.z, col.a if hasattr(col, "a") else 1, gc, normal, gradient)
 		
 		index = [offset + 0, offset + 1, offset + 2, offset + 0, offset + 2, offset + 3]
 		
@@ -320,7 +327,7 @@ class Box:
 	Very simple container for box data
 	"""
 	
-	def __init__(self, seg, pos, size, colour = [Vector3(1.0, 1.0, 1.0), Vector3(1.0, 1.0, 1.0), Vector3(1.0, 1.0, 1.0)], tile = (0, 0, 0), tileSize = (1.0, 1.0, 1.0), tileRot = (0, 0, 0), glow = 0.0):
+	def __init__(self, seg, pos, size, colour = [Vector3(1.0, 1.0, 1.0), Vector3(1.0, 1.0, 1.0), Vector3(1.0, 1.0, 1.0)], tile = (0, 0, 0), tileSize = (1.0, 1.0, 1.0), tileRot = (0, 0, 0), glow = 0.0, gradient = None):
 		"""
 		seg: global segment context
 		pos: position
@@ -348,6 +355,7 @@ class Box:
 		self.tileSize = tileSize
 		self.tileRot = tileRot
 		self.glow = glow
+		self.gradient = gradient
 	
 	def bakeGeometry(self):
 		"""
@@ -385,7 +393,8 @@ class Box:
 				tile[0],
 				(tileRot[0] + 1) % 4,
 				seg,
-				Vector3(1.0, 0.0, 0.0)
+				Vector3(1.0, 0.0, 0.0),
+				self.gradient
 			)
 		
 		# Left
@@ -397,7 +406,8 @@ class Box:
 				tile[0],
 				(tileRot[0] + 1) % 4,
 				seg,
-				Vector3(-1.0, 0.0, 0.0)
+				Vector3(-1.0, 0.0, 0.0),
+				self.gradient
 			)
 		
 		# Top
@@ -409,7 +419,8 @@ class Box:
 				tile[1],
 				(tileRot[1] + 2) % 4,
 				seg,
-				Vector3(0.0, 1.0, 0.0)
+				Vector3(0.0, 1.0, 0.0),
+				self.gradient
 			)
 		
 		# Bottom
@@ -421,7 +432,8 @@ class Box:
 				tile[1],
 				(tileRot[1] + 2) % 4,
 				seg,
-				Vector3(0.0, -1.0, 0.0)
+				Vector3(0.0, -1.0, 0.0),
+				self.gradient
 			)
 		
 		# Front
@@ -432,7 +444,8 @@ class Box:
 			tile[2],
 			tileRot[2],
 			seg, 
-			Vector3(0.0, 0.0, 1.0)
+			Vector3(0.0, 0.0, 1.0),
+			self.gradient
 		)
 		
 		# Back
@@ -444,7 +457,8 @@ class Box:
 				tile[2],
 				tileRot[2],
 				seg,
-				Vector3(0.0, 0.0, -1.0)
+				Vector3(0.0, 0.0, -1.0),
+				self.gradient
 			)
 		
 		# Translation transform
@@ -591,7 +605,10 @@ def parseSegmentXML(data, templates = {}):
 				# Lighting: Glow -- intensity
 				glow = float(getFromTemplate(a, templates, t, "glow", "0"))
 				
-				boxes.append(Box(seg, pos, size, colour, tile, tileSize, tileRot, glow))
+				# Gradient
+				gradient = [float(x) for x in getFromTemplate(a, templates, t, "mb-gradient", "").split()]
+				
+				boxes.append(Box(seg, pos, size, colour, tile, tileSize, tileRot, glow, gradient))
 	
 	return seg
 
@@ -628,7 +645,7 @@ def parseTemplatesXml(path):
 	return result
 
 
-def generateSubdividedFaceGeometry(minest, maxest, s_size, t_size, colour, tile, tileRot, seg, normal):
+def generateSubdividedFaceGeometry(minest, maxest, s_size, t_size, colour, tile, tileRot, seg, normal, gradient):
 	"""
 	Generates subdivided quadrelaterials for any given axis where the min/max
 	are not the same. Minest/maxist are the min/max of the quad and ssize and 
@@ -642,7 +659,7 @@ def generateSubdividedFaceGeometry(minest, maxest, s_size, t_size, colour, tile,
 	# Init array for quads
 	quads = []
 	
-	ax_e = "Axis was not property selected if this value is used." # e for Excluded axis
+	ax_e = "Axis was not properly selected if this value is used." # e for Excluded axis
 	ax_s = 's'
 	ax_t = 't'
 	
@@ -723,7 +740,7 @@ def generateSubdividedFaceGeometry(minest, maxest, s_size, t_size, colour, tile,
 			p4 = p1                + t_scunitpart
 			
 			# Finally make the quad
-			quads.append(Quad(p1, p2, p3, p4, colour, tile, tileRot, seg, normal))
+			quads.append(Quad(p1, p2, p3, p4, colour, tile, tileRot, seg, normal, gradient))
 			
 			# Add new size to total count (for this major axis)
 			t_current += t_size
@@ -859,10 +876,36 @@ def doLighting(x, y, z, r, g, b, gc):
 	
 	return (r, g, b)
 
-def doVertexColour(x, y, z, r, g, b, a, gc, normal):
+def doComputeLinearGradient(x, y, z, r, g, b, gradient):
+	# Endpoints of the gradient
+	pa = Vector3(gradient[0], gradient[1], gradient[2])
+	pb = Vector3(gradient[3], gradient[4], gradient[5])
+	
+	# Colour values of the gradient at each endpoint
+	ca = Vector3(gradient[6], gradient[7], gradient[8])
+	cb = Vector3(gradient[9], gradient[10], gradient[11])
+	
+	# Make points relative to an origin (pa in this case)
+	rv = pb - pa
+	ra = Vector3(x, y, z) - pa
+	
+	# Dot product between them to find how far along the vector is when project
+	# against the other i fucking hate this shit i dont understand it anymore
+	# and im tired as FUCK aaaaaauhghghghghghh FUCK FUCK FUCK
+	alongness = ((max(rv * ra, 0.0) * rv) / rv.lengthSquared()).length() / rv.length()
+	
+	# Now we lerp which is much nicer :3
+	r, g, b = (alongness * cb + (1.0 - alongness) * ca).asTuple()
+	
+	return (r, g, b)
+
+def doVertexColour(x, y, z, r, g, b, a, gc, normal, gradient):
 	"""
 	Do any final colour correction operations and per-vertex lighting.
 	"""
+	
+	if (gradient):
+		r, g, b = doComputeLinearGradient(x, y, z, r, g, b, gradient)
 	
 	if (ABMIENT_OCCLUSION_ENABLED):
 		a = doAmbientOcclusion(x, y, z, a, gc, normal)
@@ -872,14 +915,14 @@ def doVertexColour(x, y, z, r, g, b, a, gc, normal):
 	
 	return r * 0.5, g * 0.5, b * 0.5, a
 
-def meshPointBytes(x, y, z, u, v, r, g, b, a, gc, normal):
+def meshPointBytes(x, y, z, u, v, r, g, b, a, gc, normal, gradient):
 	"""
 	Return bytes for the point in the mesh
 	
 	gc is the segment context that contains the box list for lighting
 	"""
 	
-	r, g, b, a = doVertexColour(x, y, z, r, g, b, a, gc, normal)
+	r, g, b, a = doVertexColour(x, y, z, r, g, b, a, gc, normal, gradient)
 	
 	c = bytearray()
 	
