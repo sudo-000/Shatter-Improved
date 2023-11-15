@@ -1023,9 +1023,9 @@ class sh_AddonPreferences(AddonPreferences):
 	)
 	
 	show_gradient_raw: BoolProperty(
-		name = "Enable linear gradients in UI (testing)",
-		description = "Enable the raw linear gradient editor box. This feature is in testing and might be removed or changed in a breaking way later",
-		default = False,
+		name = "Enable linear gradient editor",
+		description = "Always show the box to edit linear gradients, instead of just when a box has one already set",
+		default = True,
 	)
 	
 	compact_ui: BoolProperty(
@@ -1300,7 +1300,7 @@ class sh_ItemPropertiesPanel(Panel):
 				
 				ui.end()
 			
-			if (get_prefs().show_gradient_raw):
+			if (get_prefs().show_gradient_raw or ui.get("sh_graddir") != "none"):
 				ui.region("NODE_TEXTURE", "Gradient")
 				v = ui.prop("sh_graddir", text_compact = "Gradient direction")
 				

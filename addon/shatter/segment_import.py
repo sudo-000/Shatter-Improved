@@ -364,7 +364,31 @@ def sh_import_segment(fp, context, compressed = False):
 				b.sh_properties.sh_template = ""
 			
 			# Glow for lighting
-			b.sh_properties.sh_glow = float(properties.get("glow", "0"))
+			b.sh_properties.sh_glow = float(properties.get("glow", properties.get("mb-glow", "0")))
+			
+			# Gradient
+			gradient = properties.get("mb-gradient", "")
+			
+			if (gradient):
+				# Check if gradient is absolute or relative
+				is_absolute = gradient.startswith("A ")
+				
+				# If it's absolute we need to set that and remove the prefix
+				if (is_absolute):
+					b.sh_properties.sh_graddir = "absolute"
+					gradient = gradient[2:]
+				# Otherwise it's just relative
+				else:
+					b.sh_properties.sh_graddir = "relative"
+				
+				# Convert to floats
+				gradient = [float(x) for x in gradient.split()]
+				
+				# Set points and colours
+				b.sh_properties.sh_gradpoint1 = gradient[0:3]
+				b.sh_properties.sh_gradpoint2 = gradient[3:6]
+				b.sh_properties.sh_gradcolour1 = gradient[6:9]
+				b.sh_properties.sh_gradcolour2 = gradient[9:12]
 		
 		# Obstacles
 		elif (kind == "obstacle"):

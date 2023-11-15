@@ -254,6 +254,9 @@ def make_subelement_from_entity(level_root, scene, obj, params):
 			size["Z"] = size["Z"] * sh_vrmultiply
 		
 		properties["size"] = str(size["X"]) + " " + str(size["Y"]) + " " + str(size["Z"])
+		
+		if (params.get("ignore_small_boxes", False)):
+			return
 	
 	# Add rotation paramater if any rotation has been done
 	if (sh_type == "OBS" or sh_type == "DEC"):
