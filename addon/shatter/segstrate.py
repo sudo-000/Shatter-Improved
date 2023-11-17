@@ -12,33 +12,7 @@ import sys
 import secrets
 import common as common
 import util as util
-
-class Patcher:
-	"""
-	A thing we can use to patch a file, in this case libsmashhit.so
-	"""
-	
-	def __init__(self, path):
-		"""
-		Initialise the patching utility
-		"""
-		
-		self.f = open(path, "rb+")
-	
-	def __del__(self):
-		"""
-		When we are done with the file
-		"""
-		
-		self.f.close()
-	
-	def patch(self, location, data):
-		"""
-		Write some data to the file at the given location
-		"""
-		
-		self.f.seek(location, 0)
-		self.f.write(data)
+from patcher import Patcher
 
 def random_text(count):
 	"""
