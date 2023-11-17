@@ -26,6 +26,7 @@ import remote_api
 import util
 import butil
 import level_pack_ui
+import patcher_ui
 
 from bpy.props import (
 	StringProperty,
@@ -1449,6 +1450,7 @@ class SHATTER_MT_3DViewportMenuExtras(Menu):
 		self.layout.operator("shatter.export_level_package")
 		self.layout.operator("shatter.rebake_meshes")
 		self.layout.operator("shatter.segstrate_static")
+		self.layout.operator("shatter.patch_libsmashhit")
 
 class OpenShatterCreditsPage(Operator):
 	"""
@@ -1989,6 +1991,7 @@ classes = (
 	RunRandomiseSeedAction,
 	RunAutogenAction,
 	level_pack_ui.ExportLevelPackage,
+	patcher_ui.PatchLibsmashhit,
 	RandomiseKeyphrase,
 )
 

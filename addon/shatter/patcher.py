@@ -225,7 +225,7 @@ def _patch_v142_v143_arm64_dropballs(patcher, params):
 	patcher.patch(0x7162c, b"\xff\x02\x01\x6b")
 
 def _patch_v142_v143_arm64_roomtime(patcher, params):
-	value = float(params[0]) if len(params[0]) > 0 else None
+	value = float(params[0]) if len(params) > 0 else None
 	
 	if (not value):
 		return ["You didn't put in a room length in seconds so it will be set to default."]
