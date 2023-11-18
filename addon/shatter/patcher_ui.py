@@ -220,5 +220,7 @@ class PatchLibsmashhit(bpy_extras.io_utils.ImportHelper, Operator):
 			butil.show_message("Error trying to patch", "It seems like the version or architecture of libsmashhit.so that you are trying to patch isn't yet supported by this tool.")
 		elif (result):
 			butil.show_message("Error while applying patches", "Some errors occured while patching:\n" + ("\n".join(result)))
+		else:
+			self.report({"INFO"}, "The patches have successfully been applied.")
 		
 		return {"FINISHED"}

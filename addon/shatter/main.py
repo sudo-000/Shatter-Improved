@@ -27,6 +27,7 @@ import util
 import butil
 import level_pack_ui
 import patcher_ui
+import progression_crypto_ui
 
 from bpy.props import (
 	StringProperty,
@@ -1449,6 +1450,7 @@ class SHATTER_MT_3DViewportMenuExtras(Menu):
 		self.layout.operator("shatter.export_all_auto")
 		self.layout.operator("shatter.export_level_package")
 		self.layout.operator("shatter.rebake_meshes")
+		self.layout.operator("shatter.progression_crypto")
 		self.layout.operator("shatter.segstrate_static")
 		self.layout.operator("shatter.patch_libsmashhit")
 
@@ -1992,6 +1994,7 @@ classes = (
 	RunAutogenAction,
 	level_pack_ui.ExportLevelPackage,
 	patcher_ui.PatchLibsmashhit,
+	progression_crypto_ui.ProgressionCrypto,
 	RandomiseKeyphrase,
 )
 
