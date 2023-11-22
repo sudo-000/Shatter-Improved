@@ -157,7 +157,7 @@ def decrypt(nonce, key, ciphertext, mode = Mode.CTR_XOR):
 	else:
 		return None
 
-def test():
+def _test():
 	"""
 	Run some basic tests
 	"""
@@ -193,5 +193,33 @@ def test():
 		print(f"plaintext again {pt}")
 		print()
 
+def _main():
+	import pathlib
+	import sys
+	import hashlib
+	import binascii
+	
+	if (len(sys.argv) < 2):
+		print(f"Usage: {sys.argv[0]} <mode> [args ...]")
+		print()
+		print("Valid modes:")
+		print("\tencrypt <password> <file>")
+		print("\tdecrypt <password> <file>")
+	
+	mode = sys.argv[1]
+	key = hashlib.shake_256(bytes(sys.argv[2], "utf-8")).digest(16)
+	
+	if (mode == "encrypt"):
+		nonce, ct = encrypt(key, pathlib.Path(sys.argv[3]).read_bytes())
+		out = nonce + ct
+		pathlib.Path(sys.argv[3]).write_bytes(out)
+		print(binascii.hexlify(out))
+	elif (mode == "decrypt"):
+		data = pathlib.Path(sys.argv[3]).read_bytes()
+		pt = decrypt(data[0:8], key, data[8:])
+		pathlib.Path(sys.argv[3]).write_bytes(pt)
+	else:
+		print("Error")
+
 if __name__ == "__main__":
-	test()
+	_main()
