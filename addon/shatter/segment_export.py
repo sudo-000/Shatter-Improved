@@ -1,5 +1,7 @@
 """
 Shatter for Blender segment export
+
+TODO This code sucks actual ass. Make it not.
 """
 
 import xml.etree.ElementTree as et
@@ -683,6 +685,7 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 	##
 	
 	# TODO: Split into function exportSegmentTest
+	# TODO Implement mutli segment exporting
 	if (params.get("sh_test_server", False) == True):
 		print("** Export to test server **")
 		
@@ -752,6 +755,7 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 	if (context.preferences.addons["shatter"].preferences.resolve_templates and templates):
 		content = solveTemplates(content, parseTemplatesXml(templates))
 	
+	# DEPRECATED
 	# Do segstrate protection if we need that
 	if (segstrate_path):
 		content = segstrate.replace_tags(content, util.get_file_json(segstrate_path))
@@ -767,7 +771,8 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 		# it actually matters for *obfuscating* game assets.
 		key = util.shake256(context.preferences.addons["shatter"].preferences.segment_encrypt_password)
 		nonce, ct = xtea.encrypt(key, content)
-		print(f"nonce is {nonce}")
+		# Fucking idiot dont print encryption keys
+		# print(f"nonce is {nonce}")
 		content = nonce + ct
 	
 	# Write out file

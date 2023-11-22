@@ -1065,12 +1065,6 @@ class sh_AddonPreferences(AddonPreferences):
 		default = True,
 	)
 	
-	enable_bad_check: BoolProperty(
-		name = "Other network features",
-		description = "Enables other network features. Some features might not be available if you don't enable this",
-		default = True,
-	)
-	
 	## Protection options ##
 	force_disallow_import: BoolProperty(
 		name = "Always disallow import",
@@ -1094,14 +1088,6 @@ class sh_AddonPreferences(AddonPreferences):
 		default = "",
 	)
 	
-	## Other shatter stuff ##
-	uid: StringProperty(
-		name = "uid",
-		description = "user id",
-		subtype = "PASSWORD",
-		default = "",
-	)
-	
 	def draw(self, context):
 		main = self.layout
 		
@@ -1116,18 +1102,13 @@ class sh_AddonPreferences(AddonPreferences):
 		ui.end()
 		
 		ui.region("WORLD", "Network features")
-		ui.label(f"Your unique user ID: {self.uid}")
 		ui.prop("enable_quick_test_server")
 		ui.prop("enable_update_notifier")
 		ui.prop("updater_channel")
 		
 		if (self.enable_update_notifier):
 			ui.prop("enable_auto_update")
-			
-			# if (self.enable_auto_update):
-				# ui.warn("Please note: If a bad update is released, it might break Shatter. Be careful!")
 		
-		# ui.prop("enable_bad_check")
 		ui.end()
 		
 		ui.region("LOCKED", "Protection")
@@ -1480,7 +1461,7 @@ class OpenShatterPrivacyPage(Operator):
 	bl_label = "Privacy and Security Statement"
 	
 	def execute(self, context):
-		webbrowser.open(f"https://shatter-team.github.io/Shatter/privacy.html")
+		webbrowser.open(f"https://github.com/Shatter-Team/Shatter/blob/trunk/PRIVACY.md")
 		return {"FINISHED"}
 
 class OpenShatterDiscord(Operator):
@@ -1525,27 +1506,6 @@ def run_updater():
 		import traceback
 		print(f"Shatter for Blender: Had an exception whilst checking for updates:")
 		print(traceback.format_exc())
-
-def update_uid():
-	uid_file = f"{common.SHATTER_PATH}/data/uid"
-	uid_from_file = util.get_file(uid_file)
-	
-	uid_from_blender = get_prefs().uid
-	
-	if (not uid_from_blender):
-		if (not uid_from_file):
-			# Never had a uid before
-			new_uid = generate_uid()
-			bpy.context.preferences.addons["shatter"].preferences.uid = new_uid
-			util.set_file(uid_file, new_uid)
-		else:
-			# We have the file but not the saved uid, probably the user
-			# reinstalled
-			bpy.context.preferences.addons["shatter"].preferences.uid = uid_from_file.replace("\n", "")
-
-def generate_uid():
-	s = secrets.token_hex(16)
-	return f"{s[0:8]}-{s[8:16]}-{s[16:24]}-{s[24:32]}"
 
 ###############
 ### AUTOGEN ###
@@ -2064,14 +2024,6 @@ def register():
 	
 	# Check for updates
 	run_updater()
-	
-	# Update user ID
-	update_uid()
-	
-	# Check bad user info
-	if (get_prefs().enable_bad_check):
-		import bad_user as bad_user
-		bad_user.bad_check(get_prefs().uid)
 
 def unregister():
 	from bpy.utils import unregister_class
