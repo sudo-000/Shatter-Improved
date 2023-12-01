@@ -668,11 +668,11 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 		segstrate_path = filepath + "/slk" if ospath.exists(filepath + "/slk") else None
 		
 		# Real file path
-		filepath += "/segments/" + props.sh_level + "/" + props.sh_room + "/" + props.sh_segment + ".xml.gz.mp3"
+		filepath += "/segments/" + props.sh_level + "/" + props.sh_room + "/" + props.sh_segment + (".xml.gz.mp3" if compress else ".xml.mp3")
 		
 		util.prepare_folders(filepath)
 		
-		compress = True
+		print(f"Real file path will be {filepath}")
 	
 	# Export to xml string
 	content = createSegmentText(scene, params)
@@ -787,13 +787,13 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 	context.window_manager.progress_end()
 	context.window.cursor_set('DEFAULT')
 
-def sh_export_all_segments(context):
+def sh_export_all_segments(context, compress = True):
 	for s in bpy.data.scenes:
 		print(f"Exporting a scene: {s} ...")
 		
 		sh_properties = s.sh_properties
 		
-		sh_export_segment_ext(None, context, s, True, params = {
+		sh_export_segment_ext(None, context, s, compress, params = {
 				"sh_vrmultiply": sh_properties.sh_vrmultiply,
 				"sh_box_bake_mode": sh_properties.sh_box_bake_mode,
 				"sh_meshbake_template": tryTemplatesPath(),

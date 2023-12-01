@@ -191,7 +191,7 @@ class sh_export_auto(bpy.types.Operator):
 	bl_label = "Export to APK"
 	
 	def execute(self, context):
-		segment_export.sh_export_segment(None, context, True)
+		segment_export.sh_export_segment(None, context, get_prefs().auto_export_compressed)
 		
 		return {"FINISHED"}
 
@@ -211,7 +211,7 @@ class sh_export_all_auto(bpy.types.Operator):
 	bl_label = "Export all to APK"
 	
 	def execute(self, context):
-		segment_export.sh_export_all_segments(context)
+		segment_export.sh_export_all_segments(context, get_prefs().auto_export_compressed)
 		
 		return {"FINISHED"}
 
@@ -1018,6 +1018,12 @@ class sh_AddonPreferences(AddonPreferences):
 		default = True,
 	)
 	
+	auto_export_compressed: BoolProperty(
+		name = "Compress exported segments in auto export",
+		description = "Enables segment compression when using the 'Export to APK' option. Smash Hit does not compress segments by default in 1.5.x and later",
+		default = True,
+	)
+	
 	resolve_templates: BoolProperty(
 		name = "Resolve templates at export time",
 		description = "Solves templates when a segment is exported. This avoids the need for adding used templates to templates.xml, but makes the filesize larger and the XML file less readable",
@@ -1096,6 +1102,7 @@ class sh_AddonPreferences(AddonPreferences):
 		ui.region("PREFERENCES", "General options")
 		ui.prop("default_assets_path")
 		ui.prop("enable_segment_warnings")
+		ui.prop("auto_export_compressed")
 		ui.prop("resolve_templates")
 		ui.prop("show_gradient_raw")
 		ui.prop("compact_ui")
@@ -2024,6 +2031,9 @@ def register():
 	
 	# Check for updates
 	run_updater()
+	
+	# A little easter egg for those who remember
+	print(f"User has been detected as bad user: False")
 
 def unregister():
 	from bpy.utils import unregister_class

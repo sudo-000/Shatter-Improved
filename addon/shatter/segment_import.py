@@ -9,20 +9,6 @@ import util as util
 import butil as butil
 import common as common
 
-## IMPORT
-## The following things are related to the importer, which is not complete.
-
-def removeEverythingEqualTo(array, value):
-	"""
-	Remove everything in an array equal to a value
-	"""
-	
-	while (True):
-		try:
-			array.remove(value)
-		except ValueError:
-			return array
-
 def sh_import_modes(s):
 	"""
 	Import a mode string

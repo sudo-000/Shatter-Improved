@@ -157,7 +157,7 @@ class PatchLibsmashhit(bpy_extras.io_utils.ImportHelper, Operator):
 	def draw(self, context):
 		ui = butil.UIDrawingHelper(context, self.layout, self)
 		
-		ui.prop("do_antitamper", disabled = True)
+		ui.prop("do_antitamper")
 		ui.prop("do_premium")
 		ui.prop("do_encryption")
 		ui.prop("do_lualib")
@@ -173,7 +173,10 @@ class PatchLibsmashhit(bpy_extras.io_utils.ImportHelper, Operator):
 		ui.prop("do_noclip")
 	
 	def execute(self, context):
-		patches = {"antitamper": None}
+		patches = {}
+		
+		if (self.do_antitamper):
+			patches["antitamper"] = []
 		
 		if (self.do_premium):
 			patches["premium"] = []

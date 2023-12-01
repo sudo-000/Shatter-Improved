@@ -272,11 +272,43 @@ _LIBSMASHHIT_V142_V143_ARM64_PATCH_TABLE = {
 	"noclip": _patch_v142_v143_arm64_noclip,
 }
 
+def _patch_v152_arm64_premium(patcher, params):
+	"""
+	Patch premium for the beta version 1.5.2
+	"""
+	
+	# tick()
+	# This one doesn't seem to cause issues
+	patcher.patch(0x116d10, b"\x08\xb0\x08\xb9")
+	
+	# load()
+	# This one overwrites some seemingly unused stores to zero of local vars
+	# WARNING causes problem (game crash)
+	# patcher.patch(0x118fdc, b"\x20\x00\x80\x52") # mov w0, #0x1
+	# patcher.patch(0x118fe4, b"\x80\xc2\x22\x39") # strb this, [x20, #0x8b0]
+
+def _patch_v152_arm64_encryption(patcher, params):
+	"""
+	Disable save file encryption
+	"""
+	
+	# Player::decrypt()
+	patcher.patch(0x117188, b"\xc0\x03\x5f\xd6")
+	
+	# Player::encrypt()
+	patcher.patch(0x118c9c, b"\xc0\x03\x5f\xd6")
+
+_LIBSMASHHIT_V152_ARM64_PATCH_TABLE = {
+	"premium": _patch_v152_arm64_premium,
+	"encryption": _patch_v152_arm64_encryption,
+}
+
 PATCHES_LIST = {
 	"armv7": {},
 	"arm64": {
 		"1.4.2": _LIBSMASHHIT_V142_V143_ARM64_PATCH_TABLE,
 		"1.4.3": _LIBSMASHHIT_V142_V143_ARM64_PATCH_TABLE,
+		"1.5.2": _LIBSMASHHIT_V152_ARM64_PATCH_TABLE,
 	},
 	"x86": {},
 }
@@ -292,6 +324,13 @@ def determine_version(p):
 	
 	if (cand == b"1.4.2" or cand == b"1.4.3"):
 		return ("arm64", cand.decode("utf-8"))
+	
+	# ARM64 v1.5.2
+	# Still identifies as 1.4.3 in the so for some reason
+	cand = p.peek(0x84099, 5)
+	
+	if (cand == b"1.4.3"):
+		return ("arm64", "1.5.2")
 	
 	return NotImplemented
 
@@ -314,17 +353,20 @@ def patch_binary(path, patches = {}):
 	
 	print(f"Libsmashhit.so version {ver} on {arch} detected")
 	
-	# Verify that all patches we want to make are in this binary
-	for patch_type in patches:
-		if (patch_type not in archver_patches):
-			return NotImplemented
+	# # Verify that all patches we want to make are in this binary
+	# for patch_type in patches:
+	# 	if (patch_type not in archver_patches):
+	# 		return NotImplemented
 	
 	# Preform the patches
 	all_errors = []
 	
 	for patch_type in patches:
 		print(f"Patching {patch_type} ...")
-		errors = archver_patches[patch_type](p, patches[patch_type])
+		if (patch_type in archver_patches):
+			errors = archver_patches[patch_type](p, patches[patch_type])
+		else:
+			errors = [f"Patch {patch_type} does not exist"]
 		
 		if (errors):
 			print(f"The following errors occured while patching {patch_type}:")
