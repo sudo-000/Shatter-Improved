@@ -348,10 +348,19 @@ def _patch_v142_v143_arm32_lualib(patcher, params):
 	patcher.patch(0x91090, b"\x05\x00\xa0\xe3") # mov r0,#0x5
 	patcher.patch(0x91094, b"\xf8\x8f\xbd\xe8") # ldmia sp!,{r3..r11,pc}
 
+def _patch_v142_v143_arm32_encryption(patcher, params):
+	"""
+	Disable save encryption
+	"""
+	
+	patcher.patch(0x44e88, b"\x1e\xff\x2f\xe1")
+	patcher.patch(0x44dd8, b"\x1e\xff\x2f\xe1")
+
 _LIBSMASHHIT_V142_V143_ARM32_PATCH_TABLE = {
 	"antitamper": _patch_v142_v143_arm32_antitamper,
 	"premium": _patch_v142_v143_arm32_premium,
 	"lualib": _patch_v142_v143_arm32_lualib,
+	"encryption": _patch_v142_v143_arm32_encryption,
 }
 
 def _patch_v152_arm64_premium(patcher, params):
