@@ -272,6 +272,88 @@ _LIBSMASHHIT_V142_V143_ARM64_PATCH_TABLE = {
 	"noclip": _patch_v142_v143_arm64_noclip,
 }
 
+def _patch_v142_v143_arm32_antitamper(patcher, params):
+	"""
+	Patch the genuine checks for arm32 v142 and v143
+	"""
+	
+	# Skip the non-android_main checksum compare
+	patcher.patch(0x353e4, b"\x13\x00\x00\xea")
+	
+	# Skip sig file loading and compare
+	patcher.patch(0x36070, b"\x00\xf0\x20\xe3")
+	
+	# Skip probabialistic checksum check with chance 1/1000
+	patcher.patch(0x3633c, b"\x37\x00\x00\xea")
+	
+	# Skip the smol one
+	patcher.patch(0x36398, b"\xd4\xfe\xff\xea")
+	
+	# Don't stop main loop when gGenuine == 0
+	patcher.patch(0x3649c, b"\x93\xfe\xff\xea")
+
+def _patch_v142_v143_arm32_premium(patcher, params):
+	"""
+	Really basic patch for premium on arm32, maybe it works fully or not, idk
+	"""
+	
+	# One of my favourite jank hacks of all time, just constantly sets premium
+	# to true if it isnt set :P
+	# streq  r3,[r0,#this->premium]
+	patcher.patch(0x47d9c, b"\xe8\x37\x80\x05")
+
+def _patch_v142_v143_arm32_lualib(patcher, params):
+	"""
+	Allow loading the os, io and package lua libs. To do this we basically merge
+	the fuctions for loading multipule lua libs together. On armv7 this is
+	easier since there are instructions for higher level stack operations which
+	we change just change.
+	"""
+	
+	# Start with luaopen_base
+	# return count = 2
+	
+	# Need to allocate the registers properly because some functions use many
+	# of them
+	patcher.patch(0x910cc, b"\xf8\x4f\x2d\xe9")
+	
+	# Need to change setting return value to setting it back to lua context
+	patcher.patch(0x91240, b"\x04\x00\xa0\xe1")
+	
+	# Jump to the start of the next register function (without stmdb)
+	# also return count += 1 for luaopen_io
+	patcher.patch(0x91244, b"\x0f\x00\x00\xea")
+	
+	# Change setting return value to preserving param_1 for next call
+	patcher.patch(0x9154c, b"\x04\x00\xa0\xe1")
+	
+	# Jumping to start of luaopen_package
+	# Should also add 1 to total retval at this point (we're at 4)
+	patcher.patch(0x91550, b"\xf3\x0c\x00\xea")
+	
+	# Kick the ass of stmdb here :D
+	patcher.patch(0x94928, b"\x00\xf0\x20\xe3")
+	
+	# Now of course we preserve param_1
+	patcher.patch(0x94b80, b"\x04\x00\xa0\xe1")
+	
+	# Anddd jump to luaopen_os
+	# (also our total retval should now be 5)
+	patcher.patch(0x94b84, b"\x3a\xf1\xff\xea")
+	
+	# Now we've got everything and we can edit the retval to be 5 and also
+	# change ldmia to load all of the old register values properly. We should
+	# also kill the annoying stmdb that appears for some reason to be a nop.
+	patcher.patch(0x91080, b"\x00\xf0\x20\xe3") # nop out stmdb
+	patcher.patch(0x91090, b"\x05\x00\xa0\xe3") # mov r0,#0x5
+	patcher.patch(0x91094, b"\xf8\x8f\xbd\xe8") # ldmia sp!,{r3..r11,pc}
+
+_LIBSMASHHIT_V142_V143_ARM32_PATCH_TABLE = {
+	"antitamper": _patch_v142_v143_arm32_antitamper,
+	"premium": _patch_v142_v143_arm32_premium,
+	"lualib": _patch_v142_v143_arm32_lualib,
+}
+
 def _patch_v152_arm64_premium(patcher, params):
 	"""
 	Patch premium for the beta version 1.5.2
@@ -304,7 +386,10 @@ _LIBSMASHHIT_V152_ARM64_PATCH_TABLE = {
 }
 
 PATCHES_LIST = {
-	"armv7": {},
+	"arm32": {
+		"1.4.2": _LIBSMASHHIT_V142_V143_ARM32_PATCH_TABLE,
+		"1.4.3": _LIBSMASHHIT_V142_V143_ARM32_PATCH_TABLE,
+	},
 	"arm64": {
 		"1.4.2": _LIBSMASHHIT_V142_V143_ARM64_PATCH_TABLE,
 		"1.4.3": _LIBSMASHHIT_V142_V143_ARM64_PATCH_TABLE,
@@ -324,6 +409,12 @@ def determine_version(p):
 	
 	if (cand == b"1.4.2" or cand == b"1.4.3"):
 		return ("arm64", cand.decode("utf-8"))
+	
+	# ARM32 v1.4.2 and v1.4.3
+	cand = p.peek(0x1c7608, 5)
+	
+	if (cand == b"1.4.2" or cand == b"1.4.3"):
+		return ("arm32", cand.decode("utf-8"))
 	
 	# ARM64 v1.5.2
 	# Still identifies as 1.4.3 in the so for some reason
