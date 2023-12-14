@@ -154,23 +154,31 @@ class PatchLibsmashhit(bpy_extras.io_utils.ImportHelper, Operator):
 		default = False,
 	)
 	
+	def drawItem(self, ui, name, pl = []):
+		ui.prop(f"do_{name}", disabled = (name not in pl and pl))
+		
+		if (hasattr(self, name) and getattr(self, f"do_{name}")):
+			ui.prop(name)
+	
 	def draw(self, context):
 		ui = butil.UIDrawingHelper(context, self.layout, self)
 		
-		ui.prop("do_antitamper")
-		ui.prop("do_premium")
-		ui.prop("do_encryption")
-		ui.prop("do_lualib")
-		if (ui.prop("do_balls")): ui.prop("balls")
-		if (ui.prop("do_smashhitlabads")): ui.prop("smashhitlabads")
-		if (ui.prop("do_savekey")): ui.prop("savekey")
-		if (ui.prop("do_fov")): ui.prop("fov")
-		if (ui.prop("do_dropballs")): ui.prop("dropballs")
-		if (ui.prop("do_roomtime")): ui.prop("roomtime")
-		ui.prop("do_trainingballs")
-		ui.prop("do_mglength")
-		ui.prop("do_vertical")
-		ui.prop("do_noclip")
+		pl = []
+		
+		self.drawItem(ui, "antitamper", pl)
+		self.drawItem(ui, "premium", pl)
+		self.drawItem(ui, "encryption", pl)
+		self.drawItem(ui, "lualib", pl)
+		self.drawItem(ui, "balls", pl)
+		self.drawItem(ui, "smashhitlabads", pl)
+		self.drawItem(ui, "savekey", pl)
+		self.drawItem(ui, "fov", pl)
+		self.drawItem(ui, "dropballs", pl)
+		self.drawItem(ui, "roomtime", pl)
+		self.drawItem(ui, "trainingballs", pl)
+		self.drawItem(ui, "mglength", pl)
+		self.drawItem(ui, "vertical", pl)
+		self.drawItem(ui, "noclip", pl)
 	
 	def execute(self, context):
 		patches = {}

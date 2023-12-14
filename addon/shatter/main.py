@@ -353,8 +353,6 @@ class sh_SceneProperties(PropertyGroup):
 		description = "Segment size (Width, Height, Depth). Hint: Last paramater changes the length (depth) of the segment",
 		subtype = "XYZ",
 		default = (12.0, 10.0, 8.0), 
-		min = 0.0,
-		max = 1024.0,
 	)
 	
 	sh_auto_length: BoolProperty(
@@ -400,8 +398,6 @@ class sh_SceneProperties(PropertyGroup):
 		name = "Segment strech",
 		description = "This option tries to strech the segment's depth to make more time between obstacles. The intent is to allow it to be played in Smash Hit VR easier and without modifications to the segment",
 		default = 1.0,
-		min = 0.75,
-		max = 4.0,
 	)
 	
 	sh_light_left: FloatProperty(
@@ -481,8 +477,8 @@ class sh_SceneProperties(PropertyGroup):
 		description = "Colour and intensity of the ambient light",
 		subtype = "COLOR_GAMMA",
 		default = (0.0, 0.0, 0.0), 
-		min = 0.0,
-		max = 1.0,
+		soft_min = 0.0,
+		soft_max = 1.0,
 	)
 	
 	sh_stone_obstacle_name: StringProperty(
@@ -494,7 +490,7 @@ class sh_SceneProperties(PropertyGroup):
 	
 	sh_legacy_colour_model: BoolProperty(
 		name = "Legacy colour model",
-		description = "Uses the colour inheritance model from SHBT v0.9x, which can avoid extra effort when using the stone hack",
+		description = "Uses the colour inheritance model from SHBT v0.9x, which can avoid extra effort when using the stone hack without templates",
 		default = False
 	)
 	
@@ -503,8 +499,8 @@ class sh_SceneProperties(PropertyGroup):
 		description = "The default colour for all (non-visible marked) boxes when using the legacy colour model",
 		subtype = "COLOR_GAMMA",
 		default = (1.0, 1.0, 1.0), 
-		min = 0.0,
-		max = 1.0,
+		soft_min = 0.0,
+		soft_max = 1.0,
 	)
 	
 	sh_fog_colour_top: FloatVectorProperty(
@@ -512,8 +508,8 @@ class sh_SceneProperties(PropertyGroup):
 		description = "Fog colour for quick test. While this does use the fogcolor xml attribute, this property cannot be inherited from templates or used like a normal property",
 		subtype = "COLOR_GAMMA",
 		default = (1.0, 1.0, 1.0), 
-		min = 0.0,
-		max = 1.0,
+		soft_min = 0.0,
+		soft_max = 1.0,
 	)
 	
 	sh_fog_colour_bottom: FloatVectorProperty(
@@ -521,8 +517,8 @@ class sh_SceneProperties(PropertyGroup):
 		description = "Fog colour for quick test. While this does use the fogcolor xml attribute, this property cannot be inherited from templates or used like a normal property",
 		subtype = "COLOR_GAMMA",
 		default = (0.0, 0.0, 0.0),
-		min = 0.0,
-		max = 1.0,
+		soft_min = 0.0,
+		soft_max = 1.0,
 	)
 	
 	sh_music: StringProperty(
@@ -756,8 +752,8 @@ class sh_EntityProperties(PropertyGroup):
 		name = "Tile size",
 		description = "The appearing size of the tiles on the box when exported. In RightLeft, TopBottom, FrontBack",
 		default = (1.0, 1.0, 1.0), 
-		min = 0.0,
-		max = 128.0,
+		soft_min = 0.0,
+		soft_max = 128.0,
 		size = 3
 	) 
 	
@@ -889,8 +885,8 @@ class sh_EntityProperties(PropertyGroup):
 		subtype = "COLOR_GAMMA",
 		default = (1.0, 1.0, 1.0, 1.0), 
 		size = 4,
-		min = 0.0,
-		max = 1.0
+		soft_min = 0.0,
+		soft_max = 1.0,
 	)
 	
 	sh_tint1: FloatVectorProperty(
@@ -899,8 +895,8 @@ class sh_EntityProperties(PropertyGroup):
 		subtype = "COLOR_GAMMA",
 		default = (1.0, 1.0, 1.0, 1.0), 
 		size = 4,
-		min = 0.0,
-		max = 1.0
+		soft_min = 0.0,
+		soft_max = 1.0,
 	)
 	
 	sh_tint2: FloatVectorProperty(
@@ -909,8 +905,8 @@ class sh_EntityProperties(PropertyGroup):
 		subtype = "COLOR_GAMMA",
 		default = (1.0, 1.0, 1.0, 1.0), 
 		size = 4,
-		min = 0.0,
-		max = 1.0
+		soft_min = 0.0,
+		soft_max = 1.0,
 	)
 	
 	sh_tint3: FloatVectorProperty(
@@ -919,8 +915,8 @@ class sh_EntityProperties(PropertyGroup):
 		subtype = "COLOR_GAMMA",
 		default = (1.0, 1.0, 1.0, 1.0), 
 		size = 4,
-		min = 0.0,
-		max = 1.0
+		soft_min = 0.0,
+		soft_max = 1.0,
 	)
 	
 	sh_gradientraw: StringProperty(
@@ -959,6 +955,8 @@ class sh_EntityProperties(PropertyGroup):
 		subtype = "COLOR_GAMMA",
 		default = (1.0, 1.0, 1.0), 
 		size = 3,
+		soft_min = 0.0,
+		soft_max = 1.0,
 	)
 	
 	sh_gradpoint2: FloatVectorProperty(
@@ -974,6 +972,8 @@ class sh_EntityProperties(PropertyGroup):
 		subtype = "COLOR_GAMMA",
 		default = (1.0, 1.0, 1.0), 
 		size = 3,
+		soft_min = 0.0,
+		soft_max = 1.0,
 	)
 	
 	sh_blend: FloatProperty(
@@ -1280,12 +1280,12 @@ class sh_ItemPropertiesPanel(Panel):
 				)
 				
 				if (ui.get(f"sh_use_multi{x}")):
-					ui.prop(f"sh_use_multi{x}", text = "Uniform", text_compact = f"Uniform {word.lower()}", use_button = True)
+					ui.prop(f"sh_use_multi{x}", text = "Per-axis", text_compact = f"Per-axis {word.lower()}", use_button = True)
 					ui.prop(f"sh_{x}1")
 					ui.prop(f"sh_{x}2")
 					ui.prop(f"sh_{x}3")
 				else:
-					ui.prop(f"sh_use_multi{x}", text = "Per axis", text_compact = f"Per axis {word.lower()}", use_button = True)
+					ui.prop(f"sh_use_multi{x}", text = "Uniform", text_compact = f"Uniform {word.lower()}", use_button = True)
 					ui.prop(f"sh_{x}")
 				
 				ui.end()
@@ -1477,10 +1477,10 @@ class OpenShatterDiscord(Operator):
 	"""
 	
 	bl_idname = "shatter.open_discord"
-	bl_label = "Join the Shatter Discord"
+	bl_label = "Join the Smash Hit Lab Discord"
 	
 	def execute(self, context):
-		webbrowser.open(f"https://discord.gg/RKYsx9pCSM")
+		webbrowser.open(f"https://discord.gg/7kra7Z3UNn")
 		return {"FINISHED"}
 
 class SHATTER_MT_3DViewportMenu(Menu):
@@ -1566,8 +1566,6 @@ class AutogenProperties(PropertyGroup):
 		name = "Box size",
 		description = "First is width, second is depth. Height is the random part",
 		default = (1.0, 1.0), 
-		min = 0.0625,
-		max = 16.0,
 		size = 2,
 	)
 	
@@ -1575,8 +1573,6 @@ class AutogenProperties(PropertyGroup):
 		name = "Max height",
 		description = "",
 		default = 0.5,
-		min = 0.0,
-		max = 16.0,
 	)
 	
 	### Up and down path options ###
@@ -1585,24 +1581,18 @@ class AutogenProperties(PropertyGroup):
 		name = "Initial height",
 		description = "",
 		default = 0.25,
-		min = 0.0,
-		max = 1.0,
 	)
 	
 	udpath_step: FloatProperty(
 		name = "Step",
 		description = "",
 		default = 0.125,
-		min = 0.0,
-		max = 0.5,
 	)
 	
 	udpath_minmax: FloatVectorProperty(
 		name = "Min/max height",
 		description = "",
 		default = (0.125, 0.5), 
-		min = 0.0,
-		max = 1.0,
 		size = 2,
 	)
 	
@@ -1612,16 +1602,12 @@ class AutogenProperties(PropertyGroup):
 		name = "Ratio",
 		description = "",
 		default = 0.5,
-		min = 0.0,
-		max = 1.0,
 	)
 	
 	geometric_exponent_minmax: IntVectorProperty(
 		name = "Exponent",
 		description = "",
 		default = (1, 4),
-		min = 0,
-		max = 16,
 		size = 2,
 	)
 	
@@ -1637,8 +1623,6 @@ class AutogenProperties(PropertyGroup):
 		name = "Length",
 		description = "",
 		default = 16.0,
-		min = 1.0,
-		max = 1024.0,
 	)
 	
 	room_door_part: BoolProperty(
@@ -1651,8 +1635,6 @@ class AutogenProperties(PropertyGroup):
 		name = "Height offset",
 		description = "How high or low the room will appear to the player",
 		default = 1.0,
-		min = -15.0,
-		max = 15.0,
 	)
 	
 	### Arch ###

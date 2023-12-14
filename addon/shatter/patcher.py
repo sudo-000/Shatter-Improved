@@ -475,6 +475,43 @@ def patch_binary(path, patches = {}):
 	
 	return all_errors
 
+def valid_patches(path):
+	"""
+	Get (arch, ver, patches) for a given file
+	"""
+	
+	p = Patcher(path)
+	
+	# Determine the version of libsmashhit.so that's being patched
+	so_type = determine_version(p)
+	
+	if (so_type == NotImplemented):
+		return None
+	
+	# Get patches
+	arch = so_type[0]
+	ver = so_type[1]
+	archver_patches = PATCHES_LIST[arch][ver]
+	
+	patch_list = []
+	
+	for p in archver_patches:
+		patch_list.append(p)
+	
+	return (arch, ver, patch_list)
+
+_PL_CACHE = {}
+
+def valid_patches_cached(path):
+	"""
+	Cached version of valid_patches
+	"""
+	
+	if (path not in _PL_CACHE):
+		_PL_CACHE[path] = valid_patches(path)
+	
+	return _PL_CACHE[path]
+
 def _parse_patch_string(ps):
 	"""
 	Parse a patch string as if it was given on the cmdline
