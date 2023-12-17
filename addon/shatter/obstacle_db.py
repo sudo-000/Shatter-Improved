@@ -98,6 +98,7 @@ except FileNotFoundError:
 	print("Smash Hit Blender Tools: " + str(__name__) + ": Could not find text file for custom obstacles!")
 	print("Smash Hit Blender Tools: " + str(__name__) + ": A new blank file will be created at: " + common.TOOLS_HOME_FOLDER + "/obstacles.txt")
 	with open(common.TOOLS_HOME_FOLDER + "/obstacles.txt", "w") as f:
-		f.write("# Add custom obstacles here:")
-		f.write("# # Format: [Obstacle File Name In Assets (do not include the .lua.mp3 extension)]=[Display Name]")
+		f.write("# Add custom obstacles here:\n")
+		f.write("# \n")
+		f.write("# Format: [Obstacle File Name In Assets (do not include the .lua.mp3 extension)]=[Display Name]\n")
 		f.close()
