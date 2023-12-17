@@ -34,28 +34,12 @@ def get_timestamp():
 	
 	return datetime.datetime.utcnow().strftime("%Y-%m-%d %H%M%S")
 
-def sha1(data):
-	"""
-	Compute the SHA1 hash of a utf8 string
-	"""
-	
-	return hashlib.sha1(data.encode('utf-8')).hexdigest()
-
-get_sha1_hash = sha1
-
 def shake256(data, length = 16):
 	"""
 	Compute the SHAKE-256 hash of the given data of the given length
 	"""
 	
 	return hashlib.shake_256(data.encode('utf-8')).digest(length)
-
-def sha3_256(data):
-	"""
-	Compute the SHA3-256 hash of a utf8 string
-	"""
-	
-	return hashlib.sha3_256(data.encode('utf-8')).hexdigest()
 
 def randpw(bits = 128):
 	"""

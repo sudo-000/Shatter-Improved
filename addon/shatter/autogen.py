@@ -461,29 +461,3 @@ def generate(placer, params):
 	
 	while (gen.hasMore()):
 		gen.next()
-
-class PlaceScript():
-	"""
-	Some complex examples:
-	
-	[Scene place: [Box pos: [Vec x: [Range start: -4 end: 4 step: 2] y: 0 z: [From var: "x"]] size: [Vec x: 0.5 y: 0.5 z: 0.5] template: [[Context object] get: "sh_properties.sh_template"] reflective: 1]]
-	
-	-> Object
-	
-	[Equal first: [["0 -1 0" toVector] toString] second: [Vec x: 0 y: -1 z: 0]]
-	
-	-> 1
-	
-	[Print text: ["Number of objects" withInteger: [[Scene getObjects] len] joinedBy: ": "]]
-	
-	-> "Number of objects: 31"
-	
-	Grammar:
-	
-	expr -> access | symbol | string | number | null
-	access -> '[' expr exprList ']'
-	exprList -> symbol ':' expr exprList?
-	"""
-	
-	def __init__(self):
-		pass
