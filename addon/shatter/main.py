@@ -586,9 +586,8 @@ class sh_SceneProperties(PropertyGroup):
 	sh_room_length: IntProperty(
 		name = "Room length",
 		description = "The length of the room in quick test",
-		default = 90,
-		min = 50,
-		max = 250,
+		default = 100,
+		min = 0,
 	)
 
 # Object (box/obstacle/powerup/decal/water) properties
