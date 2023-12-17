@@ -71,7 +71,15 @@ OBSTACLES = [
 ]
 
 # For search in free-form entry
-OBSTACLES_LIST = ["3dcross", "babytoy", "bar", "beatmill", "beatsweeper", "beatwindow", "bigcrank", "bigpendulum", "boss", "bowling", "box", "cactus", "credits1", "credits2", "creditssign", "cubeframe", "dna", "doors", "dropblock", "elevatorgrid", "elevator", "fence", "flycube", "foldwindow", "framedwindow", "gear", "grid", "gyro", "hitblock", "laser", "levicube", "ngon", "pyramid", "revolver", "rotor", "scorediamond", "scoremulti", "scorestar", "scoretop", "sidesweeper", "stone", "suspendbox", "suspendcube", "suspendcylinder", "suspendhollow", "suspendside", "suspendwindow", "sweeper", "test", "tree", "vs_door", "vs_sweeper", "vs_wall", "boss/cube", "boss/matryoshka", "boss/single", "boss/telecube", "boss/triple", "doors/45", "doors/basic", "doors/double", "fence/carousel", "fence/dna", "fence/slider"]
+OBSTACLES_LIST = ["3dcross", "babytoy", "bar", "beatmill", "beatsweeper", "beatwindow", "bigcrank", "bigpendulum",
+				  "boss", "bowling", "box", "cactus", "credits1", "credits2", "creditssign", "cubeframe", "dna",
+				  "doors", "dropblock", "elevatorgrid", "elevator", "fence", "flycube", "foldwindow", "framedwindow",
+				  "gear", "grid", "gyro", "hitblock", "laser", "levicube", "ngon", "pyramid", "revolver", "rotor",
+				  "scorediamond", "scoremulti", "scorestar", "scoretop", "sidesweeper", "stone", "suspendbox",
+				  "suspendcube", "suspendcylinder", "suspendhollow", "suspendside", "suspendwindow", "sweeper", "test",
+				  "tree", "vs_door", "vs_sweeper", "vs_wall", "boss/cube", "boss/matryoshka", "boss/single",
+				  "boss/telecube", "boss/triple", "doors/45", "doors/basic", "doors/double", "fence/carousel",
+				  "fence/dna", "fence/slider"]
 
 # Find custom obstacles
 # TODO Make this not shit anymore (that is: a JSON file) :-)
@@ -79,12 +87,17 @@ try:
 	with open(common.TOOLS_HOME_FOLDER + "/obstacles.txt", "r") as f:
 		content = f.read()
 		content = content.split("\n")
-		
+
 		for line in content:
 			s = line.replace("= ", "=").replace(" =", "=").split("=")
-			
+
 			if (len(s) == 2 and not s[0].startswith("#")):
 				OBSTACLES.append((s[0], s[1], ""))
 				OBSTACLES_LIST.append(s[0])
 except FileNotFoundError:
 	print("Smash Hit Blender Tools: " + str(__name__) + ": Could not find text file for custom obstacles!")
+	print("Smash Hit Blender Tools: " + str(__name__) + ": A new blank file will be created at: " + common.TOOLS_HOME_FOLDER + "/obstacles.txt")
+	with open(common.TOOLS_HOME_FOLDER + "/obstacles.txt", "w") as f:
+		f.write("# Add custom obstacles here:")
+		f.write("# # Format: [Obstacle File Name In Assets (do not include the .lua.mp3 extension)]=[Display Name]")
+		f.close()

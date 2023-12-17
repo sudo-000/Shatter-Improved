@@ -21,8 +21,8 @@ bl_info = {
 	"category": "Development",
 }
 
-import sys
 import pathlib
+import sys
 
 # Set up import so that it tries to load shit from our directory without
 # bitching that it can't find things.
@@ -36,12 +36,13 @@ import common
 if (hasattr(common, "BLENDER_TOOLS_PATH")):
 	import shutil
 	import os
-	
+
+
 	def delete_path(path):
 		"""
 		Delete the thing at the path
 		"""
-		
+
 		try:
 			shutil.rmtree(path)
 		except:
@@ -49,18 +50,24 @@ if (hasattr(common, "BLENDER_TOOLS_PATH")):
 				os.remove(path)
 			except:
 				pass
-	
+
+
 	print("Shatter: Need to delete a lot of old files, Blender might also break when loading addon the first time...")
-	
-	for f in ["assets", "docs", "requests", "rsa", "thirdparty-info", ".gitignore", "__init__.py", "autogen.py", "bake_mesh.py", "binaryxml.py", "common.py", "CONTRIBUTING.md", "CREDITS.md", "dummy.py", "LICENCE", "misc_shatter_tools.py", "obstacle_db.py", "README.md", "reporting.py", "segment_import.py", "segment_export.py", "segstrate.py", "server.py", "updater.py", "util.py", "shbt-public.key", "todo.txt"]:
+
+	for f in ["assets", "docs", "requests", "rsa", "thirdparty-info", ".gitignore", "__init__.py", "autogen.py",
+			  "bake_mesh.py", "binaryxml.py", "common.py", "CONTRIBUTING.md", "CREDITS.md", "dummy.py", "LICENCE",
+			  "misc_shatter_tools.py", "obstacle_db.py", "README.md", "reporting.py", "segment_import.py",
+			  "segment_export.py", "segstrate.py", "server.py", "updater.py", "util.py", "shbt-public.key", "todo.txt"]:
 		delete_path(common.BLENDER_TOOLS_PATH + "/" + f)
 else:
 	print("Shatter: Don't need to delete any old files")
 
 import main
 
+
 def register():
 	main.register()
+
 
 def unregister():
 	main.unregister()
