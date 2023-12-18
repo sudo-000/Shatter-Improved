@@ -29,7 +29,7 @@ Everyone that has helped with the codebase(s) directly in some way.
 * [Megadron](https://github.com/MegadronA03) &mdash; Created the first mod that really go me into modding and also the first segment viewer
 * [Yorshex](https://github.com/yorshex) &mdash; Good brown doggy friendo =3
 * One of my cousin's &mdash; for introducing me to Smash Hit at a party
-* One of my anuts on my mother's side &mdash; some emotional support
+* My cool aunt &mdash; some emotional support and other stuff
 * You &mdash; for bothering to read the credits at all <3
 
 ## Did I forget you?

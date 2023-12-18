@@ -1,4 +1,4 @@
-<img src="docs/res/logo.svg" align="centre"/>
+<img src="docs/res/logo.svg" align="center"/>
 
 # Shatter
 

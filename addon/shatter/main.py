@@ -6,7 +6,6 @@ import common as common
 
 SH_MAX_STR_LEN = common.MAX_STRING_LENGTH
 
-import xml.etree.ElementTree as et
 import bpy
 import gzip
 import random
@@ -22,7 +21,6 @@ import extra_tools
 import quick_test
 import updater
 import autogen
-import remote_api
 import util
 import butil
 import level_pack_ui

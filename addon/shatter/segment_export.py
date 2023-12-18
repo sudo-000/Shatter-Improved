@@ -17,7 +17,6 @@ import common
 import bake_mesh
 import segstrate
 import obstacle_db
-import remote_api
 import util
 import butil
 import xtea
