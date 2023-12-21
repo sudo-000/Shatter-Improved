@@ -8,6 +8,8 @@ NOTE: Contact cddepppp256<@]gmail(.}com for sensitive security issues.
 """
 
 import json
+from pathlib import Path
+from hashlib import sha3_384
 from multiprocessing import Process
 import traceback
 

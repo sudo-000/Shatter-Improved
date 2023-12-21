@@ -111,32 +111,32 @@ class PatchLibsmashhit(bpy_extras.io_utils.ImportHelper, Operator):
 		default = 10,
 		min = 0,
 	)
-	
+
 	do_checkpoints: BoolProperty(
 		name = "Change checkpoints amount",
 		description = "Allows you to change the total amount of checkpoints. \nNote: The starting checkpoint count as checkpoint 0",
 		default = False,
 	)
-	
+
 	checkpoints: IntProperty(
 		name = "Checkpoints",
 		description = "",
 		default = 12,
 		min = 0,
 	)
-	
+
 	do_segmentrealpaths: BoolProperty(
 		name = "Use absolute paths for segments",
 		description = "Forcing the game to use absolute paths. ",
 		default = False,
 	)
-	
+
 	do_obstaclerealpaths: BoolProperty(
 		name = "Use absolute paths for obstacles",
 		description = "Forcing the game to use absolute paths. ",
 		default = False,
 	)
-	
+
 	do_realpaths: BoolProperty(
 		name = "Use absolute paths for rooms and levels",
 		description = "Forcing the game to absolute paths. ",
