@@ -839,12 +839,12 @@ def doAmbientOcclusion(x, y, z, a, gc, normal):
 	we are closer to just a raycast
 	"""
 	
-	# Find the size and half of the volume of the delta box
+	# Find the size and the volume of the delta box
 	delta_box_size = Vector3(ABMIENT_OCCLUSION_DELTA_BOX_SIZE, ABMIENT_OCCLUSION_DELTA_BOX_SIZE, ABMIENT_OCCLUSION_DELTA_BOX_SIZE)
-	delta_box_volume = 8.0 * ((ABMIENT_OCCLUSION_DELTA_BOX_SIZE) ** 3)
+	delta_box_volume = (2 * ABMIENT_OCCLUSION_DELTA_BOX_SIZE) ** 3
 	
 	# Find the box with largest volume intresecting the box around this vertex
-	accum, isect = gc.boxcast(Vector3(x, y, z) + normal * ABMIENT_OCCLUSION_DELTA_BOX_SIZE, delta_box_size)
+	accum, isect = gc.boxcast(Vector3(x, y, z) + (normal * ABMIENT_OCCLUSION_DELTA_BOX_SIZE), delta_box_size)
 	
 	# Find the light based on the volume taken
 	# This is min/max'd to not cause major issues if there is an overlaping box

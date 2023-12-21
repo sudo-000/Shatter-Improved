@@ -368,7 +368,7 @@ def _patch_v152_arm64_premium(patcher, params):
 	Patch premium for the beta version 1.5.2
 	"""
 	
-	# tick()
+	# Player::tick()
 	# This one doesn't seem to cause issues
 	patcher.patch(0x116d10, b"\x08\xb0\x08\xb9")
 	
@@ -394,6 +394,19 @@ _LIBSMASHHIT_V152_ARM64_PATCH_TABLE = {
 	"encryption": _patch_v152_arm64_encryption,
 }
 
+def _patch_v154_v155_arm64_premium(patcher, params):
+	"""
+	Patch premium for the beta version 1.5.5 (and *probably* 1.5.4)
+	"""
+	
+	# Player::tick()
+	# This one doesn't seem to cause issues
+	patcher.patch(0x117e1c, b"\x08\xb0\x08\xb9")
+
+_LIBSMASHHIT_V154_V155_ARM64_PATCH_TABLE = {
+	"premium": _patch_v154_v155_arm64_premium,
+}
+
 PATCHES_LIST = {
 	"arm32": {
 		"1.4.2": _LIBSMASHHIT_V142_V143_ARM32_PATCH_TABLE,
@@ -403,6 +416,8 @@ PATCHES_LIST = {
 		"1.4.2": _LIBSMASHHIT_V142_V143_ARM64_PATCH_TABLE,
 		"1.4.3": _LIBSMASHHIT_V142_V143_ARM64_PATCH_TABLE,
 		"1.5.2": _LIBSMASHHIT_V152_ARM64_PATCH_TABLE,
+		"1.5.4": _LIBSMASHHIT_V154_V155_ARM64_PATCH_TABLE,
+		"1.5.5": _LIBSMASHHIT_V154_V155_ARM64_PATCH_TABLE,
 	},
 	"x86": {},
 }
@@ -431,6 +446,12 @@ def determine_version(p):
 	
 	if (cand == b"1.4.3"):
 		return ("arm64", "1.5.2")
+	
+	# ARM64 v1.5.5 (and probably 1.5.4)
+	cand = p.peek(0x81880, 5)
+	
+	if (cand == b"1.5.4" or cand == b"1.5.5"):
+		return ("arm64", cand.decode("utf-8"))
 	
 	return NotImplemented
 

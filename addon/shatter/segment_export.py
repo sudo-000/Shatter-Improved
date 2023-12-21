@@ -128,7 +128,7 @@ def sh_create_root(scene, params):
 	if (scene.sh_auto_length):
 		sizeZ = 0.0
 		
-		for o in bpy.data.objects:
+		for o in bpy.context.scene.objects:
 			# Find backmost part
 			candZ = o.location[0] - (o.dimensions[0] / 2)
 			
