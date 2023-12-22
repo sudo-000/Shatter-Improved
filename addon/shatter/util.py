@@ -3,9 +3,7 @@ Generic utilities
 """
 
 import os
-import os.path as ospath
 import pathlib
-import tempfile
 from multiprocessing import Process
 import math
 import time

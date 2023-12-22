@@ -21,23 +21,6 @@ import util
 import butil
 import xtea
 
-from bpy.props import (
-	StringProperty,
-	BoolProperty,
-	IntProperty,
-	IntVectorProperty,
-	FloatProperty,
-	FloatVectorProperty,
-	EnumProperty,
-	PointerProperty,
-)
-
-from bpy.types import (
-	Panel,
-	Menu,
-	Operator,
-	PropertyGroup,
-)
 
 class ExportWarnings():
 	"""
@@ -130,15 +113,15 @@ def sh_create_root(scene, params):
 		
 		for o in bpy.context.scene.objects:
 			# Find backmost part
-			candZ = o.location[0] - (o.dimensions[0] / 2)
+			candZ = (-o.location[0]) + o.dimensions[0] / 2
 			
 			# If it's lower that is the new semgent length
-			if (candZ < sizeZ):
+			if (candZ > sizeZ):
 				sizeZ = candZ
 		
 		size[0] = 12.0
 		size[1] = 10.0
-		size[2] = -sizeZ
+		size[2] = sizeZ
 	
 	# VR Multiply setting
 	sh_vrmultiply = params.get("sh_vrmultiply", 1.0)

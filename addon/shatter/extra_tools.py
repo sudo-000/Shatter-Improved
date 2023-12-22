@@ -2,10 +2,7 @@
 Nice extra functions to have in Shatter
 """
 
-import xml.etree.ElementTree as et
 import bake_mesh as bake_mesh
-import os
-import sys
 import util as util
 
 def foreach_segment_in(path, callback):

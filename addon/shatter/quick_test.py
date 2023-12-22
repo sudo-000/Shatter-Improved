@@ -157,6 +157,10 @@ function tick()
 end"""
 	
 	return bytes(room, "utf-8")
+	
+	print()
+	print("Shatter debug: Generated room lua code for quick test: ")
+	print(room)
 
 def doError(self, s = ""):
 	data = bytes(f"404 File Not Found\n\n{s}", "utf-8")

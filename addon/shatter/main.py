@@ -7,11 +7,9 @@ import common as common
 SH_MAX_STR_LEN = common.MAX_STRING_LENGTH
 
 import bpy
-import gzip
 import random
 import os
 import webbrowser
-import tempfile
 import secrets
 import obstacle_db
 import segment_export
@@ -574,8 +572,6 @@ class sh_SceneProperties(PropertyGroup):
 		name = "Gravity",
 		description = "The amount of gravity to use in quick test",
 		default = 1.0,
-		min = -1.0,
-		max = 3.0,
 	)
 	
 	sh_extra_code: StringProperty(
@@ -587,8 +583,8 @@ class sh_SceneProperties(PropertyGroup):
 	sh_room_length: IntProperty(
 		name = "Room length",
 		description = "The length of the room in quick test",
-		default = 100,
-		min = 0,
+		default = 250,
+		min = 1,
 	)
 
 # Object (box/obstacle/powerup/decal/water) properties

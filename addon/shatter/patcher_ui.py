@@ -1,6 +1,4 @@
-import bpy
 import bpy_extras.io_utils
-import os
 import butil
 import patcher
 
@@ -8,19 +6,11 @@ from bpy.props import (
 	StringProperty,
 	BoolProperty,
 	IntProperty,
-	IntVectorProperty,
 	FloatProperty,
-	FloatVectorProperty,
-	EnumProperty,
-	PointerProperty,
 )
 
 from bpy.types import (
-	Panel,
-	Menu,
 	Operator,
-	PropertyGroup,
-	AddonPreferences,
 )
 
 class PatchLibsmashhit(bpy_extras.io_utils.ImportHelper, Operator):
@@ -68,6 +58,8 @@ class PatchLibsmashhit(bpy_extras.io_utils.ImportHelper, Operator):
 		name = "Balls",
 		description = "",
 		default = 25,
+		min = 1,
+		max = 2047,
 	)
 	
 	do_smashhitlabads: BoolProperty(
@@ -104,6 +96,7 @@ class PatchLibsmashhit(bpy_extras.io_utils.ImportHelper, Operator):
 		name = "Angle (degrees)",
 		description = "",
 		default = 60.0,
+		min = 0.0,
 	)
 	
 	do_dropballs: BoolProperty(
@@ -118,6 +111,37 @@ class PatchLibsmashhit(bpy_extras.io_utils.ImportHelper, Operator):
 		default = 10,
 	)
 	
+	do_checkpoints: BoolProperty(
+		name = "Change checkpoints amount",
+		description = "Allows you to change the total amount of checkpoints. \nNote: The starting checkpoint count as checkpoint 0",
+		default = False,
+	)
+	
+	checkpoints: IntProperty(
+		name = "Checkpoints",
+		description = "",
+		default = 12,
+		min = 0,
+	)
+	
+	do_segmentrealpaths: BoolProperty(
+		name = "Use absolute paths for segments",
+		description = "Forcing the game to use absolute paths. ",
+		default = False,
+	)
+	
+	do_obstaclerealpaths: BoolProperty(
+		name = "Use absolute paths for obstacles",
+		description = "Forcing the game to use absolute paths. ",
+		default = False,
+	)
+	
+	do_realpaths: BoolProperty(
+		name = "Use absolute paths for rooms and levels",
+		description = "Forcing the game to absolute paths. ",
+		default = False,
+	)
+	
 	do_roomtime: BoolProperty(
 		name = "Change room time",
 		description = "Change the amount of time spent in each room, in seconds",
@@ -128,6 +152,7 @@ class PatchLibsmashhit(bpy_extras.io_utils.ImportHelper, Operator):
 		name = "Time (seconds)",
 		description = "",
 		default = 32.0,
+		min = 0.0,
 	)
 	
 	do_trainingballs: BoolProperty(
@@ -174,6 +199,10 @@ class PatchLibsmashhit(bpy_extras.io_utils.ImportHelper, Operator):
 		self.drawItem(ui, "savekey", pl)
 		self.drawItem(ui, "fov", pl)
 		self.drawItem(ui, "dropballs", pl)
+		self.drawItem(ui, "checkpoints", pl)
+		self.drawItem(ui, "segmentrealpaths", pl)
+		self.drawItem(ui, "obstaclerealpaths", pl)
+		self.drawItem(ui, "realpaths", pl)
 		self.drawItem(ui, "roomtime", pl)
 		self.drawItem(ui, "trainingballs", pl)
 		self.drawItem(ui, "mglength", pl)
@@ -212,6 +241,18 @@ class PatchLibsmashhit(bpy_extras.io_utils.ImportHelper, Operator):
 		
 		if (self.do_dropballs):
 			patches["dropballs"] = [self.dropballs]
+		
+		if (self.do_checkpoints):
+			patches["checkpoints"] = [self.checkpoints]
+		
+		if (self.do_segmentrealpaths):
+			patches["segmentrealpaths"] = []
+		
+		if (self.do_obstaclerealpaths):
+			patches["obstaclerealpaths"] = []
+		
+		if (self.do_realpaths):
+			patches["realpaths"] = []
 		
 		if (self.do_roomtime):
 			patches["roomtime"] = [self.roomtime]
