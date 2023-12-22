@@ -525,20 +525,20 @@ class sh_SceneProperties(PropertyGroup):
 	
 	sh_reverb: StringProperty(
 		name = "Reverb",
-		description = "Reverb parameters in quick test. No one knows what these do ‾\\_o_/‾",
-		default = "",
+		description = "Reverb parameters in quick test. \nTakes 3 float parameters, separated by comma: \noutput - The volume of the reverberation effect; if 0, turns the effect off\nreverberation_time - Reverberation time of the effect\nlowpass - Strength of the low-pass filter applied to the reverberation effect",
+		default = "0.0,0.0,0.0",
 	)
 	
 	sh_echo: StringProperty(
 		name = "Echo",
-		description = "Echo parameters in quick test. No one knows what these do ‾\\_o_/‾",
-		default = "",
+		description = "Echo parameters in quick test. \nTakes 4 float parameters, separated by comma: \noutput - Volume of the echo effect; if 0, turns the effect off\ndelay_time - Feedback delay time; if higher than 1, will be set to 1\nfeedback - Volume of the feedbacks\nlowpass - Strength of the low-pass filter applied to every feedback",
+		default = "0.0,0.0,0.0,0.0",
 	)
 	
 	sh_rotation: StringProperty(
 		name = "Rotation",
-		description = "The rotation of the room in quick test. The first param is required and is the amount of rotations to do, the second is optional and is the angle of the rotations in radians",
-		default = "",
+		description = "The rotation of the room in quick test. \nTakes 2 float parameters, separated by comma: \nspeed - How fast the rotation will be, this parameter is required. \namount - The amount of rotation in radians, this parameter is optional. ",
+		default = "0.0,0.0",
 	)
 	
 	sh_particles: EnumProperty(
