@@ -548,13 +548,16 @@ class sh_SceneProperties(PropertyGroup):
 		description = "The particles that appear when looking at the stage in quick test",
 		items = (
 			("None", "None", ""),
-			("starfield", "Star feild", ""),
+			("bubbles", "Bubbles", ""),
+			("sides", "Sides", ""),
 			("lowrising", "Low rising 1", ""),
 			("lowrising2", "Low rising 2", ""),
+			("lowrising3", "Low rising 3", ""),
 			("sidesrising", "Sides rising", ""),
+			("falling", "Falling", ""),
 			("fallinglite", "Falling lite", ""),
-			("bubbles", "Bubbles", ""),
 			("dustyfalling", "Dusty falling", ""),
+			("starfield", "Star field", ""),
 		),
 		default = "None",
 	)
