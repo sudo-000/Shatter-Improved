@@ -16,6 +16,7 @@ import secrets
 import obstacle_db
 import segment_export
 import segment_import
+import room_export
 import segstrate
 import extra_tools
 import quick_test
@@ -62,55 +63,7 @@ def get_prefs():
 	
 	return bpy.context.preferences.addons["shatter"].preferences
 
-class ExportHelper2:
-	"""
-	Extended from blender's default ExportHelper to fix some bugs.
-	"""
-	
-	filepath: StringProperty(
-		name = "File Path",
-		description = "Filepath used for exporting the file",
-		maxlen = 1024,
-		subtype = 'FILE_PATH',
-	)
-	
-	check_existing: BoolProperty(
-		name = "Check Existing",
-		description = "Check and warn on overwriting existing files",
-		default = True,
-		options = {'HIDDEN'},
-	)
-	
-	# subclasses can override with decorator
-	# True == use ext, False == no ext, None == do nothing.
-	check_extension = True
-	
-	def invoke(self, context, _event):
-		if not self.filepath:
-			blend_filepath = context.blend_data.filepath
-			if not blend_filepath:
-				blend_filepath = "untitled"
-			else:
-				blend_filepath = os.path.splitext(blend_filepath)[0]
-			
-			self.filepath = blend_filepath + self.filename_ext
-		
-		context.window_manager.fileselect_add(self)
-		return {'RUNNING_MODAL'}
-	
-	def check(self, _context):
-		"""
-		Custom version of filepath check that fixes issues with two dots in names
-		"""
-		
-		change_ext = False
-		
-		if self.check_extension is not None and self.check_extension:
-			if not self.filepath.endswith(self.filename_ext):
-				self.filepath += self.filename_ext
-				change_ext = True
-		
-		return change_ext
+ExportHelper2 = butil.ExportHelper2
 
 class sh_ExportCommon(bpy.types.Operator, ExportHelper2):
 	"""
@@ -521,25 +474,25 @@ class sh_SceneProperties(PropertyGroup):
 	
 	sh_music: StringProperty(
 		name = "Music track",
-		description = "Name of the music file to play in quick test. The track must be in the apk. Default is to choose a random track",
+		description = "Name of the music file to play in quick test. The track must be in the apk. Default is to choose a random track. Using \\ in the name will break it :-)",
 		default = "",
 	)
 	
 	sh_reverb: StringProperty(
 		name = "Reverb",
-		description = "Reverb parameters in quick test. No one knows what these do ‾\\_o_/‾",
+		description = "Reverb parameters as real numbers sepreated by spaces. [volume: [0, 1]] [reverb time: sec] [lowpass amount: [0, 1]]",
 		default = "",
 	)
 	
 	sh_echo: StringProperty(
 		name = "Echo",
-		description = "Echo parameters in quick test. No one knows what these do ‾\\_o_/‾",
+		description = "Echo parameters as real numbers sepreated by spaces. [volume: [0, 1]] [delay: sec] [feedback volume: [0, 1]] [lowpass amount: [0, 1]]",
 		default = "",
 	)
 	
 	sh_rotation: StringProperty(
 		name = "Rotation",
-		description = "The rotation of the room in quick test. The first param is required and is the amount of rotations to do, the second is optional and is the angle of the rotations in radians",
+		description = "The rotation parameters as real numbers sepreated by spaces. [amount of rotations: int] [angle: radians]",
 		default = "",
 	)
 	
@@ -1437,6 +1390,7 @@ class SHATTER_MT_3DViewportMenuExtras(Menu):
 	def draw(self, context):
 		self.layout.operator("shatter.export_all_auto")
 		self.layout.operator("shatter.export_level_package")
+		self.layout.operator("shatter.export_room")
 		self.layout.operator("shatter.rebake_meshes")
 		self.layout.operator("shatter.progression_crypto")
 		self.layout.operator("shatter.segstrate_static")
@@ -1945,6 +1899,7 @@ classes = (
 	patcher_ui.PatchLibsmashhit,
 	progression_crypto_ui.ProgressionCrypto,
 	RandomiseKeyphrase,
+	room_export.ExportRoom,
 )
 
 keymaps = {

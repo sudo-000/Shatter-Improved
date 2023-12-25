@@ -130,6 +130,56 @@ class UIDrawingHelper():
 		self.region("ERROR", message, new = False)
 		self.end()
 
+class ExportHelper2:
+	"""
+	Extended from blender's default ExportHelper to fix some bugs.
+	"""
+	
+	filepath: bpy.props.StringProperty(
+		name = "File Path",
+		description = "Filepath used for exporting the file",
+		maxlen = 1024,
+		subtype = 'FILE_PATH',
+	)
+	
+	check_existing: bpy.props.BoolProperty(
+		name = "Check Existing",
+		description = "Check and warn on overwriting existing files",
+		default = True,
+		options = {'HIDDEN'},
+	)
+	
+	# subclasses can override with decorator
+	# True == use ext, False == no ext, None == do nothing.
+	check_extension = True
+	
+	def invoke(self, context, _event):
+		if not self.filepath:
+			blend_filepath = context.blend_data.filepath
+			if not blend_filepath:
+				blend_filepath = "untitled"
+			else:
+				blend_filepath = os.path.splitext(blend_filepath)[0]
+			
+			self.filepath = blend_filepath + self.filename_ext
+		
+		context.window_manager.fileselect_add(self)
+		return {'RUNNING_MODAL'}
+	
+	def check(self, _context):
+		"""
+		Custom version of filepath check that fixes issues with two dots in names
+		"""
+		
+		change_ext = False
+		
+		if self.check_extension is not None and self.check_extension:
+			if not self.filepath.endswith(self.filename_ext):
+				self.filepath += self.filename_ext
+				change_ext = True
+		
+		return change_ext
+
 def find_assets_paths(*, search_default = True, search_apk = True):
 	"""
 	Detect all valid assets paths and return them as a list
