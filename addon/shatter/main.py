@@ -17,7 +17,6 @@ import obstacle_db
 import segment_export
 import segment_import
 import room_export
-import segstrate
 import extra_tools
 import quick_test
 import updater
@@ -223,34 +222,6 @@ class sh_import_gz(bpy.types.Operator, ImportHelper):
 
 def sh_draw_import_gz(self, context):
 	self.layout.operator("shatter.import_gz", text="Compressed Segment (.xml.gz.mp3)")
-
-class sh_static_segstrate(bpy.types.Operator, ImportHelper):
-	"""
-	Allows you to permantently lock an APK file using segstrate. You won't be
-	able to add any new segments after this! Segstrate makes it harder to copy
-	any segments in your mod, but it is still possible for someone with
-	exprience. To use it, select the main folder of the mod (e.g. the one where
-	you can see assets, lib, res, etc.) and then click the main button.
-	"""
-	
-	bl_idname = "shatter.segstrate_static"
-	bl_label = "Lock APK with Segstrate"
-	
-	agreement: BoolProperty(
-		name = "Agree to notice (hover to see)",
-		description = "Locking your APK will make you unable to import or export any segments to the APK. Please only use this when you are making a copy of the APK that you want to distribute.",
-		default = False,
-	)
-	
-	def execute(self, context):
-		if (self.agreement):
-			context.window.cursor_set('WAIT')
-			segstrate.setup_apk(self.filepath, False)
-			context.window.cursor_set('DEFAULT')
-		else:
-			butil.show_message("Segstrate error", "The agreement has not been accepted and the protection has not been preformed.")
-		
-		return {"FINISHED"}
 
 class sh_rebake_meshes(bpy.types.Operator, ImportHelper):
 	"""
@@ -1878,7 +1849,6 @@ classes = (
 	sh_export_test,
 	sh_import,
 	sh_import_gz,
-	sh_static_segstrate,
 	sh_rebake_meshes,
 	SHATTER_MT_3DViewportMenuExtras,
 	SHATTER_MT_3DViewportMenu,
@@ -1916,8 +1886,6 @@ keymaps = {
 	
 	"I": "shatter.import",
 	"O": "shatter.import_gz",
-	
-	"Y": "shatter.segstrate_static",
 }
 
 keymaps_registered = []

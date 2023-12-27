@@ -652,21 +652,24 @@ def parseTemplatesXml(path):
 	
 	result = {}
 	
-	tree = et.parse(path)
-	root = tree.getroot()
-	
-	assert("templates" == root.tag)
-	
-	# Loop over templates in XML file and load them
-	for child in root:
-		assert("template" == child.tag)
+	try:
+		tree = et.parse(path)
+		root = tree.getroot()
 		
-		name = child.attrib["name"]
-		attribs = child[0].attrib
+		assert("templates" == root.tag)
 		
-		result[name] = attribs
-	
-	return result
+		# Loop over templates in XML file and load them
+		for child in root:
+			assert("template" == child.tag)
+			
+			name = child.attrib["name"]
+			attribs = child[0].attrib
+			
+			result[name] = attribs
+		
+		return result
+	except:
+		return result
 
 
 def generateSubdividedFaceGeometry(minest, maxest, s_size, t_size, colour, tile, tileRot, seg, normal, gradient):

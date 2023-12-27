@@ -15,7 +15,6 @@ import json
 import pathlib
 import common
 import bake_mesh
-import segstrate
 import obstacle_db
 import util
 import butil
@@ -548,21 +547,24 @@ def parseTemplatesXml(path):
 	
 	result = {}
 	
-	tree = et.parse(path)
-	root = tree.getroot()
-	
-	assert("templates" == root.tag)
-	
-	# Loop over templates in XML file and load them
-	for child in root:
-		assert("template" == child.tag)
+	try:
+		tree = et.parse(path)
+		root = tree.getroot()
 		
-		name = child.attrib["name"]
-		attribs = child[0].attrib
+		assert("templates" == root.tag)
 		
-		result[name] = attribs
-	
-	return result
+		# Loop over templates in XML file and load them
+		for child in root:
+			assert("template" == child.tag)
+			
+			name = child.attrib["name"]
+			attribs = child[0].attrib
+			
+			result[name] = attribs
+		
+		return result
+	except:
+		return result
 
 def solveTemplates(segment_text, templates = {}):
 	"""
@@ -646,11 +648,8 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 	params["warnings"] = ExportWarnings()
 	params["box_counter"] = ExportCounter()
 	
-	# Marking for segstrate
-	segstrate_path = None
-	
 	# If the filepath is None, then find it from the apk, force enable
-	# compression and enable segstrate (if wanted)
+	# compression.
 	if (filepath == None and params.get("auto_find_filepath", False)):
 		props = scene.sh_properties
 		
@@ -663,8 +662,6 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 		if ((not props.sh_level or not props.sh_room or not props.sh_segment) and (not props.sh_segment)):
 			butil.show_message("Export error", "You have not set one of the level, room or segment name properties needed to use auto export to apk feature. Please set these in the scene tab and try again.")
 			return {"FINISHED"}
-		
-		segstrate_path = filepath + "/slk" if ospath.exists(filepath + "/slk") else None
 		
 		# Real file path
 		filepath += "/segments/" + props.sh_level + "/" + props.sh_room + "/" + props.sh_segment + (".xml.gz.mp3" if compress else ".xml.mp3")
@@ -753,11 +750,6 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 	# Preform template resolution if it is enabled for all segments
 	if (context.preferences.addons["shatter"].preferences.resolve_templates and templates):
 		content = solveTemplates(content, parseTemplatesXml(templates))
-	
-	# DEPRECATED
-	# Do segstrate protection if we need that
-	if (segstrate_path):
-		content = segstrate.replace_tags(content, util.get_file_json(segstrate_path))
 	
 	# Encode the data as bytes
 	content = content.encode()
