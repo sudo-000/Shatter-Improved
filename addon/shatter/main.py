@@ -1393,7 +1393,6 @@ class SHATTER_MT_3DViewportMenuExtras(Menu):
 		self.layout.operator("shatter.export_room")
 		self.layout.operator("shatter.rebake_meshes")
 		self.layout.operator("shatter.progression_crypto")
-		self.layout.operator("shatter.segstrate_static")
 		self.layout.operator("shatter.patch_libsmashhit")
 
 class OpenShatterCreditsPage(Operator):
