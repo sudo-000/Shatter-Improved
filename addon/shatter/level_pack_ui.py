@@ -24,8 +24,10 @@ from bpy.types import (
 )
 
 class ExportLevelPackage(bpy_extras.io_utils.ExportHelper, Operator):
+	"""Create a ZIP file from a room in an open APK or an assets folder. This will also include some standard JSON packaging files so it can be installed using a mod manager"""
+	
 	bl_idname = "shatter.export_level_package"
-	bl_label = "Create level package"
+	bl_label = "Export level package"
 	
 	filename_ext = ".zip"
 	

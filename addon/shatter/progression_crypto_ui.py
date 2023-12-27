@@ -24,12 +24,10 @@ from bpy.types import (
 )
 
 class ProgressionCrypto(bpy_extras.io_utils.ImportHelper, Operator):
-	"""
-	Encrypt or decrypt a smash hit progression.xml file
-	"""
+	"""Encrypts or decrypts a progression.xml (save file) from any Mediocre game, filled with the key for Smash Hit by default"""
 	
 	bl_idname = "shatter.progression_crypto"
-	bl_label = "Encrypt or decrypt savefile"
+	bl_label = "Encrypt or decrypt progression.xml"
 	
 	filename_ext = ".xml"
 	

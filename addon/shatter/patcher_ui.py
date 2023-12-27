@@ -24,10 +24,7 @@ from bpy.types import (
 )
 
 class PatchLibsmashhit(bpy_extras.io_utils.ImportHelper, Operator):
-	"""
-	Patch a libsmashhit.so file (android game binary) with some common fixes and
-	tweaks.
-	"""
+	"""Patches libsmashhit.so, allowing you to make various tweaks to the gameplay and fix problems or add features. This will not work on all versions and architectures, please refer to the wiki for more information"""
 	
 	bl_idname = "shatter.patch_libsmashhit"
 	bl_label = "Patch libsmashhit.so"

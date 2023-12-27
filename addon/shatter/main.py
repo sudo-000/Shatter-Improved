@@ -89,9 +89,7 @@ class sh_ExportCommon(bpy.types.Operator, ExportHelper2):
 # UNCOMPRESSED
 ################################################################################
 class sh_export(sh_ExportCommon):
-	"""
-	Uncompressed segment export
-	"""
+	"""Export an uncompressed (.xml.mp3) segment"""
 	
 	bl_idname = "shatter.export"
 	bl_label = "Export Segment"
@@ -110,10 +108,9 @@ def sh_draw_export(self, context):
 ################################################################################
 # COMPRESSED
 ################################################################################
+
 class sh_export_gz(sh_ExportCommon):
-	"""
-	Compressed segment export
-	"""
+	"""Export a compressed (.xml.gz.mp3) segment. Choose this when you don't know which to use"""
 	
 	bl_idname = "shatter.export_compressed"
 	bl_label = "Export Compressed Segment"
@@ -133,9 +130,7 @@ def sh_draw_export_gz(self, context):
 # AUTO EXPORT
 ################################################################################
 class sh_export_auto(bpy.types.Operator):
-	"""
-	Auto find APK path and use level/room/segment name to export
-	"""
+	"""Automatically find an asset path and save the segment to the segments folder in the correct location from the info given in the scene tab"""
 	
 	bl_idname = "shatter.export_auto"
 	bl_label = "Export to APK"
@@ -145,17 +140,14 @@ class sh_export_auto(bpy.types.Operator):
 		
 		return {"FINISHED"}
 
-def sh_draw_export_auto(self, context):
-	self.layout.operator("shatter.export_auto", text="Shatter: Export to APK")
+# def sh_draw_export_auto(self, context):
+# 	self.layout.operator("shatter.export_auto", text="Shatter: Export to APK")
 
 ################################################################################
 # AUTO EXPORT ALL SCENES
 ################################################################################
 class sh_export_all_auto(bpy.types.Operator):
-	"""
-	Auto find APK path and use level/room/segment name to export for all scenes
-	in this blender file
-	"""
+	"""Automatically find an asset path and export every segment in this file to the proper locations"""
 	
 	bl_idname = "shatter.export_all_auto"
 	bl_label = "Export all to APK"
@@ -165,16 +157,14 @@ class sh_export_all_auto(bpy.types.Operator):
 		
 		return {"FINISHED"}
 
-def sh_draw_export_all_auto(self, context):
-	self.layout.operator("shatter.export_all_auto", text="Shatter: Export All to APK")
+# def sh_draw_export_all_auto(self, context):
+# 	self.layout.operator("shatter.export_all_auto", text="Shatter: Export All to APK")
 
 ################################################################################
 # TESTSERVER
 ################################################################################
 class sh_export_test(Operator):
-	"""
-	Compressed segment export
-	"""
+	"""Export a segment to the quick test server"""
 	
 	bl_idname = "shatter.export_test_server"
 	bl_label = "Export segment to test server"
@@ -184,13 +174,11 @@ class sh_export_test(Operator):
 		
 		return {"FINISHED"}
 
-def sh_draw_export_test(self, context):
-	self.layout.operator("shatter.export_test_server", text="Shatter: Quick Test Server")
+# def sh_draw_export_test(self, context):
+# 	self.layout.operator("shatter.export_test_server", text="Shatter: Quick Test Server")
 
 class sh_import(bpy.types.Operator, ImportHelper):
-	"""
-	Import for uncompressed segments
-	"""
+	"""Imports an uncompressed (.xml.mp3) segment to the current scene"""
 	
 	bl_idname = "shatter.import"
 	bl_label = "Import Segment"
@@ -206,9 +194,7 @@ def sh_draw_import(self, context):
 	self.layout.operator("shatter.import", text="Segment (.xml.mp3)")
 
 class sh_import_gz(bpy.types.Operator, ImportHelper):
-	"""
-	Import for compressed segments
-	"""
+	"""Imports a compressed (.xml.gz.mp3) segment to the current scene"""
 	
 	bl_idname = "shatter.import_gz"
 	bl_label = "Import Compressed Segment"
@@ -224,12 +210,10 @@ def sh_draw_import_gz(self, context):
 	self.layout.operator("shatter.import_gz", text="Compressed Segment (.xml.gz.mp3)")
 
 class sh_rebake_meshes(bpy.types.Operator, ImportHelper):
-	"""
-	Rebake many meshes from a selected folder
-	"""
+	"""Rebake many meshes from a selected folder"""
 	
 	bl_idname = "shatter.rebake_meshes"
-	bl_label = "Rebake multipule meshes"
+	bl_label = "Batch re-bake meshes"
 	
 	def execute(self, context):
 		assets = butil.find_apk()
@@ -1287,9 +1271,7 @@ class sh_ItemPropertiesPanel(Panel):
 		ui.prop("sh_export")
 
 class sh_CreateBox(Operator):
-	"""
-	Operator to create a box
-	"""
+	"""Creates a new box"""
 	
 	bl_idname = "shatter.create_box"
 	bl_label = "Create box"
@@ -1300,9 +1282,7 @@ class sh_CreateBox(Operator):
 		return {"FINISHED"}
 
 class sh_CreateObstacle(Operator):
-	"""
-	Operator to create a obstacle
-	"""
+	"""Creates a new obstacle"""
 	
 	bl_idname = "shatter.create_obstacle"
 	bl_label = "Create obstacle"
@@ -1314,9 +1294,7 @@ class sh_CreateObstacle(Operator):
 		return {"FINISHED"}
 
 class sh_CreateDecal(Operator):
-	"""
-	Operator to create a decal
-	"""
+	"""Creates a new decal"""
 	
 	bl_idname = "shatter.create_decal"
 	bl_label = "Create decal"
@@ -1328,9 +1306,7 @@ class sh_CreateDecal(Operator):
 		return {"FINISHED"}
 
 class sh_CreatePowerup(Operator):
-	"""
-	Operator to create a powerup
-	"""
+	"""Creates a new powerup"""
 	
 	bl_idname = "shatter.create_powerup"
 	bl_label = "Create powerup"
@@ -1342,9 +1318,7 @@ class sh_CreatePowerup(Operator):
 		return {"FINISHED"}
 
 class sh_CreateWater(Operator):
-	"""
-	Operator to create a water
-	"""
+	"""Creates a new water plane"""
 	
 	bl_idname = "shatter.create_water"
 	bl_label = "Create water"
@@ -1359,17 +1333,20 @@ class SHATTER_MT_3DViewportMenuExtras(Menu):
 	bl_label = "Extra features"
 	
 	def draw(self, context):
-		self.layout.operator("shatter.export_all_auto")
-		self.layout.operator("shatter.export_level_package")
-		self.layout.operator("shatter.export_room")
-		self.layout.operator("shatter.rebake_meshes")
-		self.layout.operator("shatter.progression_crypto")
+		self.layout.label(text = "Common")
 		self.layout.operator("shatter.patch_libsmashhit")
+		self.layout.operator("shatter.rebake_meshes")
+		self.layout.separator()
+		self.layout.label(text = "Export")
+		self.layout.operator("shatter.export_all_auto")
+		self.layout.operator("shatter.export_room")
+		self.layout.operator("shatter.export_level_package")
+		self.layout.separator()
+		self.layout.label(text = "Others")
+		self.layout.operator("shatter.progression_crypto")
 
 class OpenShatterCreditsPage(Operator):
-	"""
-	Operator to create a water
-	"""
+	"""Open Shatter's credits web page"""
 	
 	bl_idname = "shatter.open_credits_page"
 	bl_label = "Credits and Third Party Libraries"
@@ -1384,9 +1361,7 @@ class OpenShatterCreditsPage(Operator):
 		return {"FINISHED"}
 
 class OpenShatterPrivacyPage(Operator):
-	"""
-	Operator to create a water
-	"""
+	"""Open Shatter's statement about privacy and security"""
 	
 	bl_idname = "shatter.open_privacy_page"
 	bl_label = "Privacy and Security Statement"
@@ -1396,9 +1371,7 @@ class OpenShatterPrivacyPage(Operator):
 		return {"FINISHED"}
 
 class OpenShatterDiscord(Operator):
-	"""
-	Operator to open shatter discrd
-	"""
+	"""Get a join link for the Smash Hit Lab discord"""
 	
 	bl_idname = "shatter.open_discord"
 	bl_label = "Join the Smash Hit Lab Discord"
@@ -1631,9 +1604,7 @@ class AutogenPanel(Panel):
 		layout.separator()
 
 class RunRandomiseSeedAction(bpy.types.Operator):
-	"""
-	Run the seed randomiser action
-	"""
+	"""Choses a random seed in the range [0, 2 ^ 31 - 1]"""
 	
 	bl_idname = "shatter.randomise_autogen_seed"
 	bl_label = "Randomise Autogen Seed"
@@ -1758,9 +1729,7 @@ class BlenderPlacer:
 			o.select_set(True)
 
 class RunAutogenAction(bpy.types.Operator):
-	"""
-	Run the automatic generator
-	"""
+	"""Runs the automatic generator with the current settings"""
 	
 	bl_idname = "shatter.run_autogen"
 	bl_label = "Run Shatter Autogen"
@@ -1771,6 +1740,8 @@ class RunAutogenAction(bpy.types.Operator):
 		Furries Furries Furries Furries Furries Furries Furries Furries Furries
 		Furries Furries Furries Furries Furries Furries Furries Furries Furries
 		Furries Furries Furries Furries Furries Furries Furries Furries Furries
+		
+		COMMENT @knot126: npesta moment
 		"""
 		
 		props = context.scene.shatter_autogen
@@ -1903,9 +1874,9 @@ def register():
 	# Add the export operator to menu
 	bpy.types.TOPBAR_MT_file_export.append(sh_draw_export)
 	bpy.types.TOPBAR_MT_file_export.append(sh_draw_export_gz)
-	bpy.types.TOPBAR_MT_file_export.append(sh_draw_export_auto)
-	bpy.types.TOPBAR_MT_file_export.append(sh_draw_export_all_auto)
-	bpy.types.TOPBAR_MT_file_export.append(sh_draw_export_test)
+	# bpy.types.TOPBAR_MT_file_export.append(sh_draw_export_auto)
+	# bpy.types.TOPBAR_MT_file_export.append(sh_draw_export_all_auto)
+	# bpy.types.TOPBAR_MT_file_export.append(sh_draw_export_test)
 	
 	# Add import operators to menu
 	bpy.types.TOPBAR_MT_file_import.append(sh_draw_import)
@@ -1937,6 +1908,9 @@ def register():
 	run_updater()
 	
 	# A little easter egg for those who remember
+	# Also, I'd love for Shasa and Smashkit to do something useful or shut the
+	# fuck up about stolen segments. It's annoying to see them complain a lot
+	# then not accept any solution to the problem.
 	print(f"User has been detected as bad user: False")
 
 def unregister():
@@ -1945,9 +1919,9 @@ def unregister():
 	# Remove export operators
 	bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export)
 	bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export_gz)
-	bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export_auto)
-	bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export_all_auto)
-	bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export_test)
+	# bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export_auto)
+	# bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export_all_auto)
+	# bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export_test)
 	
 	# Remove import operators
 	bpy.types.TOPBAR_MT_file_import.remove(sh_draw_import)

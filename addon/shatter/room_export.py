@@ -8,9 +8,7 @@ import butil
 import util
 
 class ExportRoom(bpy.types.Operator, butil.ExportHelper2):
-	"""
-	Uncompressed segment export
-	"""
+	"""Export a room with the same settings as those selected in the Quick Test panel"""
 	
 	bl_idname = "shatter.export_room"
 	bl_label = "Export Quick Test config to room"
