@@ -21,23 +21,6 @@ import util
 import butil
 import xtea
 
-from bpy.props import (
-	StringProperty,
-	BoolProperty,
-	IntProperty,
-	IntVectorProperty,
-	FloatProperty,
-	FloatVectorProperty,
-	EnumProperty,
-	PointerProperty,
-)
-
-from bpy.types import (
-	Panel,
-	Menu,
-	Operator,
-	PropertyGroup,
-)
 
 class ExportWarnings():
 	"""

@@ -8,9 +8,7 @@ with randomised strings.
 import xml.etree.ElementTree as et
 import os
 import os.path
-import sys
 import secrets
-import common as common
 import util as util
 from patcher import Patcher
 
