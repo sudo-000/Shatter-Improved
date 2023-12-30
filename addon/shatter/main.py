@@ -949,10 +949,10 @@ class sh_AddonPreferences(AddonPreferences):
 		default = False,
 	)
 	
-	show_gradient_raw: BoolProperty(
-		name = "Enable linear gradient editor",
-		description = "Always show the box to edit linear gradients, instead of just when a box has one already set",
-		default = True,
+	purist_mode: BoolProperty(
+		name = "Limit UI to officially supported features",
+		description = "Removes shatter extras from the UI, for example gradients and advanced lighting",
+		default = False,
 	)
 	
 	compact_ui: BoolProperty(
@@ -1033,8 +1033,11 @@ class sh_AddonPreferences(AddonPreferences):
 		ui.prop("enable_segment_warnings")
 		ui.prop("auto_export_compressed")
 		ui.prop("resolve_templates")
-		ui.prop("show_gradient_raw")
+		ui.end()
+		
+		ui.region("PREFERENCES", "Interface")
 		ui.prop("compact_ui")
+		ui.prop("purist_mode")
 		ui.end()
 		
 		ui.region("WORLD", "Network features")
@@ -1049,12 +1052,12 @@ class sh_AddonPreferences(AddonPreferences):
 		
 		ui.region("LOCKED", "Protection")
 		ui.prop("force_disallow_import")
-		ui.prop("segment_encrypt")
-		
-		if (self.segment_encrypt):
-			ui.prop("segment_encrypt_password")
-			ui.op("shatter.obfuscation_randomise_keyphrase")
-			ui.warn("Segment obfuscation is not supported ingame. Developers only!")
+# 		ui.prop("segment_encrypt")
+# 		
+# 		if (self.segment_encrypt):
+# 			ui.prop("segment_encrypt_password")
+# 			ui.op("shatter.obfuscation_randomise_keyphrase")
+# 			ui.warn("Segment obfuscation is not supported ingame. Developers only!")
 		
 		ui.end()
 	
@@ -1133,9 +1136,10 @@ class sh_SegmentPanel(Panel):
 				sub.prop(sh_properties, "sh_light_front")
 				sub.prop(sh_properties, "sh_light_back")
 			
-			sub.prop(sh_properties, "sh_lighting")
-			if (sh_properties.sh_lighting):
-				sub.prop(sh_properties, "sh_lighting_ambient")
+			if (not get_prefs().purist_mode or sh_properties.sh_lighting):
+				sub.prop(sh_properties, "sh_lighting")
+				if (sh_properties.sh_lighting):
+					sub.prop(sh_properties, "sh_lighting_ambient")
 			
 			# Mesh settings
 			sub = layout.box()
@@ -1223,7 +1227,7 @@ class sh_ItemPropertiesPanel(Panel):
 				
 				ui.end()
 			
-			if (get_prefs().show_gradient_raw or ui.get("sh_graddir") != "none"):
+			if (not get_prefs().purist_mode or ui.get("sh_graddir") != "none"):
 				ui.region("NODE_TEXTURE", "Gradient")
 				v = ui.prop("sh_graddir", text_compact = "Gradient direction")
 				
