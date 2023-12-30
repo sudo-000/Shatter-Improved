@@ -912,6 +912,17 @@ class sh_EntityProperties(PropertyGroup):
 class sh_AddonPreferences(AddonPreferences):
 	bl_idname = "shatter"
 	
+	tab: EnumProperty(
+		name = "",
+		description = "",
+		items = [
+			('Settings', "Settings", ""),
+			('Extensions', "Extensions", ""),
+			('About', "About", ""),
+		],
+		default = "Settings",
+	)
+	
 	## General ##
 	default_assets_path: StringProperty(
 		name = "Default assets path",
@@ -998,7 +1009,6 @@ class sh_AddonPreferences(AddonPreferences):
 	segment_encrypt_password: StringProperty(
 		name = "Keyphrase",
 		description = "The unique keyphrase to obfuscate segments with. This should be a mix of random symbols, similar to a password, but does not need to be memorable",
-		# subtype = "PASSWORD",
 		default = "",
 	)
 	
@@ -1007,6 +1017,17 @@ class sh_AddonPreferences(AddonPreferences):
 		
 		ui = butil.UIDrawingHelper(context, self.layout, self)
 		
+		# tab = ui.prop("tab", use_tabs = True)
+		# HACK Make this part of the generic thing
+		r = self.layout.row(align = True)
+		r.prop_enum(self, "tab", "Settings")
+		r.prop_enum(self, "tab", "Extensions")
+		r.prop_enum(self, "tab", "About")
+		tab = self.tab
+		
+		getattr(self, f"draw_{tab.lower()}")(ui)
+	
+	def draw_settings(self, ui):
 		ui.region("PREFERENCES", "General options")
 		ui.prop("default_assets_path")
 		ui.prop("enable_segment_warnings")
@@ -1036,7 +1057,11 @@ class sh_AddonPreferences(AddonPreferences):
 			ui.warn("Segment obfuscation is not supported ingame. Developers only!")
 		
 		ui.end()
-		
+	
+	def draw_extensions(self, ui):
+		ui.label("Coming soon")
+	
+	def draw_about(self, ui):
 		ui.region("INFO", "About Shatter")
 		ui.op("shatter.open_discord")
 		ui.op("shatter.open_credits_page")

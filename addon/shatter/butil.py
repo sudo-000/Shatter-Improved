@@ -85,7 +85,7 @@ class UIDrawingHelper():
 		
 		self.layout[-1].label(text = text)
 	
-	def prop(self, symbol, *, icon = None, text = None, text_compact = None, use_button = False, disabled = False):
+	def prop(self, symbol, *, icon = None, text = None, text_compact = None, use_button = False, disabled = False, use_tabs = False):
 		"""
 		Draw the property with the given options
 		
@@ -114,7 +114,10 @@ class UIDrawingHelper():
 		if (type(self.get(symbol)) != set):
 			self.layout[-1].prop(self.obj, symbol, **args)
 		else:
-			self.layout[-1].props_enum(self.obj, symbol, **args)
+			if (use_tabs):
+				self.layout[-1].props_enum(self.obj, symbol, **args)
+			else:
+				self.layout[-1].prop_tabs_enum(self.obj, symbol, **args)
 		
 		if (disabled):
 			self.end()
