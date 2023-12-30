@@ -367,7 +367,7 @@ class sh_SceneProperties(PropertyGroup):
 	)
 	
 	sh_lighting: BoolProperty(
-		name = "Lighting",
+		name = "Advanced lighting",
 		description = "Enables some lighting features when baking the mesh",
 		default = False
 	)
@@ -1126,15 +1126,13 @@ class sh_SegmentPanel(Panel):
 			# Lighting
 			sub = layout.box()
 			sub.label(text = "Light", icon = "LIGHT")
-			# sub.prop(sh_properties, "sh_basic_lighting")
-			#if (sh_properties.sh_basic_lighting):
-			if (True):
-				sub.prop(sh_properties, "sh_light_right")
-				sub.prop(sh_properties, "sh_light_left")
-				sub.prop(sh_properties, "sh_light_top")
-				sub.prop(sh_properties, "sh_light_bottom")
-				sub.prop(sh_properties, "sh_light_front")
-				sub.prop(sh_properties, "sh_light_back")
+			
+			sub.prop(sh_properties, "sh_light_right")
+			sub.prop(sh_properties, "sh_light_left")
+			sub.prop(sh_properties, "sh_light_top")
+			sub.prop(sh_properties, "sh_light_bottom")
+			sub.prop(sh_properties, "sh_light_front")
+			sub.prop(sh_properties, "sh_light_back")
 			
 			if (not get_prefs().purist_mode or sh_properties.sh_lighting):
 				sub.prop(sh_properties, "sh_lighting")
