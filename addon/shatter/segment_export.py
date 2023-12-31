@@ -121,7 +121,7 @@ def sh_create_root(scene, params):
 	Creates the main root and returns it
 	"""
 	
-	size = scene.sh_len
+	size = [scene.sh_len[0], scene.sh_len[1], scene.sh_len[2]]
 	
 	# Automatic length detection
 	if (scene.sh_auto_length):
