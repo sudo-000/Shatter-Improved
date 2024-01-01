@@ -55,14 +55,8 @@ g_process_test_server = True
 # :-3
 g_got_ricked = False
 
-def get_prefs():
-	"""
-	Get a reference to the addon preferences
-	"""
-	
-	return bpy.context.preferences.addons["shatter"].preferences
-
 ExportHelper2 = butil.ExportHelper2
+get_prefs = butil.prefs
 
 class sh_ExportCommon(bpy.types.Operator, ExportHelper2):
 	"""
@@ -930,7 +924,6 @@ class sh_AddonPreferences(AddonPreferences):
 		default = "Settings",
 	)
 	
-	## General ##
 	default_assets_path: StringProperty(
 		name = "Default assets path",
 		description = "The path to your Smash Hit assets folder, if you want to override the default automatic APK finding",
@@ -968,7 +961,6 @@ class sh_AddonPreferences(AddonPreferences):
 		default = False,
 	)
 	
-	## Network ##
 	enable_update_notifier: BoolProperty(
 		name = "Enable update checking",
 		description = "Enables checking for updates. This will try to contact github, which may pose a privacy risk",
@@ -997,7 +989,6 @@ class sh_AddonPreferences(AddonPreferences):
 		default = True,
 	)
 	
-	## Protection options ##
 	force_disallow_import: BoolProperty(
 		name = "Always disallow import",
 		description = "Enabling this option will force every segment to have the \"disallow import\" flag set, even if you did not configure it via the obstacle panel. Please note that marking segments with this flag does not prevent someone bypassing it",
@@ -1008,6 +999,15 @@ class sh_AddonPreferences(AddonPreferences):
 		name = "Obfuscate exported segments (alpha)",
 		description = "This will obfuscate segments using a very basic implementation of the XTEA-CTR cipher. THIS IS NOT INTENDED TO BE SECURE OR CONFIDENTIAL IN ANY WAY. Note: In the future there may be mods that allow loading encrypted segments and providing some protection against copying, but this does not exist yet and so this is only for development right now",
 		default = False,
+	)
+	
+	####################
+	## Advanced settings
+	####################
+	mesh_command: StringProperty(
+		name = "External mesh bake command",
+		description = "If specified, this command is run instead of the built-in mesh baker",
+		default = "",
 	)
 	
 	# Yes, I technically imply that this is not a "password" even though it is.

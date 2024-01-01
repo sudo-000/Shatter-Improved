@@ -233,6 +233,13 @@ def find_apk(*, allow_override = True):
 	else:
 		return ""
 
+def prefs():
+	"""
+	Get a reference to the addon preferences
+	"""
+	
+	return bpy.context.preferences.addons["shatter"].preferences
+
 def add_box(pos, size):
 	"""
 	Add a box to the scene and return reference to it
@@ -301,3 +308,4 @@ def ui_region(layout, label = None, icon = None):
 		sub.label(text = label, icon = icon)
 	
 	return sub
+

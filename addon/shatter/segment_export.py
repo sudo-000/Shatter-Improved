@@ -18,7 +18,7 @@ import bake_mesh
 import obstacle_db
 import util
 import butil
-import xtea
+import re
 
 from bpy.props import (
 	StringProperty,
@@ -37,6 +37,8 @@ from bpy.types import (
 	Operator,
 	PropertyGroup,
 )
+
+prefs = butil.prefs
 
 class ExportWarnings():
 	"""
@@ -58,7 +60,7 @@ class ExportWarnings():
 		Display a message with warnings
 		"""
 		
-		if (len(self.warnings) and bpy.context.preferences.addons["shatter"].preferences.enable_segment_warnings):
+		if (len(self.warnings) and prefs().enable_segment_warnings):
 			warnlist = []
 			
 			for warn in self.warnings:
@@ -204,7 +206,7 @@ def sh_create_root(scene, params):
 		seg_props["ambient"] = exportList(scene.sh_lighting_ambient)
 	
 	# Protection
-	if (scene.sh_drm_disallow_import or bpy.context.preferences.addons["shatter"].preferences.force_disallow_import):
+	if (scene.sh_drm_disallow_import or prefs().force_disallow_import):
 		seg_props["drm"] = "NoImport"
 	
 	# Create main root and return it
@@ -659,6 +661,22 @@ def writeQuicktestInfo(tempdir, scene):
 def MB_progress_update_callback(value):
 	bpy.context.window_manager.progress_update(value)
 
+def escape_cmd_param(s):
+	s = s.replace('\\', '\\\\').replace('"', '\\"')
+	return f"\"{s}\""
+
+def run_mesh_cmd(input_path, output_path, params):
+	cmdline = prefs().mesh_command
+	cmdline.replace("$INPUT", escape_cmd_param(input_path))
+	cmdline.replace("$OUTPUT", escape_cmd_param(output_path))
+	
+	print(f"*** RUNNING COMMAND: {cmdline} ***")
+	
+	status = os.system(cmdline)
+	
+	if (status):
+		butil.show_message("Mesh baker error", f"The external mesh baker exited with status {status}.")
+
 def sh_export_segment_ext(filepath, context, scene, compress = False, params = {}):
 	"""
 	This function exports the blender scene to a Smash Hit compatible XML file.
@@ -667,6 +685,7 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 	
 	# Set wait cursor
 	context.window.cursor_set('WAIT')
+	context.window_manager.progress_begin(0.0, 1.0)
 	
 	# Warnings related
 	params["warnings"] = ExportWarnings()
@@ -700,12 +719,9 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 	# Get templates path, needed for later
 	templates = params.get("sh_meshbake_template", None)
 	
-	##
-	## Handle test server mode
-	##
-	
-	# TODO: Split into function exportSegmentTest
+	# Export current segment to test server
 	# TODO Implement mutli segment exporting
+	# TODO Just make this stupid thing part of the normal export flow
 	if (params.get("sh_test_server", False) == True):
 		print("** Export to test server **")
 		
@@ -721,20 +737,21 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 		if (ospath.exists(tempdir + "/segment.mesh")):
 			os.remove(tempdir + "/segment.mesh")
 		
-		context.window_manager.progress_begin(0.0, 1.0)
-		
-		# Write mesh if needed
-		if (params.get("sh_box_bake_mode", "Mesh") == "Mesh"):
-			bake_mesh.BAKE_UNSEEN_FACES = params.get("bake_menu_segment", False)
-			bake_mesh.ABMIENT_OCCLUSION_ENABLED = params.get("bake_vertex_light", True)
-			bake_mesh.LIGHTING_ENABLED = params.get("lighting_enabled", False)
-			bake_mesh.bakeMeshToFile(content, tempdir + "/segment.mesh", templates, bake_mesh.BakeProgressInfo(MB_progress_update_callback))
-		
-		context.window_manager.progress_end()
-		
 		# Write XML
 		with open(tempdir + "/segment.xml", "w") as f:
 			f.write(content)
+		
+		# Write mesh if needed
+		if (params.get("sh_box_bake_mode", "Mesh") == "Mesh"):
+			if (prefs().mesh_command):
+				run_mesh_cmd(tempdir + "/segment.xml", tempdir + "/segment.mesh", params)
+			else:
+				bake_mesh.BAKE_UNSEEN_FACES = params.get("bake_menu_segment", False)
+				bake_mesh.ABMIENT_OCCLUSION_ENABLED = params.get("bake_vertex_light", True)
+				bake_mesh.LIGHTING_ENABLED = params.get("lighting_enabled", False)
+				bake_mesh.bakeMeshToFile(content, tempdir + "/segment.mesh", templates, bake_mesh.BakeProgressInfo(MB_progress_update_callback))
+		
+		context.window_manager.progress_end()
 		
 		# Write quick test JSON room info file
 		writeQuicktestInfo(tempdir, context.scene.sh_properties)
@@ -750,7 +767,13 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 	## Write the file
 	##
 	
-	# TODO: Split into function exportSegmentNormal
+	# Preform template resolution if it is enabled for all segments
+	if (context.preferences.addons["shatter"].preferences.resolve_templates and templates):
+		content = solveTemplates(content, parseTemplatesXml(templates))
+	
+	# Write out file
+	with (gzip.open(filepath, "wb") if compress else open(filepath, "wb")) as f:
+		f.write(content.encode())
 	
 	# Cook the mesh if we need to
 	if (params.get("sh_box_bake_mode", "Mesh") == "Mesh"):
@@ -760,39 +783,17 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 			meshfile = ospath.splitext(meshfile)[0]
 		meshfile += ".mesh.mp3"
 		
-		# Set properties
-		# (TODO: maybe this should be passed to the function instead of just setting global vars?)
-		bake_mesh.BAKE_UNSEEN_FACES = params.get("bake_menu_segment", False)
-		bake_mesh.ABMIENT_OCCLUSION_ENABLED = params.get("bake_vertex_light", True)
-		bake_mesh.LIGHTING_ENABLED = params.get("lighting_enabled", False)
-		
-		# Bake mesh
-		bake_mesh.bakeMeshToFile(content, meshfile, (params["sh_meshbake_template"] if params["sh_meshbake_template"] else None), bake_mesh.BakeProgressInfo(MB_progress_update_callback))
-	
-	context.window_manager.progress_update(0.8)
-	
-	# Preform template resolution if it is enabled for all segments
-	if (context.preferences.addons["shatter"].preferences.resolve_templates and templates):
-		content = solveTemplates(content, parseTemplatesXml(templates))
-	
-	# Encode the data as bytes
-	content = content.encode()
-	
-	# Segment encryption, if this has been requested
-	# TODO Compress before encrypt since otherwise compression is just overhead
-	# TODO Check that this is actually okay
-	if (context.preferences.addons["shatter"].preferences.segment_encrypt):
-		# We should technically use an actual KDF for this, but I highly dobut
-		# it actually matters for *obfuscating* game assets.
-		key = util.shake256(context.preferences.addons["shatter"].preferences.segment_encrypt_password)
-		nonce, ct = xtea.encrypt(key, content)
-		# Fucking idiot dont print encryption keys
-		# print(f"nonce is {nonce}")
-		content = nonce + ct
-	
-	# Write out file
-	with (gzip.open(filepath, "wb") if compress else open(filepath, "wb")) as f:
-		f.write(content)
+		if (prefs().mesh_command):
+			run_mesh_cmd(filepath, meshfile, params)
+		else:
+			# Set properties
+			# (TODO: maybe this should be passed to the function instead of just setting global vars?)
+			bake_mesh.BAKE_UNSEEN_FACES = params.get("bake_menu_segment", False)
+			bake_mesh.ABMIENT_OCCLUSION_ENABLED = params.get("bake_vertex_light", True)
+			bake_mesh.LIGHTING_ENABLED = params.get("lighting_enabled", False)
+			
+			# Bake mesh
+			bake_mesh.bakeMeshToFile(content, meshfile, (params["sh_meshbake_template"] if params["sh_meshbake_template"] else None), bake_mesh.BakeProgressInfo(MB_progress_update_callback))
 	
 	# Display export warnings, if any and if enabled
 	params["warnings"].display()
