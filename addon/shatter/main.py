@@ -918,7 +918,8 @@ class sh_AddonPreferences(AddonPreferences):
 		description = "",
 		items = [
 			('Settings', "Settings", ""),
-			('Extensions', "Extensions", ""),
+			('Advanced', "Advanced", ""),
+			# ('Extensions', "Extensions", ""),
 			('About', "About", ""),
 		],
 		default = "Settings",
@@ -1028,7 +1029,7 @@ class sh_AddonPreferences(AddonPreferences):
 		# HACK Make this part of the generic thing
 		r = self.layout.row(align = True)
 		r.prop_enum(self, "tab", "Settings")
-		r.prop_enum(self, "tab", "Extensions")
+		r.prop_enum(self, "tab", "Advanced")
 		r.prop_enum(self, "tab", "About")
 		tab = self.tab
 		
@@ -1068,8 +1069,10 @@ class sh_AddonPreferences(AddonPreferences):
 		
 		ui.end()
 	
-	def draw_extensions(self, ui):
-		ui.label("Coming soon")
+	def draw_advanced(self, ui):
+		ui.region("PREFERENCES", "Custom commands")
+		ui.prop("mesh_command")
+		ui.end()
 	
 	def draw_about(self, ui):
 		ui.region("INFO", "About Shatter")

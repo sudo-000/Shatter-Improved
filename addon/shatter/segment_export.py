@@ -667,15 +667,18 @@ def escape_cmd_param(s):
 
 def run_mesh_cmd(input_path, output_path, params):
 	cmdline = prefs().mesh_command
-	cmdline.replace("$INPUT", escape_cmd_param(input_path))
-	cmdline.replace("$OUTPUT", escape_cmd_param(output_path))
+	cmdline = cmdline.replace("$INPUT", escape_cmd_param(input_path))
+	cmdline = cmdline.replace("$OUTPUT", escape_cmd_param(output_path))
+	cmdline = cmdline.replace("$TEMPLATE", escape_cmd_param(params["sh_meshbake_template"]))
 	
-	print(f"*** RUNNING COMMAND: {cmdline} ***")
+	print(f"RUNNING COMMAND: {cmdline}")
 	
 	status = os.system(cmdline)
 	
 	if (status):
 		butil.show_message("Mesh baker error", f"The external mesh baker exited with status {status}.")
+	
+	print(f"\tdone, exit status = {status}")
 
 def sh_export_segment_ext(filepath, context, scene, compress = False, params = {}):
 	"""
