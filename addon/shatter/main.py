@@ -1058,9 +1058,10 @@ class sh_AddonPreferences(AddonPreferences):
 		ui.op("shatter.open_credits_page")
 		ui.op("shatter.open_privacy_page")
 		
-		if (g_got_ricked):
+		if (g_got_ricked or True):
 			ui.region("INFO", "Trolled !!!", new = False)
-			ui.label("Anyway, I hope you are doing well in life :)")
+			import getpass
+			ui.label(f"Anyway, I hope you are doing well in life {getpass.getuser()}. :)")
 			ui.label("-- Knot126")
 			ui.end()
 		
