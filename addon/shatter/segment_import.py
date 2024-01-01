@@ -475,6 +475,9 @@ def sh_import_segment(fp, context, compressed = False):
 			# Set the type
 			o.sh_properties.sh_type = "WAT"
 			
+			# Set the resolution
+			o.sh_properties.sh_resolution = sh_parse_string_array(properties.get("resolution", "32 32"), fallbacks = [32.0, 32.0])
+			
 			# Set hidden
 			o.sh_properties.sh_hidden = (properties.get("hidden", "0") == "1")
 		

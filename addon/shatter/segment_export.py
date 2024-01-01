@@ -113,6 +113,26 @@ def exportList(lst):
 def exportPointList(lst):
 	return f"{lst[1]} {lst[2]} {lst[0]}"
 
+def isIndexableEqual(a, b):
+	"""
+	Check if two values that can be indexed are equal but don't care about their
+	types. Examples:
+	
+	[1, 0] == [1, 0] -> True	
+	(1, 0) == [1, 0] -> True
+	[0, 1] == [1, 0] -> False
+	(0, 1) == [1, 0] -> False
+	"""
+	
+	if (len(a) != len(b)):
+		return False
+	
+	for i in range(len(a)):
+		if (a[i] != b[i]):
+			return False
+	
+	return True
+
 ## Segment Export
 ## All of the following is related to exporting segments.
 
@@ -332,10 +352,14 @@ def make_subelement_from_entity(level_root, scene, obj, params):
 			properties["size"] = str(size["X"]) + " " + str(size["Y"])
 	
 	# Add water size if this is a water (based on physical plane properties)
+	# Also adds quality if not default
 	if (sh_type == "WAT"):
 		size = {"X": obj.dimensions[1] / 2, "Z": obj.dimensions[0] / 2}
 		
 		properties["size"] = str(size["X"]) + " " + str(size["Z"] * sh_vrmultiply)
+		
+		if (not isIndexableEqual(obj.sh_properties.sh_resolution, [32.0, 32.0])):
+			properties["resolution"] = exportList(obj.sh_properties.sh_resolution)
 	
 	# Set each of the tweleve paramaters if they are needed.
 	if (sh_type == "OBS"):

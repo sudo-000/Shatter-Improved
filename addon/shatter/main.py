@@ -897,7 +897,14 @@ class sh_EntityProperties(PropertyGroup):
 		description = "The size of the object when exported",
 		default = (1.0, 1.0), 
 		min = 0.0,
-		max = 256.0,
+		size = 2,
+	)
+	
+	sh_resolution: FloatVectorProperty(
+		name = "Resolution",
+		description = "Controls how detailed the water effect looks. Smaller values will lead to larger but lower quality splashes when an object hits the water",
+		default = (32.0, 32.0),
+		min = 0.0,
 		size = 2,
 	)
 	
@@ -1292,7 +1299,7 @@ class sh_ItemPropertiesPanel(Panel):
 			ui.prop("sh_powerup")
 			ui.prop("sh_difficulty")
 		elif (t == "WAT"):
-			pass
+			ui.prop("sh_resolution")
 		
 		ui.prop("sh_hidden")
 		ui.prop("sh_export")
