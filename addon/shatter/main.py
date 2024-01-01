@@ -951,8 +951,8 @@ class sh_AddonPreferences(AddonPreferences):
 	)
 	
 	purist_mode: BoolProperty(
-		name = "Limit UI to officially supported features",
-		description = "Removes shatter extras from the UI, for example gradients and advanced lighting",
+		name = "Limit UI to classic Smash Hit features",
+		description = "Removes shatter extended features from the UI, for example gradients and advanced lighting",
 		default = False,
 	)
 	
@@ -996,27 +996,12 @@ class sh_AddonPreferences(AddonPreferences):
 		default = False,
 	)
 	
-	segment_encrypt: BoolProperty(
-		name = "Obfuscate exported segments (alpha)",
-		description = "This will obfuscate segments using a very basic implementation of the XTEA-CTR cipher. THIS IS NOT INTENDED TO BE SECURE OR CONFIDENTIAL IN ANY WAY. Note: In the future there may be mods that allow loading encrypted segments and providing some protection against copying, but this does not exist yet and so this is only for development right now",
-		default = False,
-	)
-	
 	####################
 	## Advanced settings
 	####################
 	mesh_command: StringProperty(
 		name = "External mesh bake command",
 		description = "If specified, this command is run instead of the built-in mesh baker",
-		default = "",
-	)
-	
-	# Yes, I technically imply that this is not a "password" even though it is.
-	# But really I don't want ppl to use their one password for everything (ugh)
-	# in this. Maybe it would be better to switch to a keyfile of some kind?
-	segment_encrypt_password: StringProperty(
-		name = "Keyphrase",
-		description = "The unique keyphrase to obfuscate segments with. This should be a mix of random symbols, similar to a password, but does not need to be memorable",
 		default = "",
 	)
 	
@@ -1060,13 +1045,6 @@ class sh_AddonPreferences(AddonPreferences):
 		
 		ui.region("LOCKED", "Protection")
 		ui.prop("force_disallow_import")
-# 		ui.prop("segment_encrypt")
-# 		
-# 		if (self.segment_encrypt):
-# 			ui.prop("segment_encrypt_password")
-# 			ui.op("shatter.obfuscation_randomise_keyphrase")
-# 			ui.warn("Segment obfuscation is not supported ingame. Developers only!")
-		
 		ui.end()
 	
 	def draw_advanced(self, ui):
@@ -1087,15 +1065,6 @@ class sh_AddonPreferences(AddonPreferences):
 			ui.end()
 		
 		ui.end()
-
-class RandomiseKeyphrase(Operator):
-	bl_idname = "shatter.obfuscation_randomise_keyphrase"
-	bl_label = "Randomise keyphrase"
-	
-	def execute(self, context):
-		p = get_prefs()
-		p.segment_encrypt_password = util.randpw()
-		return {"FINISHED"}
 
 class sh_SegmentPanel(Panel):
 	bl_label = "Smash Hit Scene"
@@ -1875,7 +1844,6 @@ classes = (
 	level_pack_ui.ExportLevelPackage,
 	patcher_ui.PatchLibsmashhit,
 	progression_crypto_ui.ProgressionCrypto,
-	RandomiseKeyphrase,
 	room_export.ExportRoom,
 )
 
