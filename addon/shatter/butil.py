@@ -117,7 +117,7 @@ class UIDrawingHelper():
 			if (use_tabs):
 				self.layout[-1].props_enum(self.obj, symbol, **args)
 			else:
-				self.layout[-1].prop_tabs_enum(self.obj, symbol, **args)
+				self.layout[-1].props_enum(self.obj, symbol, **args)
 		
 		if (disabled):
 			self.end()
