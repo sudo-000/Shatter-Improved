@@ -7,16 +7,15 @@ import common as common
 SH_MAX_STR_LEN = common.MAX_STRING_LENGTH
 
 import bpy
-import gzip
 import random
 import os
 import webbrowser
-import tempfile
 import secrets
 import obstacle_db
 import segment_export
 import segment_import
 import room_export
+import segstrate
 import extra_tools
 import quick_test
 import updater
@@ -134,8 +133,8 @@ class sh_export_auto(bpy.types.Operator):
 		
 		return {"FINISHED"}
 
-# def sh_draw_export_auto(self, context):
-# 	self.layout.operator("shatter.export_auto", text="Shatter: Export to APK")
+def sh_draw_export_auto(self, context):
+ 	self.layout.operator("shatter.export_auto", text="Shatter: Export to APK")
 
 ################################################################################
 # AUTO EXPORT ALL SCENES
@@ -151,8 +150,8 @@ class sh_export_all_auto(bpy.types.Operator):
 		
 		return {"FINISHED"}
 
-# def sh_draw_export_all_auto(self, context):
-# 	self.layout.operator("shatter.export_all_auto", text="Shatter: Export All to APK")
+def sh_draw_export_all_auto(self, context):
+	self.layout.operator("shatter.export_all_auto", text="Shatter: Export All to APK")
 
 ################################################################################
 # TESTSERVER
@@ -168,8 +167,8 @@ class sh_export_test(Operator):
 		
 		return {"FINISHED"}
 
-# def sh_draw_export_test(self, context):
-# 	self.layout.operator("shatter.export_test_server", text="Shatter: Quick Test Server")
+def sh_draw_export_test(self, context):
+	self.layout.operator("shatter.export_test_server", text="Shatter: Quick Test Server")
 
 class sh_import(bpy.types.Operator, ImportHelper):
 	"""Imports an uncompressed (.xml.mp3) segment to the current scene"""
@@ -202,6 +201,28 @@ class sh_import_gz(bpy.types.Operator, ImportHelper):
 
 def sh_draw_import_gz(self, context):
 	self.layout.operator("shatter.import_gz", text="Compressed Segment (.xml.gz.mp3)")
+
+class sh_static_segstrate(bpy.types.Operator, ImportHelper):
+	"""Permantently lock an APK file using segstrate"""
+	
+	bl_idname = "shatter.segstrate_static"
+	bl_label = "Lock APK with Segstrate"
+	
+	agreement: BoolProperty(
+		name = "Agree to notice (hover to see)",
+		description = "Locking your APK will make you unable to import or export any segments to the APK. Please only use this when you are making a copy of the APK that you want to distribute.",
+		default = False,
+	)
+	
+	def execute(self, context):
+		if (self.agreement):
+			context.window.cursor_set('WAIT')
+			segstrate.setup_apk(self.filepath, False)
+			context.window.cursor_set('DEFAULT')
+		else:
+			butil.show_message("Segstrate error", "The agreement has not been accepted and the protection has not been preformed.")
+		
+		return {"FINISHED"}
 
 class sh_rebake_meshes(bpy.types.Operator, ImportHelper):
 	"""Rebake many meshes from a selected folder"""
@@ -250,7 +271,7 @@ class sh_SceneProperties(PropertyGroup):
 	
 	sh_len: FloatVectorProperty(
 		name = "Size",
-		description = "Segment size (Width, Height, Depth). Hint: Last paramater changes the length (depth) of the segment",
+		description = "Segment size (Width, Height, Depth). Hint: Last parameter changes the length (depth) of the segment",
 		subtype = "XYZ",
 		default = (12.0, 10.0, 8.0), 
 	)
@@ -266,7 +287,7 @@ class sh_SceneProperties(PropertyGroup):
 		description = "This will control how the boxes should be exported. Hover over each option for an explation of how it works",
 		items = [
 			('Mesh', "Mesh", "Exports a .mesh file alongside the segment for showing visible box geometry"),
-			('StoneHack', "Obstacle", "Adds a custom obstacle named 'stone' for every box that attempts to simulate stone. Only colour is supported: there are no textures"),
+			('StoneHack', "Obstacle", "Adds a custom obstacle named 'stone' for every box that attempts to simulate stone. Only color is supported: there are no textures"),
 			('None', "None", "Don't do anything related to baking stone; only exports the raw segment data"),
 		],
 		default = "Mesh"
@@ -274,7 +295,7 @@ class sh_SceneProperties(PropertyGroup):
 	
 	sh_template: StringProperty(
 		name = "Template",
-		description = "The template paramater that is passed for the entire segment",
+		description = "The template parameter that is passed for the entire segment",
 		default = "",
 		maxlen = SH_MAX_STR_LEN,
 	)
@@ -374,7 +395,7 @@ class sh_SceneProperties(PropertyGroup):
 	
 	sh_lighting_ambient: FloatVectorProperty(
 		name = "Ambient",
-		description = "Colour and intensity of the ambient light",
+		description = "color and intensity of the ambient light",
 		subtype = "COLOR_GAMMA",
 		default = (0.0, 0.0, 0.0), 
 		soft_min = 0.0,
@@ -388,33 +409,33 @@ class sh_SceneProperties(PropertyGroup):
 		maxlen = SH_MAX_STR_LEN,
 	)
 	
-	sh_legacy_colour_model: BoolProperty(
-		name = "Legacy colour model",
-		description = "Uses the colour inheritance model from SHBT v0.9x, which can avoid extra effort when using the stone hack without templates",
+	sh_legacy_color_model: BoolProperty(
+		name = "Legacy color model",
+		description = "Uses the color inheritance model from SHBT v0.9x, which can avoid extra effort when using the stone hack without templates",
 		default = False
 	)
 	
-	sh_legacy_colour_default: FloatVectorProperty(
-		name = "Default colour",
-		description = "The default colour for all (non-visible marked) boxes when using the legacy colour model",
+	sh_legacy_color_default: FloatVectorProperty(
+		name = "Default color",
+		description = "The default color for all (non-visible marked) boxes when using the legacy color model",
 		subtype = "COLOR_GAMMA",
 		default = (1.0, 1.0, 1.0), 
 		soft_min = 0.0,
 		soft_max = 1.0,
 	)
 	
-	sh_fog_colour_top: FloatVectorProperty(
+	sh_fog_color_top: FloatVectorProperty(
 		name = "Top fog",
-		description = "Fog colour for quick test. While this does use the fogcolor xml attribute, this property cannot be inherited from templates or used like a normal property",
+		description = "Fog color for quick test. While this does use the fogcolor xml attribute, this property cannot be inherited from templates or used like a normal property",
 		subtype = "COLOR_GAMMA",
 		default = (1.0, 1.0, 1.0), 
 		soft_min = 0.0,
 		soft_max = 1.0,
 	)
 	
-	sh_fog_colour_bottom: FloatVectorProperty(
+	sh_fog_color_bottom: FloatVectorProperty(
 		name = "Bottom fog",
-		description = "Fog colour for quick test. While this does use the fogcolor xml attribute, this property cannot be inherited from templates or used like a normal property",
+		description = "Fog color for quick test. While this does use the fogcolor xml attribute, this property cannot be inherited from templates or used like a normal property",
 		subtype = "COLOR_GAMMA",
 		default = (0.0, 0.0, 0.0),
 		soft_min = 0.0,
@@ -476,8 +497,6 @@ class sh_SceneProperties(PropertyGroup):
 		name = "Gravity",
 		description = "The amount of gravity to use in quick test",
 		default = 1.0,
-		min = -1.0,
-		max = 3.0,
 	)
 	
 	sh_extra_code: StringProperty(
@@ -489,8 +508,8 @@ class sh_SceneProperties(PropertyGroup):
 	sh_room_length: IntProperty(
 		name = "Room length",
 		description = "The length of the room in quick test",
-		default = 100,
-		min = 0,
+		default = 250,
+		min = 1,
 	)
 
 # Object (box/obstacle/powerup/decal/water) properties
@@ -606,7 +625,7 @@ class sh_EntityProperties(PropertyGroup):
 	
 	sh_use_multitile: BoolProperty(
 		name = "Tile per-side",
-		description = "Specifiy a colour for each parallel pair of faces on the box",
+		description = "Specifiy a color for each parallel pair of faces on the box",
 		default = False,
 	)
 	
@@ -678,7 +697,7 @@ class sh_EntityProperties(PropertyGroup):
 	)
 	
 	#############
-	# Paramaters
+	# parameters
 	#############
 	
 	sh_param0: StringProperty(
@@ -770,20 +789,20 @@ class sh_EntityProperties(PropertyGroup):
 	###############
 	
 	sh_havetint: BoolProperty(
-		name = "Decal colourisation",
-		description = "Changes the tint (colourisation) of the decal",
+		name = "Decal colorisation",
+		description = "Changes the tint (colorisation) of the decal",
 		default = False
 	)
 	
 	sh_use_multitint: BoolProperty(
-		name = "Colour per-side",
-		description = "Specifiy a colour for each parallel pair of faces on the box",
+		name = "color per-side",
+		description = "Specifiy a color for each parallel pair of faces on the box",
 		default = False,
 	)
 	
 	sh_tint: FloatVectorProperty(
-		name = "Colour",
-		description = "The colour to be used for tinting, colouring and mesh data",
+		name = "color",
+		description = "The color to be used for tinting, coloring and mesh data",
 		subtype = "COLOR_GAMMA",
 		default = (1.0, 1.0, 1.0, 1.0), 
 		size = 4,
@@ -793,7 +812,7 @@ class sh_EntityProperties(PropertyGroup):
 	
 	sh_tint1: FloatVectorProperty(
 		name = "Right Left",
-		description = "The colour to be used for tinting, colouring and mesh data",
+		description = "The color to be used for tinting, coloring and mesh data",
 		subtype = "COLOR_GAMMA",
 		default = (1.0, 1.0, 1.0, 1.0), 
 		size = 4,
@@ -803,7 +822,7 @@ class sh_EntityProperties(PropertyGroup):
 	
 	sh_tint2: FloatVectorProperty(
 		name = "Top Bottom",
-		description = "The colour to be used for tinting, colouring and mesh data",
+		description = "The color to be used for tinting, coloring and mesh data",
 		subtype = "COLOR_GAMMA",
 		default = (1.0, 1.0, 1.0, 1.0), 
 		size = 4,
@@ -813,7 +832,7 @@ class sh_EntityProperties(PropertyGroup):
 	
 	sh_tint3: FloatVectorProperty(
 		name = "Front Back",
-		description = "The colour to be used for tinting, colouring and mesh data",
+		description = "The color to be used for tinting, coloring and mesh data",
 		subtype = "COLOR_GAMMA",
 		default = (1.0, 1.0, 1.0, 1.0), 
 		size = 4,
@@ -831,7 +850,7 @@ class sh_EntityProperties(PropertyGroup):
 		name = "Direction",
 		description = "The game modes in which this obstacle should appear",
 		items = [
-			('none', "None", "The regular box colour will be used"),
+			('none', "None", "The regular box color will be used"),
 			('relative', "Relative points", "Pick two points for each axis that are in [-1, 1] and scale with the box"),
 			('absolute', "Absolute points", "Pick two points that are relative to the scene"),
 			('right', "To right", ""),
@@ -846,14 +865,14 @@ class sh_EntityProperties(PropertyGroup):
 	
 	sh_gradpoint1: FloatVectorProperty(
 		name = "Point A",
-		description = "The first gradient colour",
+		description = "The first gradient color",
 		subtype = "XYZ",
 		default = (0.0, 0.0, 0.0),
 	)
 	
-	sh_gradcolour1: FloatVectorProperty(
-		name = "Colour A",
-		description = "The colour for point A",
+	sh_gradcolor1: FloatVectorProperty(
+		name = "color A",
+		description = "The color for point A",
 		subtype = "COLOR_GAMMA",
 		default = (1.0, 1.0, 1.0), 
 		size = 3,
@@ -863,14 +882,14 @@ class sh_EntityProperties(PropertyGroup):
 	
 	sh_gradpoint2: FloatVectorProperty(
 		name = "Point B",
-		description = "The first gradient colour",
+		description = "The first gradient color",
 		subtype = "XYZ",
 		default = (0.0, 0.0, 0.0),
 	)
 	
-	sh_gradcolour2: FloatVectorProperty(
-		name = "Colour B",
-		description = "The colour for point B",
+	sh_gradcolor2: FloatVectorProperty(
+		name = "color B",
+		description = "The color for point B",
 		subtype = "COLOR_GAMMA",
 		default = (1.0, 1.0, 1.0), 
 		size = 3,
@@ -880,7 +899,7 @@ class sh_EntityProperties(PropertyGroup):
 	
 	sh_blend: FloatProperty(
 		name = "Blend mode",
-		description = "How the colour of the decal and the existing colour will be blended. 1 = normal, 0 = added or numbers in between",
+		description = "How the color of the decal and the existing color will be blended. 1 = normal, 0 = added or numbers in between",
 		default = 1.0,
 		min = 0.0,
 		max = 1.0,
@@ -919,7 +938,7 @@ class sh_AddonPreferences(AddonPreferences):
 		items = [
 			('Settings', "Settings", ""),
 			('Advanced', "Advanced", ""),
-			# ('Extensions', "Extensions", ""),
+		    ('Extensions', "Extensions", ""),
 			('About', "About", ""),
 		],
 		default = "Settings",
@@ -999,12 +1018,27 @@ class sh_AddonPreferences(AddonPreferences):
 	####################
 	## Advanced settings
 	####################
+	segment_encrypt: BoolProperty(
+		name = "Obfuscate exported segments (alpha)",
+		description = "This will obfuscate segments using a very basic implementation of the XTEA-CTR cipher. THIS IS NOT INTENDED TO BE SECURE OR CONFIDENTIAL IN ANY WAY. Note: In the future there may be mods that allow loading encrypted segments and providing some protection against copying, but this does not exist yet and so this is only for development right now",
+		default = False,
+	)
+	
+	# Yes, I technically imply that this is not a "password" even though it is.
+	# But really I don't want ppl to use their one password for everything (ugh)
+	# in this. Maybe it would be better to switch to a keyfile of some kind?
+	segment_encrypt_password: StringProperty(
+		name = "Keyphrase",
+		description = "The unique keyphrase to obfuscate segments with. This should be a mix of random symbols, similar to a password, but does not need to be memorable",
+		# subtype = "PASSWORD",
+		default = "",
+	)
+
 	mesh_command: StringProperty(
 		name = "External mesh bake command",
 		description = "If specified, this command is run instead of the built-in mesh baker",
-		default = "",
 	)
-	
+
 	def draw(self, context):
 		main = self.layout
 		
@@ -1045,6 +1079,13 @@ class sh_AddonPreferences(AddonPreferences):
 		
 		ui.region("LOCKED", "Protection")
 		ui.prop("force_disallow_import")
+		ui.prop("segment_encrypt")
+		
+		if (self.segment_encrypt):
+			ui.prop("segment_encrypt_password")
+			ui.op("shatter.obfuscation_randomise_keyphrase")
+			ui.warn("Segment obfuscation is not supported ingame. Developers only!")
+		
 		ui.end()
 	
 	def draw_advanced(self, ui):
@@ -1066,6 +1107,15 @@ class sh_AddonPreferences(AddonPreferences):
 			ui.end()
 		
 		ui.end()
+
+class RandomiseKeyphrase(Operator):
+	bl_idname = "shatter.obfuscation_randomise_keyphrase"
+	bl_label = "Randomise keyphrase"
+	
+	def execute(self, context):
+		p = get_prefs()
+		p.segment_encrypt_password = util.randpw()
+		return {"FINISHED"}
 
 class sh_SegmentPanel(Panel):
 	bl_label = "Smash Hit Scene"
@@ -1129,16 +1179,16 @@ class sh_SegmentPanel(Panel):
 			sub = layout.box()
 			sub.label(text = "Stone", icon = "UV_DATA")
 			sub.prop(sh_properties, "sh_stone_obstacle_name")
-			sub.prop(sh_properties, "sh_legacy_colour_model")
-			if (sh_properties.sh_legacy_colour_model):
-				sub.prop(sh_properties, "sh_legacy_colour_default")
+			sub.prop(sh_properties, "sh_legacy_color_model")
+			if (sh_properties.sh_legacy_color_model):
+				sub.prop(sh_properties, "sh_legacy_color_default")
 		
 		# Quick test
 		if (bpy.context.preferences.addons["shatter"].preferences.enable_quick_test_server):
 			sub = layout.box()
 			sub.label(text = "Quick test", icon = "AUTO")
-			sub.prop(sh_properties, "sh_fog_colour_top")
-			sub.prop(sh_properties, "sh_fog_colour_bottom")
+			sub.prop(sh_properties, "sh_fog_color_top")
+			sub.prop(sh_properties, "sh_fog_color_bottom")
 			sub.prop(sh_properties, "sh_room_length")
 			sub.prop(sh_properties, "sh_gravity")
 			sub.prop(sh_properties, "sh_music")
@@ -1187,7 +1237,7 @@ class sh_ItemPropertiesPanel(Panel):
 			
 			# silly little loop wrapper :-3
 			for x in ["tint", "tile"]:
-				word = {"tint": "Colour", "tile": "Tile"}[x]
+				word = {"tint": "color", "tile": "Tile"}[x]
 				
 				ui.region(
 					{"tint": "COLOR", "tile": "TEXTURE"}[x],
@@ -1213,12 +1263,12 @@ class sh_ItemPropertiesPanel(Panel):
 					pass
 				elif (v == "relative" or v == "absolute"):
 					ui.prop("sh_gradpoint1")
-					ui.prop("sh_gradcolour1")
+					ui.prop("sh_gradcolor1")
 					ui.prop("sh_gradpoint2")
-					ui.prop("sh_gradcolour2")
+					ui.prop("sh_gradcolor2")
 				else:
-					ui.prop("sh_gradcolour1", text = "From", text_compact = "Grad from")
-					ui.prop("sh_gradcolour2", text = "To", text_compact = "Grad to")
+					ui.prop("sh_gradcolor1", text = "From", text_compact = "Grad from")
+					ui.prop("sh_gradcolor2", text = "To", text_compact = "Grad to")
 				
 				ui.end()
 			
@@ -1253,7 +1303,7 @@ class sh_ItemPropertiesPanel(Panel):
 			ui.prop("sh_decal")
 			ui.end()
 			
-			ui.region("COLOR", "Colour")
+			ui.region("COLOR", "color")
 			ui.prop("sh_havetint", use_button = True, icon = "COLOR")
 			if (ui.get("sh_havetint")):
 				ui.prop("sh_tint")
@@ -1351,6 +1401,7 @@ class SHATTER_MT_3DViewportMenuExtras(Menu):
 		self.layout.separator()
 		self.layout.label(text = "Others")
 		self.layout.operator("shatter.progression_crypto")
+		self.layout.operator("shatter.segstrate_static")
 
 class OpenShatterCreditsPage(Operator):
 	"""Open Shatter's credits web page"""
@@ -1827,6 +1878,7 @@ classes = (
 	sh_export_test,
 	sh_import,
 	sh_import_gz,
+	sh_static_segstrate,
 	sh_rebake_meshes,
 	SHATTER_MT_3DViewportMenuExtras,
 	SHATTER_MT_3DViewportMenu,
@@ -1845,6 +1897,7 @@ classes = (
 	level_pack_ui.ExportLevelPackage,
 	patcher_ui.PatchLibsmashhit,
 	progression_crypto_ui.ProgressionCrypto,
+	RandomiseKeyphrase,
 	room_export.ExportRoom,
 )
 
@@ -1863,6 +1916,8 @@ keymaps = {
 	
 	"I": "shatter.import",
 	"O": "shatter.import_gz",
+	
+	"Y": "shatter.segstrate_static",
 }
 
 keymaps_registered = []
@@ -1880,9 +1935,9 @@ def register():
 	# Add the export operator to menu
 	bpy.types.TOPBAR_MT_file_export.append(sh_draw_export)
 	bpy.types.TOPBAR_MT_file_export.append(sh_draw_export_gz)
-	# bpy.types.TOPBAR_MT_file_export.append(sh_draw_export_auto)
-	# bpy.types.TOPBAR_MT_file_export.append(sh_draw_export_all_auto)
-	# bpy.types.TOPBAR_MT_file_export.append(sh_draw_export_test)
+	bpy.types.TOPBAR_MT_file_export.append(sh_draw_export_auto)
+	bpy.types.TOPBAR_MT_file_export.append(sh_draw_export_all_auto)
+	bpy.types.TOPBAR_MT_file_export.append(sh_draw_export_test)
 	
 	# Add import operators to menu
 	bpy.types.TOPBAR_MT_file_import.append(sh_draw_import)
@@ -1925,9 +1980,9 @@ def unregister():
 	# Remove export operators
 	bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export)
 	bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export_gz)
-	# bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export_auto)
-	# bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export_all_auto)
-	# bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export_test)
+	bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export_auto)
+	bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export_all_auto)
+	bpy.types.TOPBAR_MT_file_export.remove(sh_draw_export_test)
 	
 	# Remove import operators
 	bpy.types.TOPBAR_MT_file_import.remove(sh_draw_import)

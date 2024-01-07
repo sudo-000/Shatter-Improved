@@ -1,4 +1,3 @@
-import bpy
 import bpy_extras.io_utils
 import os
 import butil
@@ -6,21 +5,11 @@ import level_pack
 
 from bpy.props import (
 	StringProperty,
-	BoolProperty,
-	IntProperty,
 	IntVectorProperty,
-	FloatProperty,
-	FloatVectorProperty,
-	EnumProperty,
-	PointerProperty,
 )
 
 from bpy.types import (
-	Panel,
-	Menu,
 	Operator,
-	PropertyGroup,
-	AddonPreferences,
 )
 
 class ExportLevelPackage(bpy_extras.io_utils.ExportHelper, Operator):

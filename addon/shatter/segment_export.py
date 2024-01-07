@@ -15,28 +15,11 @@ import json
 import pathlib
 import common
 import bake_mesh
+import segstrate
 import obstacle_db
 import util
 import butil
-import re
-
-from bpy.props import (
-	StringProperty,
-	BoolProperty,
-	IntProperty,
-	IntVectorProperty,
-	FloatProperty,
-	FloatVectorProperty,
-	EnumProperty,
-	PointerProperty,
-)
-
-from bpy.types import (
-	Panel,
-	Menu,
-	Operator,
-	PropertyGroup,
-)
+import xtea
 
 prefs = butil.prefs
 
@@ -373,7 +356,7 @@ def make_subelement_from_entity(level_root, scene, obj, params):
 	
 	# Warning for param0 and template being set
 	if (sh_type == "OBS" and obj.sh_properties.sh_param0 and obj.sh_properties.sh_template):
-		params["warnings"].add("both param0 and a template are set on some obstacles making param0 override the template - since param0 is often used for colours this might result in clear glass")
+		params["warnings"].add("both param0 and a template are set on some obstacles making param0 override the template - since param0 is often used for colors this might result in clear glass")
 	
 	# Set tint for decals
 	if (sh_type == "DEC" and obj.sh_properties.sh_havetint):
@@ -390,7 +373,7 @@ def make_subelement_from_entity(level_root, scene, obj, params):
 	# Set tile info for boxes if visible
 	# This basically overrides any point to having a template
 	if (sh_type == "BOX"):
-		# Chose colour string depending on if multitint is enabled
+		# Chose color string depending on if multitint is enabled
 		if (not obj.sh_properties.sh_use_multitint):
 			# Export if not default
 			if (obj.sh_properties.sh_tint[0] != 1.0 or obj.sh_properties.sh_tint[1] != 1.0 or obj.sh_properties.sh_tint[2] != 1.0):
@@ -425,8 +408,8 @@ def make_subelement_from_entity(level_root, scene, obj, params):
 			
 			final += list_to_str(obj.sh_properties.sh_gradpoint1)
 			final += " " + list_to_str(obj.sh_properties.sh_gradpoint2)
-			final += " " + list_to_str(obj.sh_properties.sh_gradcolour1)
-			final += " " + list_to_str(obj.sh_properties.sh_gradcolour2)
+			final += " " + list_to_str(obj.sh_properties.sh_gradcolor1)
+			final += " " + list_to_str(obj.sh_properties.sh_gradcolor2)
 			
 			properties["mb-gradient"] = final
 		# Basic mode
@@ -440,8 +423,8 @@ def make_subelement_from_entity(level_root, scene, obj, params):
 				"back": "0 0 1 0 0 -1",
 			}[v]
 			
-			final += " " + list_to_str(obj.sh_properties.sh_gradcolour1)
-			final += " " + list_to_str(obj.sh_properties.sh_gradcolour2)
+			final += " " + list_to_str(obj.sh_properties.sh_gradcolor1)
+			final += " " + list_to_str(obj.sh_properties.sh_gradcolor2)
 			
 			properties["mb-gradient"] = final
 	
@@ -467,9 +450,9 @@ def make_subelement_from_entity(level_root, scene, obj, params):
 	if (params["isLast"]): # Fixes the issues with the last line of the file
 		el.tail = "\n"
 	
-	# Some things to handle legacy colour model
-	use_legacy = params["stone_legacy_colour_model"]
-	default_colour = params["stone_legacy_colour_default"]
+	# Some things to handle legacy color model
+	use_legacy = params["stone_legacy_color_model"]
+	default_color = params["stone_legacy_color_default"]
 	
 	if (params.get("sh_box_bake_mode", "Mesh") == "StoneHack" and sh_type == "BOX" and (obj.sh_properties.sh_visible or use_legacy)):
 		"""
@@ -497,10 +480,10 @@ def make_subelement_from_entity(level_root, scene, obj, params):
 		if (obj.sh_properties.sh_template):
 			properties["template"] = obj.sh_properties.sh_template
 		else:
-			colour = obj.sh_properties.sh_tint if obj.sh_properties.sh_visible else default_colour
+			color = obj.sh_properties.sh_tint if obj.sh_properties.sh_visible else default_color
 			
 			properties["param7"] = "tile=" + str(obj.sh_properties.sh_decal)
-			properties["param8"] = "color=" + str(colour[0]) + " " + str(colour[1]) + " " + str(colour[2])
+			properties["param8"] = "color=" + str(color[0]) + " " + str(color[1]) + " " + str(color[2])
 		
 		el_stone = et.SubElement(level_root, "obstacle", properties)
 		el_stone.tail = "\n\t"
@@ -516,8 +499,8 @@ def createSegmentText(scene, params):
 	
 	# Set some params
 	params["stone_type"] = scene.sh_properties.sh_stone_obstacle_name
-	params["stone_legacy_colour_model"] = scene.sh_properties.sh_legacy_colour_model
-	params["stone_legacy_colour_default"] = scene.sh_properties.sh_legacy_colour_default
+	params["stone_legacy_color_model"] = scene.sh_properties.sh_legacy_color_model
+	params["stone_legacy_color_default"] = scene.sh_properties.sh_legacy_color_default
 	
 	# Enumerate which objects we should export right now
 	
@@ -620,8 +603,8 @@ def writeQuicktestInfo(tempdir, scene):
 	Write the quick test `room.json` file
 	"""
 	
-	fb = scene.sh_fog_colour_bottom
-	ft = scene.sh_fog_colour_top
+	fb = scene.sh_fog_color_bottom
+	ft = scene.sh_fog_color_top
 	
 	info = {
 		"fog": f"{fb[0]} {fb[1]} {fb[2]} {ft[0]} {ft[1]} {ft[2]}",
@@ -694,8 +677,11 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 	params["warnings"] = ExportWarnings()
 	params["box_counter"] = ExportCounter()
 	
+	# Marking for segstrate
+	segstrate_path = None
+	
 	# If the filepath is None, then find it from the apk, force enable
-	# compression.
+	# compression and enable segstrate (if wanted)
 	if (filepath == None and params.get("auto_find_filepath", False)):
 		props = scene.sh_properties
 		
@@ -708,6 +694,8 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 		if ((not props.sh_level or not props.sh_room or not props.sh_segment) and (not props.sh_segment)):
 			butil.show_message("Export error", "You have not set one of the level, room or segment name properties needed to use auto export to apk feature. Please set these in the scene tab and try again.")
 			return {"FINISHED"}
+		
+		segstrate_path = filepath + "/slk" if ospath.exists(filepath + "/slk") else None
 		
 		# Real file path
 		filepath += "/segments/" + props.sh_level + "/" + props.sh_room + "/" + props.sh_segment + (".xml.gz.mp3" if compress else ".xml.mp3")
@@ -756,6 +744,10 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 		
 		context.window_manager.progress_end()
 		
+		# Write XML
+		with open(tempdir + "/segment.xml", "w") as f:
+			f.write(content)
+		
 		# Write quick test JSON room info file
 		writeQuicktestInfo(tempdir, context.scene.sh_properties)
 		
@@ -774,9 +766,6 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 	if (context.preferences.addons["shatter"].preferences.resolve_templates and templates):
 		content = solveTemplates(content, parseTemplatesXml(templates))
 	
-	# Write out file
-	with (gzip.open(filepath, "wb") if compress else open(filepath, "wb")) as f:
-		f.write(content.encode())
 	
 	# Cook the mesh if we need to
 	if (params.get("sh_box_bake_mode", "Mesh") == "Mesh"):
@@ -797,6 +786,36 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 			
 			# Bake mesh
 			bake_mesh.bakeMeshToFile(content, meshfile, (params["sh_meshbake_template"] if params["sh_meshbake_template"] else None), bake_mesh.BakeProgressInfo(MB_progress_update_callback))
+		
+	context.window_manager.progress_update(0.8)
+	
+	# Preform template resolution if it is enabled for all segments
+	if (context.preferences.addons["shatter"].preferences.resolve_templates and templates):
+		content = solveTemplates(content, parseTemplatesXml(templates))
+	
+	# DEPRECATED
+	# Do segstrate protection if we need that
+	if (segstrate_path):
+		content = segstrate.replace_tags(content, util.get_file_json(segstrate_path))
+	
+	# Encode the data as bytes
+	content = content.encode()
+	
+	# Segment encryption, if this has been requested
+	# TODO Compress before encrypt since otherwise compression is just overhead
+	# TODO Check that this is actually okay
+	if (context.preferences.addons["shatter"].preferences.segment_encrypt):
+		# We should technically use an actual KDF for this, but I highly dobut
+		# it actually matters for *obfuscating* game assets.
+		key = util.shake256(context.preferences.addons["shatter"].preferences.segment_encrypt_password)
+		nonce, ct = xtea.encrypt(key, content)
+		# Fucking idiot dont print encryption keys
+		# print(f"nonce is {nonce}")
+		content = nonce + ct
+	
+	# Write out file
+	with (gzip.open(filepath, "wb") if compress else open(filepath, "wb")) as f:
+		f.write(content)
 	
 	# Display export warnings, if any and if enabled
 	params["warnings"].display()

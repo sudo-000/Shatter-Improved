@@ -3,11 +3,8 @@ Smash Hit Blender Tools segment import
 """
 
 import xml.etree.ElementTree as et
-import bpy
 import gzip
-import util as util
 import butil as butil
-import common as common
 
 def sh_import_modes(s):
 	"""
@@ -53,9 +50,9 @@ def sh_parse_tile_size(s):
 	
 	return final
 
-def sh_parse_colour(s):
+def sh_parse_color(s):
 	"""
-	Parse colour strings
+	Parse color strings
 	"""
 	
 	a = s.split()
@@ -185,13 +182,13 @@ def sh_import_segment(fp, context, compressed = False):
 		
 		no_gradient = (len(fog) == 3)
 		
-		scene.sh_fog_colour_bottom = (
+		scene.sh_fog_color_bottom = (
 			float(fog[0]),
 			float(fog[1]),
 			float(fog[2]),
 		)
 		
-		scene.sh_fog_colour_top = (
+		scene.sh_fog_color_top = (
 			float(fog[0]) if no_gradient else float(fog[3]),
 			float(fog[1]) if no_gradient else float(fog[4]),
 			float(fog[2]) if no_gradient else float(fog[5]),
@@ -202,7 +199,7 @@ def sh_import_segment(fp, context, compressed = False):
 	
 	if (lighting_ambient):
 		scene.sh_lighting = True
-		scene.sh_lighting_ambient = sh_parse_colour(lighting_ambient)[0]
+		scene.sh_lighting_ambient = sh_parse_color(lighting_ambient)[0]
 	else:
 		scene.sh_lighting = False
 	
@@ -256,7 +253,7 @@ def sh_import_segment(fp, context, compressed = False):
 			# Reflective property
 			b.sh_properties.sh_reflective = (properties.get("reflection", "0") == "1")
 			
-			# visible, colour, tile for boxes
+			# visible, color, tile for boxes
 			# NOTE: Tile size and rotation are not supported those are not imported yet
 			# NOTE: Extra template logic is here because built-in box baking tools will only
 			# inherit visible from template when visible is not set at all, and since
@@ -267,15 +264,15 @@ def sh_import_segment(fp, context, compressed = False):
 			b.sh_properties.sh_visible = (properties.get("visible", "1") == "1" and not b.sh_properties.sh_template)
 			
 			# NOTE: The older format colorX/Y/Z is no longer supported, should it be readded?
-			colour = sh_parse_colour(properties.get("color", "1 1 1"))
+			color = sh_parse_color(properties.get("color", "1 1 1"))
 			
-			if (len(colour) == 1):
-				b.sh_properties.sh_tint = (colour[0][0], colour[0][1], colour[0][2], 1.0)
+			if (len(color) == 1):
+				b.sh_properties.sh_tint = (color[0][0], color[0][1], color[0][2], 1.0)
 			else:
 				b.sh_properties.sh_use_multitint = True
-				b.sh_properties.sh_tint1 = (colour[0][0], colour[0][1], colour[0][2], 1.0)
-				b.sh_properties.sh_tint2 = (colour[1][0], colour[1][1], colour[1][2], 1.0)
-				b.sh_properties.sh_tint3 = (colour[2][0], colour[2][1], colour[2][2], 1.0)
+				b.sh_properties.sh_tint1 = (color[0][0], color[0][1], color[0][2], 1.0)
+				b.sh_properties.sh_tint2 = (color[1][0], color[1][1], color[1][2], 1.0)
+				b.sh_properties.sh_tint3 = (color[2][0], color[2][1], color[2][2], 1.0)
 			
 			# NOTE: The older format tileX/Y/Z is no longer supported, should it be readded?
 			tile = sh_parse_tile(properties.get("tile", "0"))
@@ -306,7 +303,7 @@ def sh_import_segment(fp, context, compressed = False):
 			for i in range(3):
 				b.sh_properties.sh_tilerot[i] = tileRot[min(i, tileRotLen - 1)] % 4 # HACK: ... so I'm doing this :)
 			
-			# Parse older tile and colour info (e.g. the ones with X/Y/Z at the end)
+			# Parse older tile and color info (e.g. the ones with X/Y/Z at the end)
 			# It looks like this: <box size="14.0 0.5 10.0" pos="0.0 -0.5 -10.0" hidden="0" tileY="3" colorY=".9 .9 .9" tileSize="2 2 2"/>
 			# These are mostly in the segments/[1-3] folder in 0.8.0
 			# It seems like these might still use the normal overloaded tileSize
@@ -328,7 +325,7 @@ def sh_import_segment(fp, context, compressed = False):
 					# happens elsewhere also.
 					setattr(b.sh_properties, f"sh_tile{n}", int(tile.split()[0]))
 				
-				### TEH COLOURZ ###
+				### TEH colorZ ###
 				color = properties.get(f"color{t}", None)
 				
 				# colorX/Y/Z
@@ -336,11 +333,11 @@ def sh_import_segment(fp, context, compressed = False):
 					# Set multitint mode if we have it
 					b.sh_properties.sh_use_multitint = True
 					
-					# Set the respective colour
+					# Set the respective color
 					n = str(ord(t) - ord("X") + 1)
 					
-					# Parse the colours into a tuple of (r, g, b, a)
-					c = sh_parse_colour(color)[0]
+					# Parse the colors into a tuple of (r, g, b, a)
+					c = sh_parse_color(color)[0]
 					if (len(c) == 3): c = (c[0], c[1], c[2], 1.0)
 					setattr(b.sh_properties, f"sh_tint{n}", c)
 			
@@ -370,11 +367,11 @@ def sh_import_segment(fp, context, compressed = False):
 				# Convert to floats
 				gradient = [float(x) for x in gradient.split()]
 				
-				# Set points and colours
+				# Set points and colors
 				b.sh_properties.sh_gradpoint1 = gradient[0:3]
 				b.sh_properties.sh_gradpoint2 = gradient[3:6]
-				b.sh_properties.sh_gradcolour1 = gradient[6:9]
-				b.sh_properties.sh_gradcolour2 = gradient[9:12]
+				b.sh_properties.sh_gradcolor1 = gradient[6:9]
+				b.sh_properties.sh_gradcolor2 = gradient[9:12]
 		
 		# Obstacles
 		elif (kind == "obstacle"):
@@ -424,15 +421,15 @@ def sh_import_segment(fp, context, compressed = False):
 			o.sh_properties.sh_type = "DEC"
 			o.sh_properties.sh_decal = int(properties.get("tile", "0"))
 			
-			# Set the colourisation of the decal
+			# Set the colorisation of the decal
 			# TODO This can just be 1 1 1 1 by default and no need for havetint,
 			# this is what smash hit does, dont really need to do it like this
-			colour = properties.get("color", None)
-			if (colour):
+			color = properties.get("color", None)
+			if (color):
 				o.sh_properties.sh_havetint = True
-				colour = colour.split()
-				colour = (float(colour[0]), float(colour[1]), float(colour[2]), float(colour[3]) if len(colour) == 4 else 1.0)
-				o.sh_properties.sh_tint = colour
+				color = color.split()
+				color = (float(color[0]), float(color[1]), float(color[2]), float(color[3]) if len(color) == 4 else 1.0)
+				o.sh_properties.sh_tint = color
 			else:
 				o.sh_properties.sh_havetint = False
 			
