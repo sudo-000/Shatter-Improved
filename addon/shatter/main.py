@@ -26,6 +26,7 @@ import butil
 import level_pack_ui
 import patcher_ui
 import progression_crypto_ui
+import server_manager
 
 from bpy.props import (
 	StringProperty,
@@ -48,9 +49,8 @@ from bpy.types import (
 
 from bpy_extras.io_utils import ImportHelper
 
-# The name of the test server. If set to false initially, the test server will
-# be disabled.
-g_process_test_server = True
+# The level test server manager
+gServerManager = None
 
 # :-3
 g_got_ricked = False
@@ -985,12 +985,12 @@ class sh_AddonPreferences(AddonPreferences):
 	)
 	
 	quick_test_server: EnumProperty(
-		name = "Quick test server",
-		description = "Selects which, if any, quick test server will be used. This will create a local HTTP server on port 8000, which might pose a security risk",
+		name = "Level test server",
+		description = "Selects which, if any, level test server will be used. This will create a local HTTP server on port 8000, which might pose a security risk",
 		items = [
 			('none', "None", "Don't use any quick test server"),
-			('builtin', "Built-in quick test server", "The quick test server built-in to Shatter, simplest to use but only loads one segment at a time"),
-			('yorshex', "Yorshex's asset server", "More advanced test server that allows loading an entire level, written by Yorshex"),
+			('builtin', "Quick test server", "The quick test server built-in to Shatter, simplest and fastest to use but only loads one segment at a time"),
+			('yorshex', "Yorshex's asset server", "More advanced test server that allows loading an entire level from a Smash Hit assets folder, written by Yorshex"),
 		],
 		default = "builtin",
 	)
@@ -1912,11 +1912,11 @@ def register():
 			keymaps_registered.append((keymap, keymap_item))
 	
 	# Start server
-	global g_process_test_server
+	global gServerManager
 	
-	if (g_process_test_server and get_prefs().quick_test_server == "builtin"):
+	if (gServerManager and get_prefs().quick_test_server == "builtin"):
 		try:
-			g_process_test_server = quick_test.runServerProcess()
+			gServerManager = server_manager.LevelServerManager()
 		except Exception as e:
 			print(f"*** Exception while starting quick test server ***")
 			print(traceback.format_exc())
@@ -1967,7 +1967,5 @@ def unregister():
 			print(f"Blender is being a little shit while unregistering class {cls}:\n\n{e}")
 	
 	# Shutdown server
-	global g_process_test_server
-	
-	if (g_process_test_server):
-		g_process_test_server.terminate()
+	global gServerManager
+	gServerManager.stop()

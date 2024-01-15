@@ -39,7 +39,7 @@ def shake256(data, length = 16):
 	Compute the SHAKE-256 hash of the given data of the given length
 	"""
 	
-	return hashlib.shake_256(data.encode('utf-8')).digest(length)
+	return hashlib.shake_256(data.encode('utf-8')).hexdigest(length)
 
 def randpw(bits = 128):
 	"""
@@ -270,7 +270,7 @@ def load_module(path):
 	if (not os.path.exists(path)):
 		return None
 	
-	module_name = "module_" + get_sha1_hash(path)
+	module_name = "module_" + shake256(path)
 	
 	spec = importlib.util.spec_from_file_location(module_name, path)
 	module = importlib.util.module_from_spec(spec)
