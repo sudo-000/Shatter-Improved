@@ -49,7 +49,7 @@ class LevelServerManager():
 		"""
 		
 		if (self.server_process):
-			self.server_process.kill()
+			self.server_process.terminate()
 			self.server_process.join(3)
 			self.server_process.close()
 		
@@ -72,26 +72,36 @@ def cb_builtin():
 	quick_test = util.load_module(str(Path(__file__).parent) + "/quick_test.py")
 	quick_test.runServer()
 
-def cmdescape(s):
-	return '"' + s.replace('"', '\\"') + '"'
-
 def cb_yorshex(asset_dir, level):
 	"""
 	Run yorshex's level server
 	"""
 	
-	python_path = cmdescape(os.path.realpath(sys.executable))
-	script_path = cmdescape(str(Path(__file__).parent) + "/asset_server.py")
-	asset_dir = cmdescape(asset_dir)
-	level = cmdescape(level)
+	from subprocess import Popen
+	import signal, time
 	
-	cmdline = f"{python_path} {script_path} {asset_dir} -l {level} -o"
+	should_exit = False
+	python_path = os.path.realpath(sys.executable)
+	script_path = str(Path(__file__).parent) + "/asset_server.py"
 	
-	print(f"Running command: {cmdline}")
+	# Open the process
+	proc = Popen([python_path, script_path, asset_dir, "-l", level, "-o"])
 	
-	status = os.system(cmdline)
+	# Set signal to wait for terminate()
+	def setshouldexit(_a, _b):
+		nonlocal should_exit
+		nonlocal proc
+		
+		proc.terminate()
+		should_exit = True
 	
-	print(f"{cmdline}: got status {status}")
+	signal.signal(signal.SIGTERM, setshouldexit)
+	
+	# Busy loop
+	while (not should_exit):
+		time.sleep(1)
+	
+	os._exit(0)
 
 SERVER_CALLBACKS = {
 	"none": None,

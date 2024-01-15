@@ -233,7 +233,7 @@ def server_manager_update(_self = None, _context = None):
 		gServerManager.set_type(server_type)
 		
 		if (server_type == "yorshex"):
-			gServerManager.set_params((butil.find_apk(), bpy.context.scene.sh_properties.sh_level))
+			gServerManager.set_params((butil.find_apk(), bpy.context.scene.sh_properties.sh_level if _context else ""))
 		else:
 			gServerManager.set_params(tuple())
 		
