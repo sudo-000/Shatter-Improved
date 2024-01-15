@@ -28,6 +28,7 @@ import level_pack_ui
 import patcher_ui
 import progression_crypto_ui
 import server_manager
+import assets
 
 from bpy.props import (
 	StringProperty,
@@ -125,18 +126,15 @@ def sh_draw_export_gz(self, context):
 # AUTO EXPORT
 ################################################################################
 class sh_export_auto(bpy.types.Operator):
-	"""Automatically find an asset path and save the segment to the segments folder in the correct location from the info given in the scene tab"""
+	"""Automatically find an asset folder and save the segment to the segments folder in the correct location from the info given in the scene tab"""
 	
 	bl_idname = "shatter.export_auto"
-	bl_label = "Export to APK"
+	bl_label = "Export to Assets"
 	
 	def execute(self, context):
 		segment_export.sh_export_segment(None, context, get_prefs().auto_export_compressed)
 		
 		return {"FINISHED"}
-
-# def sh_draw_export_auto(self, context):
-# 	self.layout.operator("shatter.export_auto", text="Shatter: Export to APK")
 
 ################################################################################
 # AUTO EXPORT ALL SCENES
@@ -162,15 +160,15 @@ class sh_export_test(Operator):
 	"""Export a segment to the quick test server"""
 	
 	bl_idname = "shatter.export_test_server"
-	bl_label = "Export segment to test server"
+	bl_label = "Export segment to quick test"
 	
 	def execute(self, context):
-		segment_export.sh_export_segment(None, context, False, True)
+		if (get_prefs().quick_test_server == "builtin"):
+			segment_export.sh_export_segment(None, context, False, True)
+		else:
+			butil.show_message("Quick test not running", "The quick test server is not running right now. If you're using Yorshex's asset server, use auto export (Alt + Shift + R by default) instead.")
 		
 		return {"FINISHED"}
-
-# def sh_draw_export_test(self, context):
-# 	self.layout.operator("shatter.export_test_server", text="Shatter: Quick Test Server")
 
 class sh_import(bpy.types.Operator, ImportHelper):
 	"""Imports an uncompressed (.xml.mp3) segment to the current scene"""
@@ -233,7 +231,10 @@ def server_manager_update(_self = None, _context = None):
 		gServerManager.set_type(server_type)
 		
 		if (server_type == "yorshex"):
-			gServerManager.set_params((butil.find_apk(), bpy.context.scene.sh_properties.sh_level if _context else ""))
+			level_name = get_prefs().test_level
+			level_name = level_name if level_name != "/" else (bpy.context.scene.sh_properties.sh_level if _context else "")
+			
+			gServerManager.set_params((butil.find_apk(), level_name))
 		else:
 			gServerManager.set_params(tuple())
 		
@@ -241,6 +242,20 @@ def server_manager_update(_self = None, _context = None):
 	except Exception as e:
 		print(f"*** Exception in server manager!!! ***")
 		print(traceback.format_exc())
+
+gLevelList = None
+
+def get_test_level_list(self, context):
+	global gLevelList
+	
+	gLevelList = assets.list_levels(gLevelList)
+	
+	levels = [("/", "Segment's level", "Use the segment's level attribute to determine the level"), None]
+	
+	for l in gLevelList["results"]:
+		levels.append((l, l, ""))
+	
+	return levels
 
 ## EDITOR
 ## The following things are more related to the editor and are not specifically
@@ -965,7 +980,7 @@ class sh_AddonPreferences(AddonPreferences):
 	
 	auto_export_compressed: BoolProperty(
 		name = "Compress exported segments in auto export",
-		description = "Enables segment compression when using the 'Export to APK' option. Smash Hit does not compress segments by default in 1.5.x and later",
+		description = "Enables segment compression when using the 'Export to Assets' option. Smash Hit does not compress segments by default in 1.5.x and later",
 		default = True,
 	)
 	
@@ -1014,11 +1029,19 @@ class sh_AddonPreferences(AddonPreferences):
 		description = "Selects which, if any, level test server will be used. This will create a local HTTP server on port 8000, which might pose a security risk",
 		items = [
 			('none', "None", "Don't use any quick test server"),
-			('builtin', "Quick test server", "The quick test server built-in to Shatter, simplest and fastest to use but only loads one segment at a time"),
-			('yorshex', "Yorshex's asset server", "More advanced test server that allows loading an entire level from a Smash Hit assets folder, written by Yorshex"),
+			('builtin', "Quick test server", "The classic quick test server integrated with Shatter, simplest and fastest to use but only loads one segment at a time"),
+			('yorshex', "Yorshex's asset server", "More advanced test server that allows loading an entire level from a Smash Hit assets folder, written by Yorshex. Shatter integration is a work in progress but should be usable"),
 		],
 		update = server_manager_update,
 		default = "builtin",
+	)
+	
+	test_level: EnumProperty(
+		name = "Test level",
+		description = "The name of the level to test",
+		items = get_test_level_list,
+		update = server_manager_update,
+		default = 0,
 	)
 	
 	force_disallow_import: BoolProperty(
@@ -1065,7 +1088,8 @@ class sh_AddonPreferences(AddonPreferences):
 		ui.end()
 		
 		ui.region("WORLD", "Network features")
-		ui.prop("quick_test_server")
+		if (ui.prop("quick_test_server") == "yorshex"):
+			ui.warn("To use asset server you should agree with the zlib licence.")
 		ui.prop("enable_update_notifier")
 		
 		if (self.enable_update_notifier):
@@ -1185,6 +1209,7 @@ class sh_SegmentPanel(Panel):
 		elif (server_type == "yorshex"):
 			sub = layout.box()
 			sub.label(text = "Asset server", icon = "AUTO")
+			sub.prop(get_prefs(), "test_level")
 			sub.label(text = f"Your IP: {util.get_local_ip()}")
 		
 		# DRM
@@ -1383,7 +1408,8 @@ class SHATTER_MT_3DViewportMenuExtras(Menu):
 		self.layout.separator()
 		self.layout.label(text = "Export")
 		self.layout.operator("shatter.export_all_auto")
-		self.layout.operator("shatter.export_room")
+		if (get_prefs().quick_test_server == "builtin"):
+			self.layout.operator("shatter.export_room")
 		self.layout.operator("shatter.export_level_package")
 		self.layout.separator()
 		self.layout.label(text = "Others")
@@ -1438,7 +1464,9 @@ class SHATTER_MT_3DViewportMenu(Menu):
 		self.layout.separator()
 		
 		self.layout.operator("shatter.export_auto", icon = "MOD_BEVEL")
-		self.layout.operator("shatter.export_test_server", icon = "AUTO")
+		
+		if (get_prefs().quick_test_server == "builtin"):
+			self.layout.operator("shatter.export_test_server", icon = "AUTO")
 
 def SHATTER_MT_3DViewportMenu_draw(self, context):
 	self.layout.menu("SHATTER_MT_3DViewportMenu")

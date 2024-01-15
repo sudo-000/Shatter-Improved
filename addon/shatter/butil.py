@@ -31,6 +31,13 @@ class UIDrawingHelper():
 		
 		self.obj = obj
 	
+	def get_object(self):
+		"""
+		Get the object used to take properties from
+		"""
+		
+		return self.obj
+	
 	def get(self, symbol):
 		"""
 		Get the value of the given property (symbol) on the current object

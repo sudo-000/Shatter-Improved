@@ -99,7 +99,7 @@ def cb_yorshex(asset_dir, level):
 	
 	# Busy loop
 	while (not should_exit):
-		time.sleep(1)
+		time.sleep(0.1)
 	
 	os._exit(0)
 
