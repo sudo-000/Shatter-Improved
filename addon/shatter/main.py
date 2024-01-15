@@ -11,6 +11,7 @@ import gzip
 import random
 import os
 import webbrowser
+import traceback
 import tempfile
 import secrets
 import obstacle_db
@@ -217,6 +218,29 @@ class sh_rebake_meshes(bpy.types.Operator, ImportHelper):
 		context.window.cursor_set('DEFAULT')
 		
 		return {"FINISHED"}
+
+def server_manager_update(_self = None, _context = None):
+	"""
+	Note: self and context can be none
+	"""
+	
+	server_type = get_prefs().quick_test_server
+	
+	try:
+		global gServerManager
+		
+		gServerManager.stop()
+		gServerManager.set_type(server_type)
+		
+		if (server_type == "yorshex"):
+			gServerManager.set_params((butil.find_apk(), bpy.context.scene.sh_properties.sh_level))
+		else:
+			gServerManager.set_params(tuple())
+		
+		gServerManager.start()
+	except Exception as e:
+		print(f"*** Exception in server manager!!! ***")
+		print(traceback.format_exc())
 
 ## EDITOR
 ## The following things are more related to the editor and are not specifically
@@ -1824,29 +1848,6 @@ class RunAutogenAction(bpy.types.Operator):
 ################################################################################
 ################################################################################
 ################################################################################
-
-def server_manager_update(_self = None, _context = None):
-	"""
-	Note: self and context can be none
-	"""
-	
-	server_type = get_prefs().quick_test_server
-	
-	try:
-		global gServerManager
-		
-		gServerManager.stop()
-		gServerManager.set_type(server_type)
-		
-		if (server_type == "yorshex"):
-			gServerManager.set_params((butil.find_apk(), bpy.context.scene.sh_properties.sh_level))
-		else:
-			gServerManager.set_params(tuple())
-		
-		gServerManager.start()
-	except Exception as e:
-		print(f"*** Exception in server manager!!! ***")
-		print(traceback.format_exc())
 
 # Ignore the naming scheme for classes, please
 # Also WHY THE FUCK DO I HAVE TO DO THIS???

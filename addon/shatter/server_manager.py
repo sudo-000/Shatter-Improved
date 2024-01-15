@@ -49,7 +49,9 @@ class LevelServerManager():
 		"""
 		
 		if (self.server_process):
-			self.server_process.terminate()
+			self.server_process.kill()
+			self.server_process.join(3)
+			self.server_process.close()
 		
 		self.server_process = None
 	
