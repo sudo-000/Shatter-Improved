@@ -984,10 +984,15 @@ class sh_AddonPreferences(AddonPreferences):
 		default = "stable",
 	)
 	
-	enable_quick_test_server: BoolProperty(
-		name = "Enable quick test server",
-		description = "Enables the quick test server. This will create a local http server using python, which might pose a security risk",
-		default = True,
+	quick_test_server: EnumProperty(
+		name = "Quick test server",
+		description = "Selects which, if any, quick test server will be used. This will create a local HTTP server on port 8000, which might pose a security risk",
+		items = [
+			('none', "None", "Don't use any quick test server"),
+			('builtin', "Built-in quick test server", "The quick test server built-in to Shatter, simplest to use but only loads one segment at a time"),
+			('yorshex', "Yorshex's asset server", "More advanced test server that allows loading an entire level, written by Yorshex"),
+		],
+		default = "builtin",
 	)
 	
 	force_disallow_import: BoolProperty(
@@ -1034,12 +1039,12 @@ class sh_AddonPreferences(AddonPreferences):
 		ui.end()
 		
 		ui.region("WORLD", "Network features")
-		ui.prop("enable_quick_test_server")
+		ui.prop("quick_test_server")
 		ui.prop("enable_update_notifier")
-		ui.prop("updater_channel")
 		
 		if (self.enable_update_notifier):
 			ui.prop("enable_auto_update")
+			ui.prop("updater_channel")
 		
 		ui.end()
 		
@@ -1134,7 +1139,9 @@ class sh_SegmentPanel(Panel):
 				sub.prop(sh_properties, "sh_legacy_colour_default")
 		
 		# Quick test
-		if (bpy.context.preferences.addons["shatter"].preferences.enable_quick_test_server):
+		server_type = get_prefs().quick_test_server
+		
+		if (server_type == "builtin"):
 			sub = layout.box()
 			sub.label(text = "Quick test", icon = "AUTO")
 			sub.prop(sh_properties, "sh_fog_colour_top")
@@ -1148,6 +1155,10 @@ class sh_SegmentPanel(Panel):
 			sub.prop(sh_properties, "sh_particles")
 			sub.prop(sh_properties, "sh_difficulty")
 			sub.prop(sh_properties, "sh_extra_code")
+			sub.label(text = f"Your IP: {util.get_local_ip()}")
+		elif (server_type == "yorshex"):
+			sub = layout.box()
+			sub.label(text = "Asset server", icon = "AUTO")
 			sub.label(text = f"Your IP: {util.get_local_ip()}")
 		
 		# DRM
@@ -1903,7 +1914,7 @@ def register():
 	# Start server
 	global g_process_test_server
 	
-	if (g_process_test_server and get_prefs().enable_quick_test_server):
+	if (g_process_test_server and get_prefs().quick_test_server == "builtin"):
 		try:
 			g_process_test_server = quick_test.runServerProcess()
 		except Exception as e:

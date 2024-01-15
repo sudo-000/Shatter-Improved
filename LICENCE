@@ -1,10 +1,16 @@
-The following licence applies only for *.py files in the root directory. For the
-licence of shipped dependencies, please see the "thirdparty-info" folder and the
-LICENCE file in each of the project's folders.
+The following licence applies for files ending in ".py" in the root of the
+"addon/shatter" folder, except for Yorshex's Level Sever, which is licenced
+under the Zlib licence. The Zlib licence terms are in the first comment of the
+file.
+
+WARNING: SHATTER IS NOT STRICTLY OPEN SOURCE SOFTWARE. PLEASE CAREFULLY READ
+THE LICENCE TERMS TO DETERMINE IF YOU ARE ALLOWED TO USE SHATTER FOR ANY GIVEN
+PURPOSE OR NOT.
+
 
 KNOT'S SOFTWARE LICENSE 1.1
 
-This Software is Copyright © 2023 Knot126 and Shatter Team Contributors
+This Software is Copyright © 2020 - 2024 Knot126
 
 Permission is hereby granted, free of charge, to any person or organization (the
 "User") obtaining a copy of this software and associated documentation files
@@ -31,7 +37,7 @@ the Software, subject to the following conditions:
      of any machine learning models, including but not limited to artificial
      neural networks, deep learning, and reinforcement learning.
 
-  6. This software shall be used for Good, and not for Evil. The copyright
+  6. The Software shall be used for Good, and not for Evil. The copyright
      holder has the right to decide what qualifies as "Good" and "Evil" for
      every use of this software.
 
@@ -41,6 +47,7 @@ FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS BE
 LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
 CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 Note: This licence has been derived from the Anti-Capitialist Software Licence,
 available at https://anticapitalist.software/.
