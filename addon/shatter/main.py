@@ -231,6 +231,7 @@ class sh_SceneProperties(PropertyGroup):
 		name = "Level",
 		description = "The name of the checkpoint that this segment belongs to.",
 		default = "",
+		update = server_manager_update,
 		maxlen = SH_MAX_STR_LEN,
 	)
 	
@@ -992,6 +993,7 @@ class sh_AddonPreferences(AddonPreferences):
 			('builtin', "Quick test server", "The quick test server built-in to Shatter, simplest and fastest to use but only loads one segment at a time"),
 			('yorshex', "Yorshex's asset server", "More advanced test server that allows loading an entire level from a Smash Hit assets folder, written by Yorshex"),
 		],
+		update = server_manager_update,
 		default = "builtin",
 	)
 	
@@ -1823,6 +1825,29 @@ class RunAutogenAction(bpy.types.Operator):
 ################################################################################
 ################################################################################
 
+def server_manager_update(_self = None, _context = None):
+	"""
+	Note: self and context can be none
+	"""
+	
+	server_type = get_prefs().quick_test_server
+	
+	try:
+		global gServerManager
+		
+		gServerManager.stop()
+		gServerManager.set_type(server_type)
+		
+		if (server_type == "yorshex"):
+			gServerManager.set_params((butil.find_apk(), bpy.context.scene.sh_properties.sh_level))
+		else:
+			gServerManager.set_params(tuple())
+		
+		gServerManager.start()
+	except Exception as e:
+		print(f"*** Exception in server manager!!! ***")
+		print(traceback.format_exc())
+
 # Ignore the naming scheme for classes, please
 # Also WHY THE FUCK DO I HAVE TO DO THIS???
 classes = (
@@ -1911,15 +1936,10 @@ def register():
 			keymap_item = keymap.keymap_items.new(keymaps[a], type = a, value = 'PRESS', shift = 1, alt = 1)
 			keymaps_registered.append((keymap, keymap_item))
 	
-	# Start server
+	# Start level server
 	global gServerManager
-	
-	if (gServerManager and get_prefs().quick_test_server == "builtin"):
-		try:
-			gServerManager = server_manager.LevelServerManager()
-		except Exception as e:
-			print(f"*** Exception while starting quick test server ***")
-			print(traceback.format_exc())
+	gServerManager = server_manager.LevelServerManager()
+	server_manager_update()
 	
 	# Check for updates
 	run_updater()
