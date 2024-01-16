@@ -149,6 +149,13 @@ def set_file_gzip(path, data):
 	f.write(data.encode('utf-8'))
 	f.close()
 
+def check_file_hash(path, filehash, length = 32):
+	"""
+	Check the hash of the file against "h". True if equal, False otherwise
+	"""
+	
+	return shake256(get_file(path), length) == filehash
+
 def prepare_folders(path):
 	"""
 	Make the folders for the file of the given name

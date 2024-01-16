@@ -19,7 +19,6 @@ import segment_export
 import segment_import
 import room_export
 import extra_tools
-import quick_test
 import updater
 import autogen
 import util
