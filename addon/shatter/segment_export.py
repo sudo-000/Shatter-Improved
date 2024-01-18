@@ -105,7 +105,7 @@ def tryTemplatesPath():
 		if (not path and ospath.exists(f)):
 			path = f
 	
-	print(f"Smash Hit Tools: Got file: \"{path}\"")
+	util.log(f"Smash Hit Tools: Got file: \"{path}\"")
 	
 	return path
 
@@ -671,14 +671,14 @@ def run_mesh_cmd(input_path, output_path, params):
 	cmdline = cmdline.replace("$OUTPUT", escape_cmd_param(output_path))
 	cmdline = cmdline.replace("$TEMPLATE", escape_cmd_param(params["sh_meshbake_template"]))
 	
-	print(f"RUNNING COMMAND: {cmdline}")
+	util.log(f"RUNNING COMMAND: {cmdline}")
 	
 	status = os.system(cmdline)
 	
 	if (status):
 		butil.show_message("Mesh baker error", f"The external mesh baker exited with status {status}.")
 	
-	print(f"\tdone, exit status = {status}")
+	util.log(f"\tdone, exit status = {status}")
 
 def sh_export_segment_ext(filepath, context, scene, compress = False, params = {}):
 	"""
@@ -714,7 +714,7 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 		
 		util.prepare_folders(filepath)
 		
-		print(f"Real file path will be {filepath}")
+		util.log(f"Real file path will be {filepath}")
 	
 	# Export to xml string
 	content = createSegmentText(scene, params)
@@ -726,7 +726,7 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 	# TODO Implement mutli segment exporting
 	# TODO Just make this stupid thing part of the normal export flow
 	if (params.get("sh_test_server", False) == True):
-		print("** Export to test server **")
+		util.log("** Export to test server **")
 		
 		# Solve templates if we have them
 		if (templates):
@@ -808,7 +808,7 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 
 def sh_export_all_segments(context, compress = True):
 	for s in bpy.data.scenes:
-		print(f"Exporting a scene: {s} ...")
+		util.log(f"Exporting a scene: {s} ...")
 		
 		sh_properties = s.sh_properties
 		
@@ -836,7 +836,7 @@ def sh_export_segment(filepath, context, compress = False, testserver = False):
 		"auto_find_filepath": not testserver, # HACK to make this work
 	}
 	
-	print(f"Exporting a segment:\n\tfilepath = {filepath}\n\tcompress = {compress}\n\ttestserver = {testserver}")
+	util.log(f"Exporting a segment:\n\tfilepath = {filepath}\n\tcompress = {compress}\n\ttestserver = {testserver}")
 	
 	sh_export_segment_ext(filepath, context, context.scene, compress, params)
 

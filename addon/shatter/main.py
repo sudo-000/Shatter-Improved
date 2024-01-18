@@ -239,8 +239,8 @@ def server_manager_update(_self = None, _context = None):
 		
 		gServerManager.start()
 	except Exception as e:
-		print(f"*** Exception in server manager!!! ***")
-		print(traceback.format_exc())
+		util.log(f"*** Exception in server manager!!! ***")
+		util.log(traceback.format_exc())
 
 gLevelList = None
 
@@ -1479,8 +1479,8 @@ def run_updater():
 		updater.check_for_updates(common.BL_INFO["version"])
 	except Exception as e:
 		import traceback
-		print(f"Shatter for Blender: Had an exception whilst checking for updates:")
-		print(traceback.format_exc())
+		util.log(f"Shatter for Blender: Had an exception whilst checking for updates:")
+		util.log(traceback.format_exc())
 
 ###############
 ### AUTOGEN ###
@@ -1976,7 +1976,7 @@ def register():
 	# Also, I'd love for Shasa and Smashkit to do something useful or shut the
 	# fuck up about stolen segments. It's annoying to see them complain a lot
 	# then not accept any solution to the problem.
-	print(f"User has been detected as bad user: False")
+	util.log(f"User has been detected as bad user: False")
 
 def unregister():
 	from bpy.utils import unregister_class
@@ -2012,7 +2012,7 @@ def unregister():
 		try:
 			unregister_class(cls)
 		except RuntimeError as e:
-			print(f"Blender is being a little shit while unregistering class {cls}:\n\n{e}")
+			util.log(f"Blender is being a little shit while unregistering class {cls}:\n\n{e}")
 	
 	# Shutdown server
 	global gServerManager

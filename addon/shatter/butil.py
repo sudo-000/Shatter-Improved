@@ -233,8 +233,6 @@ def find_apk(*, allow_override = True):
 	
 	result = find_assets_paths(search_default = allow_override)
 	
-	print(result)
-	
 	if (result):
 		return result[0]
 	else:

@@ -20,6 +20,18 @@ import sys
 import importlib.util
 import secrets
 
+def log(msg, newline = True):
+	"""
+	Log a message to the console
+	"""
+	
+	LOG_PREFIX = "\x1b[1;38;2;43;169;219mShatter: \x1b[0m"
+	
+	if (type(msg) != str):
+		msg = repr(msg)
+	
+	print(LOG_PREFIX + msg.replace("\n", f"\n{LOG_PREFIX}"))
+
 def get_time():
 	"""
 	Get the current UNIX timestamp
@@ -48,7 +60,7 @@ def randpw(bits = 128):
 	
 	alpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890_+-=,.!?\"\'@#%^&*~/\\:; "
 	l = math.ceil(math.log(2 ** bits, len(alpha)))
-	print(f"Generate {bits} bit password using {len(alpha)} symbols in alphabet * {l} symbol in phrase")
+	util.log(f"Generate {bits} bit password using {len(alpha)} symbols in alphabet * {l} symbol in phrase")
 	pw = ""
 	
 	for i in range(l):

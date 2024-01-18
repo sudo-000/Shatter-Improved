@@ -1,4 +1,5 @@
 import common as common
+import util
 
 # For obstacle picker
 OBSTACLES = [
@@ -87,4 +88,4 @@ try:
 				OBSTACLES.append((s[0], s[1], ""))
 				OBSTACLES_LIST.append(s[0])
 except FileNotFoundError:
-	print("Smash Hit Blender Tools: " + str(__name__) + ": Could not find text file for custom obstacles!")
+	util.log("Could not find text file for custom obstacles!")

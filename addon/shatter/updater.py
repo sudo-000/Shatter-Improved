@@ -47,7 +47,7 @@ def update_downloader(url):
 		data = util.http_get_signed(url)
 		
 		if (not data):
-			print("Update zip file failed to download or verify properly")
+			util.log("Update zip file failed to download or verify properly")
 			os._exit(0)
 		
 		# Get the local file path
@@ -56,14 +56,14 @@ def update_downloader(url):
 		# Write the data
 		pathlib.Path(path).write_bytes(data)
 		
-		print(f"Downloaded latest update to {path}, preparing to extract.")
+		util.log(f"Downloaded latest update to {path}, preparing to extract.")
 		
 		# Extract the files (installs update)
 		shutil.unpack_archive(path, common.BLENDER_ADDONS_PATH, "zip")
 		
 		os._exit(0)
 	except:
-		print(traceback.print_exc())
+		util.log(traceback.print_exc())
 		os._exit(1)
 
 def download_and_install_update(source):
@@ -123,42 +123,42 @@ def get_latest_version(current_version, release_channel, current_blender):
 		}
 	
 	if (not info):
-		print("No update info (bad signature?)")
+		util.log("No update info (bad signature?)")
 		return None
 	
 	if ("vt_min" not in info or info["vt_min"] > util.get_time()):
-		print("Update info file is too new (clock is probably set wrong) or missing 'vt_min'")
+		util.log("Update info file is too new (clock is probably set wrong) or missing 'vt_min'")
 		return None
 	
 	if ("vt_max" not in info or info["vt_max"] < util.get_time()):
 		daysAgo = (util.get_time() - info["vt_max"]) // 86400
-		print(f"Update info file is too old (expired {daysAgo} days ago) or missing 'vt_max'")
+		util.log(f"Update info file is too old (expired {daysAgo} days ago) or missing 'vt_max'")
 		return None
 	
 	info = info.get(release_channel, None)
 	
 	# No info on release channel
 	if (info == None):
-		print("No info for release channel")
+		util.log("No info for release channel")
 		return None
 	
 	new_version = info.get("version", None)
 	
 	# Do not prompt to update things with version set to null
 	if (new_version == None):
-		print("No new version was put (bad file?)")
+		util.log("No new version was put (bad file?)")
 		return None
 	
 	# Check if the version is actually new
 	if (not version_compare(current_version, new_version)):
-		print(f"Current version ({current_version}) matches or is newer than latest version ({new_version})")
+		util.log(f"Current version ({current_version}) matches or is newer than latest version ({new_version})")
 		return None
 	
 	blender_version_requirement = info.get("blender_version", [2, 60, 0])
 	
 	# Check if the required blender version is too great
 	if (version_compare(current_blender, blender_version_requirement, True)):
-		print("Blender too old to update")
+		util.log("Blender too old to update")
 		return None
 	
 	# Create the update object, if we need to use it
@@ -191,4 +191,4 @@ def check_for_updates(current_version):
 			# startup.
 			bpy.app.timers.register(functools.partial(butil.show_message, "Shatter Update", message), first_interval = 5.0)
 	else:
-		print("Didn't find any updates or checker is disabled.")
+		util.log("Didn't find any updates or checker is disabled.")

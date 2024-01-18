@@ -19,7 +19,7 @@ import math
 import profile
 
 # Version of mesh baker
-VERSION = (0, 15, 4)
+VERSION = (0, 15, 6)
 
 # If the mesh baker version and bake info should be appended to the end of the
 # mesh data
@@ -56,6 +56,18 @@ LIGHTING_ENABLED = False
 ################################################################################
 ### END OF CONFIGURATION #######################################################
 ################################################################################
+
+def log(msg, newline = True):
+	"""
+	Log a message to the console
+	"""
+	
+	LOG_PREFIX = "\x1b[1;38;2;219;65;106mBakeMesh: \x1b[0m"
+	
+	if (type(msg) != str):
+		msg = repr(msg)
+	
+	print(LOG_PREFIX + msg.replace("\n", f"\n{LOG_PREFIX}"))
 
 def removeEverythingEqualTo(array, value):
 	"""
@@ -700,7 +712,7 @@ def generateSubdividedFaceGeometry(minest, maxest, s_size, t_size, colour, tile,
 			ax_t = axes[1]
 			break
 	else:
-		print("Similar axis was not found!!")
+		log("Similar axis was not found!!")
 		return None
 	
 	# Swap the axis's directions if not in the expected direction
@@ -1071,7 +1083,7 @@ def runMain():
 	if (sys.argv[1] != "!!decompress!!"):
 		main(sys.argv[1], sys.argv[2], sys.argv[3] if (len(sys.argv) >= 4) else None)
 	else:
-		print("decompress mesh mode")
+		log("decompress mesh mode")
 		f = open(sys.argv[2], "rb")
 		d = zlib.decompress(f.read())
 		f.close()
@@ -1081,3 +1093,10 @@ def runMain():
 
 if (__name__ == "__main__"):
 	profile.run('runMain()')
+
+log(f"""
+BakeMesh is copyright (C) 2022 - 2024 Knot. Please see LICENCE for details.
+
+"With the power of the prism, there's nothing I can't do."
+                               - Tails Nine, 2024
+""")

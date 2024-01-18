@@ -38,7 +38,7 @@ class LevelServerManager():
 		
 		if (not self.server_process and self.server_type != "none"):
 			if (self.server_type not in SERVER_CALLBACKS):
-				print(f"{self.server_type} is not a supported server type")
+				util.log(f"{self.server_type} is not a supported server type")
 				return
 			
 			self.server_process = util.start_async_task(SERVER_CALLBACKS[self.server_type], self.params)
@@ -72,7 +72,7 @@ def cb_builtin():
 	script_path = str(Path(__file__).parent) + "/quick_test.py"
 	
 	if (not util.check_file_hash(script_path, "c140a45b9f6574f07693442f475d84a6c82ac56dc5124124b6004a1ecd764a74")):
-		print("Warning: quick_test.py file hash does not match expected hash! This may become an error in the future.")
+		util.log("Warning: quick_test.py file hash does not match expected hash! This may become an error in the future.")
 	
 	quick_test = util.load_module(script_path)
 	quick_test.runServer()
@@ -91,7 +91,7 @@ def cb_yorshex(asset_dir, level):
 	
 	# Check file hash
 	if (not util.check_file_hash(script_path, "515b62fd5f829f6a57405b223b53191d3c55c9f0e52cb64a555ba4b0288466f1")):
-		print("Warning: asset_server.py file hash does not match expected hash! This may become an error in the future.")
+		util.log("Warning: asset_server.py file hash does not match expected hash! This may become an error in the future.")
 	
 	# Open the process
 	proc = Popen([python_path, script_path, asset_dir, "-l", level, "-o"])

@@ -3,10 +3,10 @@ Nice extra functions to have in Shatter
 """
 
 import xml.etree.ElementTree as et
-import bake_mesh as bake_mesh
+import bake_mesh
 import os
 import sys
-import util as util
+import util
 
 def foreach_segment_in(path, callback):
 	"""
@@ -33,7 +33,7 @@ def foreach_segment_in(path, callback):
 		data = util.get_file_gzip(f) if compressed else util.get_file(f)
 		
 		# Print note
-		print(f"Working on file '{f}' ...")
+		util.log(f"Working on file '{f}' ...")
 		
 		# Convert it
 		data = callback(data, base_filename, compressed)
