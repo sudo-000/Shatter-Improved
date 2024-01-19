@@ -71,9 +71,6 @@ OBSTACLES = [
 	None,
 ]
 
-# For search in free-form entry
-OBSTACLES_LIST = ["3dcross", "babytoy", "bar", "beatmill", "beatsweeper", "beatwindow", "bigcrank", "bigpendulum", "boss", "bowling", "box", "cactus", "credits1", "credits2", "creditssign", "cubeframe", "dna", "doors", "dropblock", "elevatorgrid", "elevator", "fence", "flycube", "foldwindow", "framedwindow", "gear", "grid", "gyro", "hitblock", "laser", "levicube", "ngon", "pyramid", "revolver", "rotor", "scorediamond", "scoremulti", "scorestar", "scoretop", "sidesweeper", "stone", "suspendbox", "suspendcube", "suspendcylinder", "suspendhollow", "suspendside", "suspendwindow", "sweeper", "test", "tree", "vs_door", "vs_sweeper", "vs_wall", "boss/cube", "boss/matryoshka", "boss/single", "boss/telecube", "boss/triple", "doors/45", "doors/basic", "doors/double", "fence/carousel", "fence/dna", "fence/slider"]
-
 # Find custom obstacles
 # TODO Make this not shit anymore (that is: a JSON file) :-)
 try:
@@ -86,6 +83,12 @@ try:
 			
 			if (len(s) == 2 and not s[0].startswith("#")):
 				OBSTACLES.append((s[0], s[1], ""))
-				OBSTACLES_LIST.append(s[0])
 except FileNotFoundError:
 	util.log("Could not find text file for custom obstacles!")
+	try:
+		with open(common.TOOLS_HOME_FOLDER + "/obstacles.txt", "w") as f:
+			f.write("# Put custom obstacles here!\n\n")
+		
+		util.log("New empty custom obstacles file has been created.")
+	except:
+		pass

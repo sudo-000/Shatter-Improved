@@ -3,7 +3,7 @@ Nice extra functions to have in Shatter
 """
 
 import xml.etree.ElementTree as et
-import bake_mesh
+# import bake_mesh
 import os
 import sys
 import util
@@ -47,8 +47,10 @@ def rebake_all(path, templates):
 	Rebake all meshes in the given folder
 	"""
 	
+	raise Exception("This feature is broken!!! need to be updated for mesh runner")
+	
 	def callback(data, basename, compressed):
-		bake_mesh.bakeMeshToFile(data, basename + ".mesh.mp3", templates)
+		pass # bake_mesh.bakeMeshToFile(data, basename + ".mesh.mp3", templates)
 	
 	foreach_segment_in(path, callback)
 

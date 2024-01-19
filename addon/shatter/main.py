@@ -1052,6 +1052,16 @@ class sh_AddonPreferences(AddonPreferences):
 	####################
 	## Advanced settings
 	####################
+	mesh_baker: EnumProperty(
+		name = "Mesh baker",
+		description = "Selects which mesh baker to use",
+		items = [
+			('bakemesh', "BakeMesh (default)", "Shatter's default mesh baker, written in Python. Slow in some cases and also completely fucks up tile rotations, but supports some extras like gradients and advanced lights"),
+			('command', "Custom command", "Run a custom command to bake the mesh"),
+		],
+		default = "bakemesh",
+	)
+	
 	mesh_command: StringProperty(
 		name = "External mesh bake command",
 		description = "If specified, this command is run instead of the built-in mesh baker",
@@ -1102,8 +1112,11 @@ class sh_AddonPreferences(AddonPreferences):
 		ui.end()
 	
 	def draw_advanced(self, ui):
-		ui.region("PREFERENCES", "Custom commands")
-		ui.prop("mesh_command")
+		ui.region("PREFERENCES", "Mesh baking")
+		
+		if (ui.prop("mesh_baker") == "command"):
+			ui.prop("mesh_command")
+		
 		ui.end()
 	
 	def draw_about(self, ui):
@@ -1413,6 +1426,7 @@ class SHATTER_MT_3DViewportMenuExtras(Menu):
 		self.layout.separator()
 		self.layout.label(text = "Others")
 		self.layout.operator("shatter.progression_crypto")
+		self.layout.operator("shatter.open_obstacles_txt")
 
 class OpenShatterCreditsPage(Operator):
 	"""Open Shatter's credits web page"""
@@ -1447,6 +1461,16 @@ class OpenShatterDiscord(Operator):
 	
 	def execute(self, context):
 		webbrowser.open(f"https://discord.gg/7kra7Z3UNn")
+		return {"FINISHED"}
+
+class OpenObstaclesTextFile(Operator):
+	"""Open the obstacles.txt file"""
+	
+	bl_idname = "shatter.open_obstacles_txt"
+	bl_label = "Edit custom obstacles"
+	
+	def execute(self, context):
+		util.user_edit_file(common.TOOLS_HOME_FOLDER + "/obstacles.txt")
 		return {"FINISHED"}
 
 class SHATTER_MT_3DViewportMenu(Menu):
@@ -1902,6 +1926,7 @@ classes = (
 	OpenShatterCreditsPage,
 	OpenShatterPrivacyPage,
 	OpenShatterDiscord,
+	OpenObstaclesTextFile,
 	AutogenProperties,
 	AutogenPanel,
 	RunRandomiseSeedAction,

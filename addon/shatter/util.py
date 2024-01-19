@@ -297,3 +297,19 @@ def load_module(path):
 	spec.loader.exec_module(module)
 	
 	return module
+
+def user_edit_file(path):
+	"""
+	Try to open the given file in the user's preferred program.
+	
+	Stolen: https://stackoverflow.com/questions/6178154/open-a-text-file-using-notepad-as-a-help-file-in-python#6178200
+	"""
+	
+	import shutil, subprocess, os
+	
+	if hasattr(os, "startfile"):
+		os.startfile(path)
+	elif shutil.which("xdg-open"):
+		subprocess.call(["xdg-open", path])
+	elif "EDITOR" in os.environ:
+		subprocess.call([os.environ["EDITOR"], path])

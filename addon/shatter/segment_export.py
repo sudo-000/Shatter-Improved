@@ -14,7 +14,7 @@ import tempfile
 import json
 import pathlib
 import common
-import bake_mesh
+import mesh_runner
 import obstacle_db
 import util
 import butil
@@ -105,7 +105,7 @@ def tryTemplatesPath():
 		if (not path and ospath.exists(f)):
 			path = f
 	
-	util.log(f"Smash Hit Tools: Got file: \"{path}\"")
+	util.log(f"Got templates file: \"{path}\"")
 	
 	return path
 
@@ -661,24 +661,16 @@ def writeQuicktestInfo(tempdir, scene):
 def MB_progress_update_callback(value):
 	bpy.context.window_manager.progress_update(value)
 
-def escape_cmd_param(s):
-	s = s.replace('\\', '\\\\').replace('"', '\\"')
-	return f"\"{s}\""
-
-def run_mesh_cmd(input_path, output_path, params):
-	cmdline = prefs().mesh_command
-	cmdline = cmdline.replace("$INPUT", escape_cmd_param(input_path))
-	cmdline = cmdline.replace("$OUTPUT", escape_cmd_param(output_path))
-	cmdline = cmdline.replace("$TEMPLATE", escape_cmd_param(params["sh_meshbake_template"]))
+def bake_mesh(input_file, templates, params):
+	new_params = {
+		"BAKE_UNSEEN_FACES": params.get("bake_menu_segment", False),
+		"ABMIENT_OCCLUSION_ENABLED": params.get("bake_vertex_light", True),
+		"LIGHTING_ENABLED": params.get("lighting_enabled", False),
+		
+		"cmd": prefs().mesh_command,
+	}
 	
-	util.log(f"RUNNING COMMAND: {cmdline}")
-	
-	status = os.system(cmdline)
-	
-	if (status):
-		butil.show_message("Mesh baker error", f"The external mesh baker exited with status {status}.")
-	
-	util.log(f"\tdone, exit status = {status}")
+	mesh_runner.bake(prefs().mesh_baker, input_file, templates, new_params)
 
 def sh_export_segment_ext(filepath, context, scene, compress = False, params = {}):
 	"""
@@ -746,13 +738,7 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 		
 		# Write mesh if needed
 		if (params.get("sh_box_bake_mode", "Mesh") == "Mesh"):
-			if (prefs().mesh_command):
-				run_mesh_cmd(tempdir + "/segment.xml", tempdir + "/segment.mesh", params)
-			else:
-				bake_mesh.BAKE_UNSEEN_FACES = params.get("bake_menu_segment", False)
-				bake_mesh.ABMIENT_OCCLUSION_ENABLED = params.get("bake_vertex_light", True)
-				bake_mesh.LIGHTING_ENABLED = params.get("lighting_enabled", False)
-				bake_mesh.bakeMeshToFile(content, tempdir + "/segment.mesh", templates, bake_mesh.BakeProgressInfo(MB_progress_update_callback))
+			bake_mesh(tempdir + "/segment.xml", templates, params)
 		
 		context.window_manager.progress_end()
 		
@@ -771,7 +757,7 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 	##
 	
 	# Preform template resolution if it is enabled for all segments
-	if (context.preferences.addons["shatter"].preferences.resolve_templates and templates):
+	if (prefs().resolve_templates and templates):
 		content = solveTemplates(content, parseTemplatesXml(templates))
 	
 	# Write out file
@@ -780,23 +766,7 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 	
 	# Cook the mesh if we need to
 	if (params.get("sh_box_bake_mode", "Mesh") == "Mesh"):
-		# Find file name
-		meshfile = ospath.splitext(ospath.splitext(filepath)[0])[0]
-		if (compress):
-			meshfile = ospath.splitext(meshfile)[0]
-		meshfile += ".mesh.mp3"
-		
-		if (prefs().mesh_command):
-			run_mesh_cmd(filepath, meshfile, params)
-		else:
-			# Set properties
-			# (TODO: maybe this should be passed to the function instead of just setting global vars?)
-			bake_mesh.BAKE_UNSEEN_FACES = params.get("bake_menu_segment", False)
-			bake_mesh.ABMIENT_OCCLUSION_ENABLED = params.get("bake_vertex_light", True)
-			bake_mesh.LIGHTING_ENABLED = params.get("lighting_enabled", False)
-			
-			# Bake mesh
-			bake_mesh.bakeMeshToFile(content, meshfile, (params["sh_meshbake_template"] if params["sh_meshbake_template"] else None), bake_mesh.BakeProgressInfo(MB_progress_update_callback))
+		bake_mesh(filepath, templates, params)
 	
 	# Display export warnings, if any and if enabled
 	params["warnings"].display()

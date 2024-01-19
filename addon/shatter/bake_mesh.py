@@ -16,7 +16,7 @@ import sys
 import xml.etree.ElementTree as et
 import random
 import math
-import profile
+import gzip
 
 # Version of mesh baker
 VERSION = (0, 15, 6)
@@ -1035,11 +1035,11 @@ def generateMeshData(data, seg = None, progress = None, extra_data = None):
 ## =============================================================================
 ## =============================================================================
 
-def bakeMesh(data, templates_path = None, progress = None, extra_data = None):
+def bakeMeshFromBytesToBytes(data, templates_path = None, progress = None, extra_data = None):
 	"""
 	Bake a mesh from Smash Hit segment and return data
 	
-	data: Segment data as a string
+	data: Mesh data as a string
 	templates_path: Path to the templates file
 	"""
 	
@@ -1066,37 +1066,53 @@ def bakeMeshToFile(data, output_file, template_file = None, progress = None, ext
 	templates specififed.
 	"""
 	
-	mesh_data = bakeMesh(data, template_file, progress, extra_data)
+	mesh_data = bakeMeshFromBytesToBytes(data, template_file, progress, extra_data)
 	
 	f = open(output_file, "wb")
 	f.write(mesh_data)
 	f.close()
 
-def main(input_file, output_file, template_file = None):
-	f = open(input_file, "r")
-	data = f.read()
-	f.close()
+def bakeMesh(input_file, output_file, template_file = None, progress = None):
+	"""
+	2024-01-18: Needed for mesh runner
 	
-	bakeMeshToFile(data, output_file, template_file)
-
-def runMain():
-	if (sys.argv[1] != "!!decompress!!"):
-		main(sys.argv[1], sys.argv[2], sys.argv[3] if (len(sys.argv) >= 4) else None)
+	Bake a mesh from and input .xml or .xml.gz file.
+	"""
+	
+	compressed = input_file.endswith(".gz.mp3") or input_file.endswith(".gz")
+	input_data = None
+	
+	if (compressed):
+		with gzip.open(input_file, "r") as f:
+			input_data = f.read()
 	else:
-		log("decompress mesh mode")
-		f = open(sys.argv[2], "rb")
-		d = zlib.decompress(f.read())
-		f.close()
-		f = open(sys.argv[2] + ".mesh-uncompressed", "wb")
-		f.write(d)
-		f.close()
+		with open(input_file, "rb") as f:
+			input_data = f.read()
+	
+	bakeMeshToFile(input_data, output_file, template_file, progress)
+
+def main():
+	if (len(sys.argv) < 3):
+		print(f"""
+Usage:
+{sys.argv[0]} <input> <output> [<templates>]
+
+Bakes a Smash Hit mesh from the file named <input> to the file named <output>,
+using templates from <templates> if specified. It is automaticlly inferred if
+<input> is compressed by checking if it ends with the strings ".gz.mp3" or
+".gz". If not it is assumed to be uncompressed.
+""")
+	else:
+		bakeMesh(
+			sys.argv[1],
+			sys.argv[2],
+			sys.argv[3] if len(sys.argv) >= 4 else None,
+		)
 
 if (__name__ == "__main__"):
-	profile.run('runMain()')
-
-log(f"""
-BakeMesh is copyright (C) 2022 - 2024 Knot. Please see LICENCE for details.
+	main()
+else:
+	log(f"""BakeMesh v{VERSION[0]}.{VERSION[1]}.{VERSION[2]} is copyright (C) 2021 - 2024 Knot. Please see LICENCE for details.
 
 "With the power of the prism, there's nothing I can't do."
-                               - Tails Nine, 2024
-""")
+                               - Tails Nine, 2024""")
