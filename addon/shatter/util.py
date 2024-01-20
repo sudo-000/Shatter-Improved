@@ -19,6 +19,7 @@ import shutil
 import sys
 import importlib.util
 import secrets
+import xml.etree.ElementTree as et
 
 def log(msg, newline = True):
 	"""
@@ -313,3 +314,52 @@ def user_edit_file(path):
 		subprocess.call(["xdg-open", path])
 	elif "EDITOR" in os.environ:
 		subprocess.call([os.environ["EDITOR"], path])
+
+def load_templates(path):
+	"""
+	Load templates from a file
+	"""
+	
+	result = {}
+	
+	try:
+		tree = et.parse(path)
+		root = tree.getroot()
+		
+		assert("templates" == root.tag)
+		
+		# Loop over templates in XML file and load them
+		for child in root:
+			assert("template" == child.tag)
+			
+			name = child.attrib["name"]
+			attribs = child[0].attrib
+			
+			result[name] = attribs
+		
+		return result
+	except:
+		return result
+
+def solve_templates(segment_text, templates = {}):
+	"""
+	Resolve the templates
+	"""
+	
+	# Load document
+	root = et.fromstring(segment_text)
+	
+	# For each element
+	for e in root:
+		# Get the template property if it exists
+		template = e.attrib.get("template", None)
+		
+		# If the template exists then we combine
+		if (template and templates.get(template, None) != None):
+			# This takes the templates, puts them in a dict, then overwrites
+			# anything in that dict with what is in the attributes.
+			# http://stackoverflow.com/questions/38987/ddg#26853961
+			e.attrib = {**templates[template], **e.attrib}
+	
+	# Back to a string!
+	return et.tostring(root).decode('utf-8')

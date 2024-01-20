@@ -400,7 +400,7 @@ class sh_SceneProperties(PropertyGroup):
 	)
 	
 	sh_lighting: BoolProperty(
-		name = "Advanced lighting",
+		name = "Advanced lighting (deprecated)",
 		description = "Enables some lighting features when baking the mesh",
 		default = False
 	)
@@ -1001,6 +1001,12 @@ class sh_AddonPreferences(AddonPreferences):
 		default = False,
 	)
 	
+	show_deprecated_advanced_lights: BoolProperty(
+		name = "Show advanced lights (deprecated)",
+		description = "Shows the advanced lights panel when not relevant. Note that advanced lights is *deprecated* meaning it could be removed at any time",
+		default = False,
+	)
+	
 	enable_update_notifier: BoolProperty(
 		name = "Enable update checking",
 		description = "Enables checking for updates. This will try to contact github, which may pose a privacy risk",
@@ -1056,7 +1062,7 @@ class sh_AddonPreferences(AddonPreferences):
 		name = "Mesh baker",
 		description = "Selects which mesh baker to use",
 		items = [
-			('bakemesh', "BakeMesh (default)", "Shatter's default mesh baker, written in Python. Slow in some cases and also completely fucks up tile rotations, but supports some extras like gradients and advanced lights"),
+			('bakemesh', "BakeMesh (default)", "Shatter's default mesh baker, written in Python. Slow in some cases and also completely fucks up tile rotations, but supports some extras like gradients"),
 			('command', "Custom command", "Run a custom command to bake the mesh"),
 		],
 		default = "bakemesh",
@@ -1094,6 +1100,7 @@ class sh_AddonPreferences(AddonPreferences):
 		ui.region("PREFERENCES", "Interface")
 		ui.prop("compact_ui")
 		ui.prop("purist_mode")
+		ui.prop("show_deprecated_advanced_lights")
 		ui.end()
 		
 		ui.region("WORLD", "Network features")
@@ -1181,7 +1188,7 @@ class sh_SegmentPanel(Panel):
 			sub.prop(sh_properties, "sh_light_front")
 			sub.prop(sh_properties, "sh_light_back")
 			
-			if (not get_prefs().purist_mode or sh_properties.sh_lighting):
+			if ((not get_prefs().purist_mode and get_prefs().show_deprecated_advanced_lights) or sh_properties.sh_lighting):
 				sub.prop(sh_properties, "sh_lighting")
 				if (sh_properties.sh_lighting):
 					sub.prop(sh_properties, "sh_lighting_ambient")

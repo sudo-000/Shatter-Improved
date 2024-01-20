@@ -18,7 +18,7 @@ import mesh_runner
 import obstacle_db
 import util
 import butil
-import re
+import assets
 
 from bpy.props import (
 	StringProperty,
@@ -566,55 +566,6 @@ def createSegmentText(scene, params):
 	
 	return content
 
-def parseTemplatesXml(path):
-	"""
-	Load templates from a file
-	"""
-	
-	result = {}
-	
-	try:
-		tree = et.parse(path)
-		root = tree.getroot()
-		
-		assert("templates" == root.tag)
-		
-		# Loop over templates in XML file and load them
-		for child in root:
-			assert("template" == child.tag)
-			
-			name = child.attrib["name"]
-			attribs = child[0].attrib
-			
-			result[name] = attribs
-		
-		return result
-	except:
-		return result
-
-def solveTemplates(segment_text, templates = {}):
-	"""
-	Resolve the templates
-	"""
-	
-	# Load document
-	root = et.fromstring(segment_text)
-	
-	# For each element
-	for e in root:
-		# Get the template property if it exists
-		template = e.attrib.get("template", None)
-		
-		# If the template exists then we combine
-		if (template and templates.get(template, None) != None):
-			# This takes the templates, puts them in a dict, then overwrites
-			# anything in that dict with what is in the attributes.
-			# http://stackoverflow.com/questions/38987/ddg#26853961
-			e.attrib = {**templates[template], **e.attrib}
-	
-	# Back to a string!
-	return et.tostring(root).decode('utf-8')
-
 def writeQuicktestInfo(tempdir, scene):
 	"""
 	Write the quick test `room.json` file
@@ -722,7 +673,7 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 		
 		# Solve templates if we have them
 		if (templates):
-			content = solveTemplates(content, parseTemplatesXml(templates))
+			content = util.solve_templates(content, util.load_templates(templates))
 		
 		# Make dirs
 		tempdir = tempfile.gettempdir() + "/shbt-testserver"
@@ -758,7 +709,7 @@ def sh_export_segment_ext(filepath, context, scene, compress = False, params = {
 	
 	# Preform template resolution if it is enabled for all segments
 	if (prefs().resolve_templates and templates):
-		content = solveTemplates(content, parseTemplatesXml(templates))
+		content = util.solve_templates(content, util.load_templates(templates))
 	
 	# Write out file
 	with (gzip.open(filepath, "wb") if compress else open(filepath, "wb")) as f:
