@@ -604,12 +604,6 @@ class sh_EntityProperties(PropertyGroup):
 		default = True,
 	)
 	
-	sh_hidden: BoolProperty(
-		name = "Hidden",
-		description = "Controls if the entity will show in the official level editor. This is basically useless but included for completeness",
-		default = False,
-	)
-	
 	sh_mode: EnumProperty(
 		name = "Mode",
 		options = {"ENUM_FLAG"},
@@ -1355,7 +1349,6 @@ class sh_ItemPropertiesPanel(Panel):
 		elif (t == "WAT"):
 			ui.prop("sh_resolution")
 		
-		ui.prop("sh_hidden")
 		ui.prop("sh_export")
 
 class sh_CreateBox(Operator):

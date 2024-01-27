@@ -261,7 +261,7 @@ def make_subelement_from_entity(level_root, scene, obj, params):
 		properties["type"] = obj.sh_properties.sh_powerup
 		
 	# Hidden for all types
-	if (obj.sh_properties.sh_hidden):
+	if (not obj.visible_get()):
 		properties["hidden"] = "1"
 	else:
 		properties["hidden"] = "0"

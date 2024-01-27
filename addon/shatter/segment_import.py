@@ -375,6 +375,9 @@ def sh_import_segment(fp, context, compressed = False):
 				b.sh_properties.sh_gradpoint2 = gradient[3:6]
 				b.sh_properties.sh_gradcolour1 = gradient[6:9]
 				b.sh_properties.sh_gradcolour2 = gradient[9:12]
+			
+			# Set hidden in editor or not
+			b.hide_set(properties.get("hidden", "0") == "1")
 		
 		# Obstacles
 		elif (kind == "obstacle"):
@@ -401,7 +404,7 @@ def sh_import_segment(fp, context, compressed = False):
 			o.sh_properties.sh_param9 = properties.get("param9", "")
 			o.sh_properties.sh_param10 = properties.get("param10", "")
 			o.sh_properties.sh_param11 = properties.get("param11", "")
-			o.sh_properties.sh_hidden = (properties.get("hidden", "0") == "1")
+			o.hide_set(properties.get("hidden", "0") == "1")
 			
 			# Solve default templates
 			if (scene.sh_default_template and 
@@ -440,7 +443,7 @@ def sh_import_segment(fp, context, compressed = False):
 			o.sh_properties.sh_blend = float(properties.get("blend", "1"))
 			
 			# Set the hidden flag
-			o.sh_properties.sh_hidden = (properties.get("hidden", "0") == "1")
+			o.hide_set(properties.get("hidden", "0") == "1")
 			
 			# Set the difficulty
 			o.sh_properties.sh_difficulty = sh_parse_string_array(properties.get("difficulty", "0 1"), fallbacks = [0, 1])
@@ -462,7 +465,7 @@ def sh_import_segment(fp, context, compressed = False):
 			o.sh_properties.sh_difficulty = sh_parse_string_array(properties.get("difficulty", "0 1"), fallbacks = [0, 1])
 			
 			# Set hidden
-			o.sh_properties.sh_hidden = (properties.get("hidden", "0") == "1")
+			o.hide_set(properties.get("hidden", "0") == "1")
 		
 		# Water
 		elif (kind == "water"):
@@ -479,7 +482,7 @@ def sh_import_segment(fp, context, compressed = False):
 			o.sh_properties.sh_resolution = sh_parse_string_array(properties.get("resolution", "32 32"), fallbacks = [32.0, 32.0])
 			
 			# Set hidden
-			o.sh_properties.sh_hidden = (properties.get("hidden", "0") == "1")
+			o.hide_set(properties.get("hidden", "0") == "1")
 		
 		# Anything else
 		else:
