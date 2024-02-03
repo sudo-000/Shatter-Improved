@@ -69,7 +69,6 @@ class sh_ExportCommon(bpy.types.Operator, ExportHelper2):
 		description = "A relitive or full path to the template file used for baking meshes. If you use APK Editor Studio and the Smash Hit APK is open, the path to the file will be pre-filled",
 		default = "",
 		subtype = "FILE_PATH",
-		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	def __init__(self):
@@ -270,26 +269,23 @@ class sh_SceneProperties(PropertyGroup):
 		description = "The name of the checkpoint that this segment belongs to.",
 		default = "",
 		update = server_manager_update,
-		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	sh_room: StringProperty(
 		name = "Room",
 		description = "The name of the room that this segment belongs to.",
 		default = "",
-		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	sh_segment: StringProperty(
 		name = "Segment",
 		description = "The name of this segment",
 		default = "",
-		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	sh_len: FloatVectorProperty(
 		name = "Size",
-		description = "Segment size (Width, Height, Depth). Hint: Last paramater changes the length (depth) of the segment",
+		description = "Segment size in the order Width, Height, Depth. Last paramater changes the length (depth) of the segment",
 		subtype = "XYZ",
 		default = (12.0, 10.0, 8.0), 
 	)
@@ -315,14 +311,12 @@ class sh_SceneProperties(PropertyGroup):
 		name = "Template",
 		description = "The template paramater that is passed for the entire segment",
 		default = "",
-		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	sh_default_template: StringProperty(
 		name = "Default template",
 		description = "The base name of the template to use when no template is specified for an entity. Format: boxes 🡒 '{basename}', obstacles 🡒 '{basename}_glass', obstacles starting with 'score' 🡒 '{basename}_st', segment 🡒 '{basename}_s'",
 		default = "",
-		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	sh_softshadow: FloatProperty(
@@ -424,7 +418,6 @@ class sh_SceneProperties(PropertyGroup):
 		name = "Stone obstacle name",
 		description = "Name of the obstacle to use for stone",
 		default = "stone",
-		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	sh_legacy_colour_model: BoolProperty(
@@ -553,7 +546,6 @@ class sh_EntityProperties(PropertyGroup):
 		name = "Template",
 		description = "The template for the obstacle/box (see templates.xml), remember that this can be easily overridden per obstacle/box",
 		default = "",
-		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	sh_use_chooser: BoolProperty(
@@ -566,7 +558,6 @@ class sh_EntityProperties(PropertyGroup):
 		name = "Obstacle",
 		description = "Type of obstacle to be used (as a file name string)",
 		default = "",
-		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	sh_obstacle_chooser: EnumProperty(
@@ -718,84 +709,72 @@ class sh_EntityProperties(PropertyGroup):
 		name = "param0",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
-		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	sh_param1: StringProperty(
 		name = "param1",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
-		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	sh_param2: StringProperty(
 		name = "param2",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
-		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	sh_param3: StringProperty(
 		name = "param3",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
-		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	sh_param4: StringProperty(
 		name = "param4",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
-		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	sh_param5: StringProperty(
 		name = "param5",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
-		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	sh_param6: StringProperty(
 		name = "param6",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
-		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	sh_param7: StringProperty(
 		name = "param7",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
-		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	sh_param8: StringProperty(
 		name = "param8",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
-		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	sh_param9: StringProperty(
 		name = "param9",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
-		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	sh_param10: StringProperty(
 		name = "param10",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
-		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	sh_param11: StringProperty(
 		name = "param11",
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
-		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	###############
@@ -1427,6 +1406,7 @@ class SHATTER_MT_3DViewportMenuExtras(Menu):
 		self.layout.label(text = "Others")
 		self.layout.operator("shatter.progression_crypto")
 		self.layout.operator("shatter.open_obstacles_txt")
+		self.layout.operator("shatter.open_current_asset_folder")
 
 class OpenShatterCreditsPage(Operator):
 	"""Open Shatter's credits web page"""
@@ -1471,6 +1451,22 @@ class OpenObstaclesTextFile(Operator):
 	
 	def execute(self, context):
 		util.user_edit_file(common.TOOLS_HOME_FOLDER + "/obstacles.txt")
+		return {"FINISHED"}
+
+class OpenCurrentAssetFolder(Operator):
+	"""Open the currently used asset folder"""
+	
+	bl_idname = "shatter.open_current_asset_folder"
+	bl_label = "Open current asset folder"
+	
+	def execute(self, context):
+		folder = butil.find_apk()
+		
+		if (folder):
+			util.user_edit_file(folder)
+		else:
+			butil.show_message("Folder not found", "The assets folder was not found. Try setting a default asset path in Shatter preferences or open an APK in APK Editor Studio.")
+		
 		return {"FINISHED"}
 
 class SHATTER_MT_3DViewportMenu(Menu):
@@ -1551,7 +1547,6 @@ class AutogenProperties(PropertyGroup):
 		name = "Template",
 		description = "Template to use for these boxes. You can also select a target box to copy properties from that box",
 		default = "",
-		maxlen = SH_MAX_STR_LEN,
 	)
 	
 	size: FloatVectorProperty(
@@ -1927,6 +1922,7 @@ classes = (
 	OpenShatterPrivacyPage,
 	OpenShatterDiscord,
 	OpenObstaclesTextFile,
+	OpenCurrentAssetFolder,
 	AutogenProperties,
 	AutogenPanel,
 	RunRandomiseSeedAction,
