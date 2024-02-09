@@ -18,7 +18,6 @@ import obstacle_db
 import segment_export
 import segment_import
 import room_export
-import extra_tools
 import updater
 import autogen_ui
 import util
@@ -59,7 +58,7 @@ g_got_ricked = False
 ExportHelper2 = butil.ExportHelper2
 get_prefs = butil.prefs
 
-class sh_ExportCommon(bpy.types.Operator, ExportHelper2):
+class ShatterExportCommon(bpy.types.Operator, ExportHelper2):
 	"""
 	Common code and values between export types
 	"""
@@ -79,10 +78,7 @@ class sh_ExportCommon(bpy.types.Operator, ExportHelper2):
 		if (not self.sh_meshbake_template):
 			self.sh_meshbake_template = segment_export.tryTemplatesPath()
 
-################################################################################
-# UNCOMPRESSED
-################################################################################
-class sh_export(sh_ExportCommon):
+class SegmentExport(ShatterExportCommon):
 	"""Export an uncompressed (.xml.mp3) segment"""
 	
 	bl_idname = "shatter.export"
@@ -99,11 +95,7 @@ class sh_export(sh_ExportCommon):
 def sh_draw_export(self, context):
 	self.layout.operator("shatter.export", text="Segment (.xml.mp3)")
 
-################################################################################
-# COMPRESSED
-################################################################################
-
-class sh_export_gz(sh_ExportCommon):
+class SegmentExportGz(ShatterExportCommon):
 	"""Export a compressed (.xml.gz.mp3) segment. Choose this when you don't know which to use"""
 	
 	bl_idname = "shatter.export_compressed"
@@ -120,10 +112,7 @@ class sh_export_gz(sh_ExportCommon):
 def sh_draw_export_gz(self, context):
 	self.layout.operator("shatter.export_compressed", text="Compressed Segment (.xml.gz.mp3)")
 
-################################################################################
-# AUTO EXPORT
-################################################################################
-class sh_export_auto(bpy.types.Operator):
+class SegmentExportAuto(bpy.types.Operator):
 	"""Automatically find an asset folder and save the segment to the segments folder in the correct location from the info given in the scene tab"""
 	
 	bl_idname = "shatter.export_auto"
@@ -134,10 +123,7 @@ class sh_export_auto(bpy.types.Operator):
 		
 		return {"FINISHED"}
 
-################################################################################
-# AUTO EXPORT ALL SCENES
-################################################################################
-class sh_export_all_auto(bpy.types.Operator):
+class SegmentExportAllAuto(bpy.types.Operator):
 	"""Automatically find an asset path and export every segment in this file to the proper locations"""
 	
 	bl_idname = "shatter.export_all_auto"
@@ -148,13 +134,7 @@ class sh_export_all_auto(bpy.types.Operator):
 		
 		return {"FINISHED"}
 
-# def sh_draw_export_all_auto(self, context):
-# 	self.layout.operator("shatter.export_all_auto", text="Shatter: Export All to APK")
-
-################################################################################
-# TESTSERVER
-################################################################################
-class sh_export_test(Operator):
+class SegmentExportTest(Operator):
 	"""Export a segment to the quick test server"""
 	
 	bl_idname = "shatter.export_test_server"
@@ -168,7 +148,7 @@ class sh_export_test(Operator):
 		
 		return {"FINISHED"}
 
-class sh_import(bpy.types.Operator, ImportHelper):
+class SegmentImport(bpy.types.Operator, ImportHelper):
 	"""Imports an uncompressed (.xml.mp3) segment to the current scene"""
 	
 	bl_idname = "shatter.import"
@@ -184,7 +164,7 @@ class sh_import(bpy.types.Operator, ImportHelper):
 def sh_draw_import(self, context):
 	self.layout.operator("shatter.import", text="Segment (.xml.mp3)")
 
-class sh_import_gz(bpy.types.Operator, ImportHelper):
+class SegmentImportGz(bpy.types.Operator, ImportHelper):
 	"""Imports a compressed (.xml.gz.mp3) segment to the current scene"""
 	
 	bl_idname = "shatter.import_gz"
@@ -200,20 +180,9 @@ class sh_import_gz(bpy.types.Operator, ImportHelper):
 def sh_draw_import_gz(self, context):
 	self.layout.operator("shatter.import_gz", text="Compressed Segment (.xml.gz.mp3)")
 
-class sh_rebake_meshes(bpy.types.Operator, ImportHelper):
-	"""Rebake many meshes from a selected folder"""
-	
-	bl_idname = "shatter.rebake_meshes"
-	bl_label = "Batch re-bake meshes"
-	
-	def execute(self, context):
-		assets = butil.find_apk()
-		
-		context.window.cursor_set('WAIT')
-		extra_tools.rebake_all(self.filepath, f"{assets}/templates.xml.mp3" if assets else None)
-		context.window.cursor_set('DEFAULT')
-		
-		return {"FINISHED"}
+################################################################################
+# Server manager related
+################################################################################
 
 def server_manager_update(_self = None, _context = None):
 	"""
@@ -255,11 +224,11 @@ def get_test_level_list(self, context):
 	
 	return levels
 
-## EDITOR
-## The following things are more related to the editor and are not specifically
-## for exporting or importing segments.
+################################################################################
+# Item and scene data structures
+################################################################################
 
-class sh_SceneProperties(PropertyGroup):
+class SegmentProperties(PropertyGroup):
 	"""
 	Segment (scene) properties
 	"""
@@ -525,9 +494,7 @@ class sh_SceneProperties(PropertyGroup):
 		min = 0,
 	)
 
-# Object (box/obstacle/powerup/decal/water) properties
-
-class sh_EntityProperties(PropertyGroup):
+class EntityProperties(PropertyGroup):
 	
 	sh_type: EnumProperty(
 		name = "Kind",
@@ -618,10 +585,6 @@ class sh_EntityProperties(PropertyGroup):
 		size = 2,
 	)
 	
-	##################
-	# Mesh properties
-	##################
-	
 	sh_visible: BoolProperty(
 		name = "Visible",
 		description = "If the box will appear in the exported mesh",
@@ -681,11 +644,7 @@ class sh_EntityProperties(PropertyGroup):
 		soft_min = 0.0,
 		soft_max = 128.0,
 		size = 3
-	) 
-	
-	########################
-	# Back to normal things
-	########################
+	)
 	
 	sh_decal: IntProperty(
 		name = "Decal",
@@ -700,10 +659,6 @@ class sh_EntityProperties(PropertyGroup):
 		description = "If this box should show reflections",
 		default = False
 	)
-	
-	#############
-	# Paramaters
-	#############
 	
 	sh_param0: StringProperty(
 		name = "param0",
@@ -776,10 +731,6 @@ class sh_EntityProperties(PropertyGroup):
 		description = "Parameter which is given to the obstacle when spawned",
 		default = "",
 	)
-	
-	###############
-	# Other values
-	###############
 	
 	sh_havetint: BoolProperty(
 		name = "Decal colourisation",
@@ -922,7 +873,11 @@ class sh_EntityProperties(PropertyGroup):
 		max = 1000.0,
 	)
 
-class sh_AddonPreferences(AddonPreferences):
+################################################################################
+# Addon, item and scene panels
+################################################################################
+
+class ShatterPreferences(AddonPreferences):
 	bl_idname = "shatter"
 	
 	tab: EnumProperty(
@@ -1116,7 +1071,7 @@ class sh_AddonPreferences(AddonPreferences):
 		
 		ui.end()
 
-class sh_SegmentPanel(Panel):
+class SegmentPanel(Panel):
 	bl_label = "Smash Hit Scene"
 	bl_idname = "OBJECT_PT_segment_panel"
 	bl_space_type = "VIEW_3D"
@@ -1214,7 +1169,7 @@ class sh_SegmentPanel(Panel):
 		
 		layout.separator()
 
-class sh_ItemPropertiesPanel(Panel):
+class EntityPanel(Panel):
 	bl_label = "Smash Hit Item"
 	bl_idname = "OBJECT_PT_obstacle_panel"
 	bl_space_type = "VIEW_3D"   
@@ -1332,7 +1287,11 @@ class sh_ItemPropertiesPanel(Panel):
 		
 		ui.prop("sh_export")
 
-class sh_CreateBox(Operator):
+################################################################################
+# Operators for creating entities
+################################################################################
+
+class CreateBox(Operator):
 	"""Creates a new box"""
 	
 	bl_idname = "shatter.create_box"
@@ -1343,7 +1302,7 @@ class sh_CreateBox(Operator):
 		
 		return {"FINISHED"}
 
-class sh_CreateObstacle(Operator):
+class CreateObstacle(Operator):
 	"""Creates a new obstacle"""
 	
 	bl_idname = "shatter.create_obstacle"
@@ -1355,7 +1314,7 @@ class sh_CreateObstacle(Operator):
 		
 		return {"FINISHED"}
 
-class sh_CreateDecal(Operator):
+class CreateDecal(Operator):
 	"""Creates a new decal"""
 	
 	bl_idname = "shatter.create_decal"
@@ -1367,7 +1326,7 @@ class sh_CreateDecal(Operator):
 		
 		return {"FINISHED"}
 
-class sh_CreatePowerup(Operator):
+class CreatePowerup(Operator):
 	"""Creates a new powerup"""
 	
 	bl_idname = "shatter.create_powerup"
@@ -1379,7 +1338,7 @@ class sh_CreatePowerup(Operator):
 		
 		return {"FINISHED"}
 
-class sh_CreateWater(Operator):
+class CreateWater(Operator):
 	"""Creates a new water plane"""
 	
 	bl_idname = "shatter.create_water"
@@ -1391,24 +1350,9 @@ class sh_CreateWater(Operator):
 		
 		return {"FINISHED"}
 
-class SHATTER_MT_3DViewportMenuExtras(Menu):
-	bl_label = "Extra features"
-	
-	def draw(self, context):
-		self.layout.label(text = "Common")
-		self.layout.operator("shatter.patch_libsmashhit")
-		self.layout.operator("shatter.rebake_meshes")
-		self.layout.separator()
-		self.layout.label(text = "Export")
-		self.layout.operator("shatter.export_all_auto")
-		if (get_prefs().quick_test_server == "builtin"):
-			self.layout.operator("shatter.export_room")
-		self.layout.operator("shatter.export_level_package")
-		self.layout.separator()
-		self.layout.label(text = "Others")
-		self.layout.operator("shatter.progression_crypto")
-		self.layout.operator("shatter.open_obstacles_txt")
-		self.layout.operator("shatter.open_current_asset_folder")
+################################################################################
+# Misc. operators related to opening pages
+################################################################################
 
 class OpenShatterCreditsPage(Operator):
 	"""Open Shatter's credits web page"""
@@ -1471,6 +1415,10 @@ class OpenCurrentAssetFolder(Operator):
 		
 		return {"FINISHED"}
 
+################################################################################
+# Shatter menu
+################################################################################
+
 class SHATTER_MT_3DViewportMenu(Menu):
 	bl_label = "Shatter"
 	
@@ -1491,6 +1439,24 @@ class SHATTER_MT_3DViewportMenu(Menu):
 
 def SHATTER_MT_3DViewportMenu_draw(self, context):
 	self.layout.menu("SHATTER_MT_3DViewportMenu")
+
+class SHATTER_MT_3DViewportMenuExtras(Menu):
+	bl_label = "Extra features"
+	
+	def draw(self, context):
+		self.layout.label(text = "Common")
+		self.layout.operator("shatter.patch_libsmashhit")
+		self.layout.separator()
+		self.layout.label(text = "Export")
+		self.layout.operator("shatter.export_all_auto")
+		if (get_prefs().quick_test_server == "builtin"):
+			self.layout.operator("shatter.export_room")
+		self.layout.operator("shatter.export_level_package")
+		self.layout.separator()
+		self.layout.label(text = "Others")
+		self.layout.operator("shatter.progression_crypto")
+		self.layout.operator("shatter.open_obstacles_txt")
+		self.layout.operator("shatter.open_current_asset_folder")
 
 ################################################################################
 # UTILITIES AND STUFF
@@ -1524,26 +1490,25 @@ def run_updater():
 # Ignore the naming scheme for classes, please
 # Also WHY THE FUCK DO I HAVE TO DO THIS???
 classes = (
-	sh_SceneProperties,
-	sh_EntityProperties,
-	sh_SegmentPanel,
-	sh_ItemPropertiesPanel,
-	sh_AddonPreferences,
-	sh_export,
-	sh_export_gz,
-	sh_export_auto,
-	sh_export_all_auto,
-	sh_export_test,
-	sh_import,
-	sh_import_gz,
-	sh_rebake_meshes,
+	SegmentProperties,
+	EntityProperties,
+	SegmentPanel,
+	EntityPanel,
+	ShatterPreferences,
+	SegmentExport,
+	SegmentExportGz,
+	SegmentExportAuto,
+	SegmentExportAllAuto,
+	SegmentExportTest,
+	SegmentImport,
+	SegmentImportGz,
 	SHATTER_MT_3DViewportMenuExtras,
 	SHATTER_MT_3DViewportMenu,
-	sh_CreateBox,
-	sh_CreateObstacle,
-	sh_CreateDecal,
-	sh_CreatePowerup,
-	sh_CreateWater,
+	CreateBox,
+	CreateObstacle,
+	CreateDecal,
+	CreatePowerup,
+	CreateWater,
 	OpenShatterCreditsPage,
 	OpenShatterPrivacyPage,
 	OpenShatterDiscord,
@@ -1584,9 +1549,9 @@ def register():
 	for cls in classes:
 		register_class(cls)
 	
-	bpy.types.Scene.sh_properties = PointerProperty(type=sh_SceneProperties)
+	bpy.types.Scene.sh_properties = PointerProperty(type=SegmentProperties)
 	bpy.types.Scene.shatter_autogen = PointerProperty(type=autogen_ui.AutogenProperties)
-	bpy.types.Object.sh_properties = PointerProperty(type=sh_EntityProperties)
+	bpy.types.Object.sh_properties = PointerProperty(type=EntityProperties)
 	
 	# Add the export operator to menu
 	bpy.types.TOPBAR_MT_file_export.append(sh_draw_export)
