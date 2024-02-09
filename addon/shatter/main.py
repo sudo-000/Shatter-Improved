@@ -1487,7 +1487,6 @@ def run_updater():
 
 ###############################################################################
 
-# Ignore the naming scheme for classes, please
 # Also WHY THE FUCK DO I HAVE TO DO THIS???
 classes = (
 	SegmentProperties,
