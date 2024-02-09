@@ -7,12 +7,9 @@ import common as common
 SH_MAX_STR_LEN = common.MAX_STRING_LENGTH
 
 import bpy
-import gzip
-import random
 import os
 import webbrowser
 import traceback
-import tempfile
 import secrets
 import obstacle_db
 import segment_export
