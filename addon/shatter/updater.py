@@ -12,6 +12,7 @@ from pathlib import Path
 from hashlib import sha3_384
 from multiprocessing import Process
 import traceback
+import os
 
 import common
 import util
@@ -40,44 +41,30 @@ def download_json(source):
 	
 	return json.loads(data)
 
-def update_downloader(url, hash):
-	try:
-		import shutil, pathlib, os
-		
-		util.log(f"Downloading an update where:\n\turl = {url}\n\thash = {hash}")
-		
-		# Download data
-		data = util.http_get_with_expected_hash(url, hash)
-		
-		if (not data):
-			util.log("Update zip file failed to download or verify properly")
-			os._exit(0)
-		
-		# Get the local file path
-		path = common.TOOLS_HOME_FOLDER + "/" + url.split("/")[-1].replace("/", "").replace("\\", "")
-		
-		# Write the data
-		pathlib.Path(path).write_bytes(data)
-		
-		util.log(f"Downloaded latest update to '{path}', extracting files now...")
-		
-		# Extract the files (installs update)
-		shutil.unpack_archive(path, common.BLENDER_ADDONS_PATH, "zip")
-		
-		util.log("Addon has been updated")
-		
-		os._exit(0)
-	except:
-		util.log(traceback.print_exc())
-		os._exit(1)
-
 def download_and_install_update(url, hash):
-	"""
-	Download and install an update
-	"""
+	import shutil, pathlib
 	
-	p = Process(target = update_downloader, args = (url, hash))
-	p.start()
+	util.log(f"Downloading an update where:\n\turl = {url}\n\thash = {hash}")
+	
+	# Download data
+	data = util.http_get_with_expected_hash(url, hash)
+	
+	if (not data):
+		util.log("Update zip file failed to download or verify properly")
+		return
+	
+	# Get the local file path
+	path = common.TOOLS_HOME_FOLDER + "/" + url.split("/")[-1].replace("/", "").replace("\\", "")
+	
+	# Write the data
+	pathlib.Path(path).write_bytes(data)
+	
+	util.log(f"Downloaded latest update to '{path}', extracting files now...")
+	
+	# Extract the files (installs update)
+	shutil.unpack_archive(path, common.BLENDER_ADDONS_PATH, "zip")
+	
+	util.log("Addon has been updated")
 
 def version_compare(current, candidate, or_eq = False):
 	"""
@@ -170,12 +157,26 @@ def get_latest_version(current_version, release_channel, current_blender):
 	
 	return update
 
+def run_updater_task(current_version, channel, blender_version):
+	"""
+	Check for and install an update
+	"""
+	
+	try:
+		update = get_latest_version(current_version, channel, blender_version)
+		
+		if (update != None):
+			download_and_install_update(update.download, update.hash)
+		
+		os._exit(0)
+	except:
+		util.log(traceback.print_exc())
+		os._exit(1)
+
 def run_updater(current_version, channel, blender_version):
 	"""
-	Display a popup if there is an update.
+	Run the updater async
 	"""
 	
-	update = get_latest_version(current_version, channel, blender_version)
-	
-	if (update != None):
-		download_and_install_update(update.download, update.hash)
+	p = Process(target = run_updater_task, args = (current_version, channel, blender_version))
+	p.start()
