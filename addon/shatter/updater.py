@@ -23,10 +23,11 @@ class Update():
 	TODO This does not need to be a class, could just be a dict
 	"""
 	
-	def __init__(self, release_channel, version, download):
+	def __init__(self, release_channel, version, download, hash):
 		self.release_channel = release_channel
 		self.version = version
 		self.download = download
+		self.hash = hash
 
 def download_json(source):
 	"""
@@ -39,12 +40,14 @@ def download_json(source):
 	
 	return json.loads(data)
 
-def update_downloader(url):
+def update_downloader(url, hash):
 	try:
 		import shutil, pathlib, os
 		
+		util.log(f"Downloading an update where:\n\turl = {url}\n\thash = {hash}")
+		
 		# Download data
-		data = util.http_get_signed(url)
+		data = util.http_get_with_expected_hash(url, hash)
 		
 		if (not data):
 			util.log("Update zip file failed to download or verify properly")
@@ -56,24 +59,24 @@ def update_downloader(url):
 		# Write the data
 		pathlib.Path(path).write_bytes(data)
 		
-		util.log(f"Downloaded latest update to {path}, preparing to extract.")
+		util.log(f"Downloaded latest update to '{path}', extracting files now...")
 		
 		# Extract the files (installs update)
 		shutil.unpack_archive(path, common.BLENDER_ADDONS_PATH, "zip")
+		
+		util.log("Addon has been updated")
 		
 		os._exit(0)
 	except:
 		util.log(traceback.print_exc())
 		os._exit(1)
 
-def download_and_install_update(source):
+def download_and_install_update(url, hash):
 	"""
 	Download and install an update
-	
-	NOTE: WE DON'T EVER EVER EVER EVER ENABLE THIS BY DEFAULT!!!
 	"""
 	
-	p = Process(target = update_downloader, args = (source,))
+	p = Process(target = update_downloader, args = (url, hash))
 	p.start()
 
 def version_compare(current, candidate, or_eq = False):
@@ -116,14 +119,15 @@ def get_latest_version(current_version, release_channel, current_blender):
 			"updatertest": {
 				"version": [9999, 99, 99],
 				"blender_version": [3, 0, 0],
-				"download": "https://example.invalid/file.zip",
+				"download": "http://smashhitlab.000webhostapp.com/empty.zip",
+				"hash": "b4dacd4a8d243b009c8b0cd0efcd00098a9adec682fd5bf0b736e94fd3caa692",
 			},
 			"vt_min": 0,
 			"vt_max": 2699330830,
 		}
 	
 	if (not info):
-		util.log("No update info (bad signature?)")
+		util.log("Could not get update info")
 		return None
 	
 	if ("vt_min" not in info or info["vt_min"] > util.get_time()):
@@ -162,33 +166,16 @@ def get_latest_version(current_version, release_channel, current_blender):
 		return None
 	
 	# Create the update object, if we need to use it
-	update = Update(release_channel, new_version, info.get("download", None))
+	update = Update(release_channel, new_version, info.get("download", None), info.get("hash", None))
 	
 	return update
 
-def check_for_updates(current_version):
+def run_updater(current_version, channel, blender_version):
 	"""
 	Display a popup if there is an update.
 	"""
 	
-	import bpy, functools
-	import butil
-	
-	if (not bpy.context.preferences.addons["shatter"].preferences.enable_update_notifier):
-		return
-	
-	update = get_latest_version(current_version, bpy.context.preferences.addons["shatter"].preferences.updater_channel, bpy.app.version)
+	update = get_latest_version(current_version, channel, blender_version)
 	
 	if (update != None):
-		if (bpy.context.preferences.addons["shatter"].preferences.enable_auto_update):
-			download_and_install_update(update.download)
-		else:
-			message = f"Shatter v{update.version[0]}.{update.version[1]}.{update.version[2]} has been released! You can download the ZIP file here: {update.download}"
-			
-			# HACK: Defer execution to when blender has actually loaded otherwise 
-			# we make it crash!
-			# TODO: Look if there is some signal or event we can catch for Blender
-			# startup.
-			bpy.app.timers.register(functools.partial(butil.show_message, "Shatter Update", message), first_interval = 5.0)
-	else:
-		util.log("Didn't find any updates or checker is disabled.")
+		download_and_install_update(update.download, update.hash)

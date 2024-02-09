@@ -54,6 +54,13 @@ def shake256(data, length = 16):
 	
 	return hashlib.shake_256(data.encode('utf-8')).hexdigest(length)
 
+def sha256(data):
+	"""
+	Compute the SHA-256 hash of the given data
+	"""
+	
+	return hashlib.sha256(data.encode('utf-8') if type(data) == str else data).hexdigest()
+
 def randpw(bits = 128):
 	"""
 	Generate a random password
@@ -279,6 +286,35 @@ def http_get_signed(url, sigurl = None):
 		return None
 	
 	# Return the content of the file
+	return data
+
+def http_get_with_expected_hash(url, hash):
+	"""
+	Get the file at the given url and verify that the hash matches a given one.
+	If the download fails or the hash does not match this function returns None.
+	"""
+	
+	# Download data
+	data = None
+	
+	try:
+		data = requests.get(url)
+	except:
+		return None
+	
+	if (data.status_code != 200):
+		return None
+	else:
+		data = data.content
+	
+	# Verify that the hashes match
+	if (type(hash) != str or len(hash) != 64):
+		return None
+	
+	if (sha256(data) != hash):
+		return None
+	
+	# Return the content of the file if the hashes match
 	return data
 
 def load_module(path):

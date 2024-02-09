@@ -929,12 +929,11 @@ class sh_AddonPreferences(AddonPreferences):
 		name = "",
 		description = "",
 		items = [
-			('Settings', "Settings", ""),
-			('Advanced', "Advanced", ""),
-			# ('Extensions', "Extensions", ""),
+			('General', "General", ""),
+			('Features', "Features", ""),
 			('About', "About", ""),
 		],
-		default = "Settings",
+		default = "General",
 	)
 	
 	default_assets_path: StringProperty(
@@ -980,23 +979,26 @@ class sh_AddonPreferences(AddonPreferences):
 		default = False,
 	)
 	
-	enable_update_notifier: BoolProperty(
-		name = "Enable update checking",
-		description = "Enables checking for updates. This will try to contact github, which may pose a privacy risk",
-		default = True,
-	)
-	
 	enable_auto_update: BoolProperty(
 		name = "Enable automatic updates",
 		description = "Automatically downloads and installs the newest version of the addon",
 		default = True,
 	)
 	
+	update_check_frequency: IntProperty(
+		name = "Updater checking frequency (hours)",
+		description = "This controls how frequently the updater will check for new updates, in hours",
+		min = 4,
+		max = 720,
+		default = 12,
+	)
+	
 	updater_channel: EnumProperty(
-		name = "Update freqency",
+		name = "Channel",
 		description = "This controls how frequently you will recieve updates, tweaks and new features. Faster updates might be buggier and break your workflow but contain better features, while slower updates will give a better exprience without newer features",
 		items = [
 			('stable', "Normal", "Contains new updates and features as soon as they are available, but might also break sometimes."),
+			None,
 			('updatertest', "Updater test", "A testing channel. This doesn't get real updates."),
 		],
 		default = "stable",
@@ -1035,8 +1037,8 @@ class sh_AddonPreferences(AddonPreferences):
 		name = "Mesh baker",
 		description = "Selects which mesh baker to use",
 		items = [
-			('bakemesh', "BakeMesh (default)", "Shatter's default mesh baker, written in Python. Slow in some cases and also completely fucks up tile rotations, but supports some extras like gradients"),
-			('command', "Custom command", "Run a custom command to bake the mesh"),
+			('bakemesh', "BakeMesh", "Shatter's default mesh baker, written in Python. Slow in some cases and also completely fucks up tile rotations, but supports some extras like gradients"),
+			('command', "Custom command (advanced)", "Run a custom command to bake the mesh"),
 		],
 		default = "bakemesh",
 	)
@@ -1055,44 +1057,44 @@ class sh_AddonPreferences(AddonPreferences):
 		# tab = ui.prop("tab", use_tabs = True)
 		# HACK Make this part of the generic thing
 		r = self.layout.row(align = True)
-		r.prop_enum(self, "tab", "Settings")
-		r.prop_enum(self, "tab", "Advanced")
+		r.prop_enum(self, "tab", "General")
+		r.prop_enum(self, "tab", "Features")
 		r.prop_enum(self, "tab", "About")
 		tab = self.tab
 		
 		getattr(self, f"draw_{tab.lower()}")(ui)
 	
-	def draw_settings(self, ui):
-		ui.region("PREFERENCES", "General options")
+	def draw_general(self, ui):
+		ui.region("EXPORT", "Export and import")
 		ui.prop("default_assets_path")
 		ui.prop("enable_segment_warnings")
 		ui.prop("auto_export_compressed")
 		ui.prop("resolve_templates")
+		ui.prop("force_disallow_import")
 		ui.end()
 		
-		ui.region("PREFERENCES", "Interface")
+		ui.region("DESKTOP", "Interface")
 		ui.prop("compact_ui")
 		ui.prop("purist_mode")
 		ui.prop("show_deprecated_advanced_lights")
 		ui.end()
 		
-		ui.region("WORLD", "Network features")
-		if (ui.prop("quick_test_server") == "yorshex"):
-			ui.warn("To use asset server you should agree with the zlib licence.")
-		ui.prop("enable_update_notifier")
+		ui.region("WORLD", "Automatic updates")
+		ui.prop("enable_auto_update")
 		
-		if (self.enable_update_notifier):
-			ui.prop("enable_auto_update")
+		if (self.enable_auto_update):
+			ui.prop("update_check_frequency")
 			ui.prop("updater_channel")
 		
 		ui.end()
-		
-		ui.region("LOCKED", "Protection")
-		ui.prop("force_disallow_import")
-		ui.end()
 	
-	def draw_advanced(self, ui):
-		ui.region("PREFERENCES", "Mesh baking")
+	def draw_features(self, ui):
+		ui.region("AUTO", "Quick test")
+		
+		if (ui.prop("quick_test_server") == "yorshex"):
+			ui.warn("To use asset server you should agree with the zlib licence.")
+		
+		ui.region("UV_DATA", "Mesh baking")
 		
 		if (ui.prop("mesh_baker") == "command"):
 			ui.prop("mesh_command")
@@ -1496,7 +1498,22 @@ def SHATTER_MT_3DViewportMenu_draw(self, context):
 
 def run_updater():
 	try:
-		updater.check_for_updates(common.BL_INFO["version"])
+		# Blender seems fucking stupid and isn't writing the update time
+		# properly so i just have to use a file for that :/
+		last_update_time = util.get_file(common.TOOLS_HOME_FOLDER + "/udcheck.txt")
+		last_update_time = int(last_update_time) if last_update_time != None else 0
+		
+		util.log(f"Last updated at {last_update_time}")
+		
+		# Check if we've recently checked for updates
+		next_update_time = last_update_time + 60 * 60 * get_prefs().update_check_frequency
+		should_check = util.get_time() >= next_update_time
+		
+		if (should_check):
+			updater.run_updater(common.BL_INFO["version"], get_prefs().updater_channel, bpy.app.version)
+			util.set_file(common.TOOLS_HOME_FOLDER + "/udcheck.txt", str(int(util.get_time())))
+		else:
+			util.log(f"Updates checked for recently, will check for update in at least {next_update_time - util.get_time()} seconds")
 	except Exception as e:
 		import traceback
 		util.log(f"Shatter for Blender: Had an exception whilst checking for updates:")
@@ -1991,7 +2008,8 @@ def register():
 	server_manager_update()
 	
 	# Check for updates
-	run_updater()
+	if (get_prefs().enable_auto_update):
+		run_updater()
 	
 	# A little easter egg for those who remember
 	# Also, I'd love for Shasa and Smashkit to do something useful or shut the
