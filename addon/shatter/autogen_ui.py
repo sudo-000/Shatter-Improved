@@ -73,6 +73,20 @@ class AutogenProperties(PropertyGroup):
 		default = "",
 	)
 	
+	direction: EnumProperty(
+		name = "Direction",
+		description = "The direction that autogen will consider up",
+		items = [
+			('up', "Up", ""),
+			('down', "Down", ""),
+			('left', "Left", ""),
+			('right', "Right", ""),
+			('front', "Front", ""),
+			('back', "Back", ""),
+		],
+		default = "up",
+	)
+	
 	size: FloatVectorProperty(
 		name = "Box size",
 		description = "First is width, second is depth. Height is the random part",
@@ -189,6 +203,8 @@ class AutogenPanel(Panel):
 			sub.label(text = "Copying props from selected")
 		if (props.type == "SingleRow" and props.algorithm != "ArithmeticProgressionSet"):
 			sub.prop(props, "max_height")
+		
+		sub.prop(props, "direction")
 		sub.prop(props, "size")
 		
 		# Single row options
@@ -228,15 +244,55 @@ class RunRandomiseSeedAction(bpy.types.Operator):
 		
 		return {'FINISHED'}
 
+def real_loc(x, y, z, up = "up"):
+	"""
+	Get the real output location after accounting for which direction is used
+	as up.
+	"""
+	
+	if (up == "up"):
+		return (x, y, z)
+	elif (up == "down"):
+		return (x, y, -z)
+	elif (up == "left"):
+		return (-y, x, z)
+	elif (up == "right"):
+		return (y, -x, z)
+	elif (up == "front"):
+		return (x, -z, y)
+	elif (up == "back"):
+		return (x, z, -y)
+
+def fake_loc(x, y, z, up = "up"):
+	"""
+	Inverse of real_loc()
+	"""
+	
+	if (up == "up"):
+		return (x, y, z)
+	elif (up == "down"):
+		return (x, y, -z)
+	elif (up == "left"):
+		return (y, -x, z)
+	elif (up == "right"):
+		return (-y, x, z)
+	elif (up == "front"):
+		return (x, z, -y)
+	elif (up == "back"):
+		return (x, -z, y)
+
 class BlenderPlacer:
 	"""
 	Provides an interface for the autogenerator to create boxes in blender in
 	a generic way.
 	"""
 	
-	def __init__(self, basePos, baseSize, param3):
+	def __init__(self, basePos, baseSize, direction, param3):
 		if (basePos and baseSize):
+			self.setUpDir(direction)
 			self.setBase(basePos, baseSize)
+		else:
+			self.setUpDir(direction)
 		
 		# This is probably a bit insane, but it's probably not the worst way of
 		# doing this...
@@ -247,12 +303,18 @@ class BlenderPlacer:
 		
 		self.objects = []
 	
+	def setUpDir(self, direction):
+		self.direction = direction
+	
 	def setBase(self, basePos, baseSize):
 		"""
 		Make a base box from the blender location and size
 		"""
 		
-		self.base = autogen.Box(autogen.Vector3(basePos[1], basePos[2], basePos[0]), autogen.Vector3(baseSize[1] / 2, baseSize[2] / 2, baseSize[0] / 2))
+		x, y, z = fake_loc(basePos[1], basePos[2], basePos[0], self.direction)
+		sx, sy, sz = fake_loc(baseSize[1] / 2, baseSize[2] / 2, baseSize[0] / 2, self.direction)
+		
+		self.base = autogen.Box(autogen.Vector3(x, y, z), autogen.Vector3(sx, sy, sz))
 	
 	def getBase(self):
 		"""
@@ -283,7 +345,7 @@ class BlenderPlacer:
 		"""
 		
 		# Add the mesh
-		bpy.ops.mesh.primitive_cube_add(size = 1.0, location = (box.pos.z, box.pos.x, box.pos.y), scale = (box.size.z * 2, box.size.x * 2, box.size.y * 2))
+		bpy.ops.mesh.primitive_cube_add(size = 1.0, location = real_loc(box.pos.z, box.pos.x, box.pos.y, self.direction), scale = real_loc(box.size.z * 2, box.size.x * 2, box.size.y * 2, self.direction))
 		
 		# The added mesh is always selected after, so we do this to get the object
 		box = bpy.context.active_object
@@ -306,7 +368,7 @@ class BlenderPlacer:
 		o.empty_display_size = 1
 		o.empty_display_type = "PLAIN_AXES"
 		
-		o.location = (obs.pos.z, obs.pos.x, obs.pos.y)
+		o.location = real_loc(obs.pos.z, obs.pos.x, obs.pos.y, self.direction)
 		
 		o.sh_properties.sh_type = "OBS"
 		o.sh_properties.sh_obstacle = obs.type
@@ -326,7 +388,7 @@ class BlenderPlacer:
 		o.empty_display_size = 1
 		o.empty_display_type = "PLAIN_AXES"
 		
-		o.location = (dec.pos.z, dec.pos.x, dec.pos.y)
+		o.location = real_loc(dec.pos.z, dec.pos.x, dec.pos.y, self.direction)
 		
 		o.sh_properties.sh_type = "DEC"
 		o.sh_properties.sh_decal = dec.id
@@ -366,6 +428,7 @@ class RunAutogenAction(bpy.types.Operator):
 		placer = BlenderPlacer(
 			context.object.location if context.object else None,
 			context.object.dimensions if context.object else None,
+			props.direction,
 			context.object if context.object and (context.object.sh_properties.sh_visible or not props.template) else props.template,
 		)
 		
