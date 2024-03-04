@@ -23,7 +23,7 @@ VERSION = (0, 15, 6)
 
 # If the mesh baker version and bake info should be appended to the end of the
 # mesh data
-INCLUDE_VERSION_AND_INFO = True
+INCLUDE_VERSION_AND_INFO = False
 
 # The number of rows and columns in the tiles.mtx.png file. Change this if you
 # have overloaded the file with more tiles; note that you will also need to
@@ -1020,7 +1020,7 @@ def generateMeshData(data, seg = None, progress = None, extra_data = None):
 		outdata += struct.pack('!H', VERSION[0])
 		outdata += struct.pack('!H', VERSION[1])
 		outdata += struct.pack('!H', VERSION[2])
-		outdata += struct.pack('!H', (1 if BAKE_UNSEEN_FACES else 0) | (2 if ABMIENT_OCCLUSION_ENABLED else 0) | (4 if LIGHTING_ENABLED else 0))
+		outdata += struct.pack('!H', (0b1 if BAKE_UNSEEN_FACES else 0) | (0b10 if ABMIENT_OCCLUSION_ENABLED else 0) | (0b100 if LIGHTING_ENABLED else 0))
 		outdata += struct.pack('!H', TILE_ROWS)
 		outdata += struct.pack('!H', TILE_COLS)
 		outdata += struct.pack('!f', TILE_BITE_ROW)
