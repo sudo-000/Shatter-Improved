@@ -289,12 +289,12 @@ class Quad:
 	Representation of a quadrelaterial (a shape with four sides)
 	"""
 	
-	def __init__(self, p1, p2, p3, p4, colour, tile, tileRot, seg, normal, gradient):
+	def __init__(self, p1, p2, p3, p4, color, tile, tileRot, seg, normal, gradient):
 		self.p1 = p1
 		self.p2 = p2
 		self.p3 = p3
 		self.p4 = p4
-		self.colour = colour
+		self.color = color
 		self.tile = tile
 		self.tileRot = tileRot
 		self.seg = seg
@@ -312,7 +312,7 @@ class Quad:
 		Returns tuple of (vertex bytes, index bytes, number of vertexes, number of indicies)
 		"""
 		
-		p1, p2, p3, p4, col, gc, normal, gradient = self.p1, self.p2, self.p3, self.p4, self.colour, self.seg, self.normal, self.gradient
+		p1, p2, p3, p4, col, gc, normal, gradient = self.p1, self.p2, self.p3, self.p4, self.color, self.seg, self.normal, self.gradient
 		tex = getTextureCoords(TILE_ROWS, TILE_COLS, TILE_BITE_ROW, TILE_BITE_COL, self.tileRot, self.tile)
 		
 		vertexes = bytearray()
@@ -339,12 +339,12 @@ class Box:
 	Very simple container for box data
 	"""
 	
-	def __init__(self, seg, pos, size, colour = [Vector3(1.0, 1.0, 1.0), Vector3(1.0, 1.0, 1.0), Vector3(1.0, 1.0, 1.0)], tile = (0, 0, 0), tileSize = (1.0, 1.0, 1.0), tileRot = (0, 0, 0), glow = 0.0, gradient = None):
+	def __init__(self, seg, pos, size, color = [Vector3(1.0, 1.0, 1.0), Vector3(1.0, 1.0, 1.0), Vector3(1.0, 1.0, 1.0)], tile = (0, 0, 0), tileSize = (1.0, 1.0, 1.0), tileRot = (0, 0, 0), glow = 0.0, gradient = None):
 		"""
 		seg: global segment context
 		pos: position
 		size: size of the box
-		colour: list or tuple of the face colours of the box
+		color: list or tuple of the face colors of the box
 		tile: list or tuple of tiles to use
 		tileSize: size of the box tiles
 		tileRot: rotation of the boxes
@@ -352,17 +352,17 @@ class Box:
 		"""
 		
 		# Expand shorthands for vectors
-		if (type(colour) == Vector3):
-			colour = [colour]
+		if (type(color) == Vector3):
+			color = [color]
 		
-		if (len(colour) == 1):
-			colour = [colour[0], colour[0], colour[0]]
+		if (len(color) == 1):
+			color = [color[0], color[0], color[0]]
 		
 		# Set attributes
 		self.segment_info = seg
 		self.pos = pos
 		self.size = size
-		self.colour = colour
+		self.color = color
 		self.tile = tile
 		self.tileSize = tileSize
 		self.tileRot = tileRot
@@ -380,7 +380,7 @@ class Box:
 		# happening.
 		
 		# Shorthands
-		pos, tileSize, colour, tile, seg, tileRot = self.pos, self.tileSize, self.colour, self.tile, self.segment_info, self.tileRot
+		pos, tileSize, color, tile, seg, tileRot = self.pos, self.tileSize, self.color, self.tile, self.segment_info, self.tileRot
 		
 		# Get the eight points (verticies) of the cube
 		p1 = self.size.partialOpposite(False, False, False)
@@ -401,7 +401,7 @@ class Box:
 			quads += generateSubdividedFaceGeometry(
 				p1, p3,
 				tileSize[2], tileSize[2],
-				colour[0].withLight(seg.right),
+				color[0].withLight(seg.right),
 				tile[0],
 				(tileRot[0] + 1) % 4,
 				seg,
@@ -414,7 +414,7 @@ class Box:
 			quads += generateSubdividedFaceGeometry(
 				p5, p7,
 				tileSize[2], tileSize[2],
-				colour[0].withLight(seg.left),
+				color[0].withLight(seg.left),
 				tile[0],
 				(tileRot[0] + 1) % 4,
 				seg,
@@ -427,7 +427,7 @@ class Box:
 			quads += generateSubdividedFaceGeometry(
 				p1, p6,
 				tileSize[1], tileSize[1],
-				colour[1].withLight(seg.top),
+				color[1].withLight(seg.top),
 				tile[1],
 				(tileRot[1] + 2) % 4,
 				seg,
@@ -440,7 +440,7 @@ class Box:
 			quads += generateSubdividedFaceGeometry(
 				p4, p7,
 				tileSize[1], tileSize[1],
-				colour[1].withLight(seg.bottom),
+				color[1].withLight(seg.bottom),
 				tile[1],
 				(tileRot[1] + 2) % 4,
 				seg,
@@ -452,7 +452,7 @@ class Box:
 		quads += generateSubdividedFaceGeometry(
 			p1, p8,
 			tileSize[0], tileSize[0],
-			colour[2].withLight(seg.front),
+			color[2].withLight(seg.front),
 			tile[2],
 			tileRot[2],
 			seg, 
@@ -465,7 +465,7 @@ class Box:
 			quads += generateSubdividedFaceGeometry(
 				p2, p7,
 				tileSize[0], tileSize[0],
-				colour[2].withLight(seg.back),
+				color[2].withLight(seg.back),
 				tile[2],
 				tileRot[2],
 				seg,
@@ -626,8 +626,8 @@ def parseSegmentXML(data, templates = {}):
 				# Size -- x y z
 				size = Vector3.fromString(getFromTemplate(a, templates, t, "size", "0 0 0"))
 				
-				# Colour -- r1 g1 b1   [r2 g2 b2   r3 g3 b3]
-				colour = Vector3.fromString(getFromTemplate(a, templates, t, "color", "1 1 1"), True)
+				# Color -- r1 g1 b1   [r2 g2 b2   r3 g3 b3]
+				color = Vector3.fromString(getFromTemplate(a, templates, t, "color", "1 1 1"), True)
 				
 				# Tile -- tile1 [tile2 tile3]
 				tile = parseIntTriplet(getFromTemplate(a, templates, t, "tile", "0"))
@@ -644,7 +644,7 @@ def parseSegmentXML(data, templates = {}):
 				# Gradient
 				gradient = parseGradient(pos, size, getFromTemplate(a, templates, t, "mb-gradient", ""))
 				
-				boxes.append(Box(seg, pos, size, colour, tile, tileSize, tileRot, glow, gradient))
+				boxes.append(Box(seg, pos, size, color, tile, tileSize, tileRot, glow, gradient))
 	
 	return seg
 
@@ -684,11 +684,11 @@ def parseTemplatesXml(path):
 		return result
 
 
-def generateSubdividedFaceGeometry(minest, maxest, s_size, t_size, colour, tile, tileRot, seg, normal, gradient):
+def generateSubdividedFaceGeometry(minest, maxest, s_size, t_size, color, tile, tileRot, seg, normal, gradient):
 	"""
 	Generates subdivided quadrelaterials for any given axis where the min/max
 	are not the same. Minest/maxist are the min/max of the quad and ssize and 
-	tsize are the size of the subdivisions. Colour and tile are the colour and
+	tsize are the size of the subdivisions. Color and tile are the color and
 	tile. The normal is the normal of the surface.
 	"""
 	
@@ -779,7 +779,7 @@ def generateSubdividedFaceGeometry(minest, maxest, s_size, t_size, colour, tile,
 			p4 = p1                + t_scunitpart
 			
 			# Finally make the quad
-			quads.append(Quad(p1, p2, p3, p4, colour, tile, tileRot, seg, normal, gradient))
+			quads.append(Quad(p1, p2, p3, p4, color, tile, tileRot, seg, normal, gradient))
 			
 			# Add new size to total count (for this major axis)
 			t_current += t_size
@@ -879,11 +879,11 @@ def doLighting(x, y, z, r, g, b, gc):
 	# Find the intensity of light
 	findIntenstity = lambda size, dist : min(max(1 / (((max(dist, size + 0.0001) - size) ** 2)), 0), 1)
 	
-	# Set a proper vector for the current colour
-	old_colour = Vector3(r, g, b)
+	# Set a proper vector for the current color
+	old_color = Vector3(r, g, b)
 	
-	# Colour that will be added to old colour
-	add_colour = Vector3(0.0, 0.0, 0.0)
+	# Color that will be added to old color
+	add_color = Vector3(0.0, 0.0, 0.0)
 	
 	# Make a proper vector for the current point coordintes
 	point = Vector3(x, y, z)
@@ -899,19 +899,19 @@ def doLighting(x, y, z, r, g, b, gc):
 		# Find the nearest side coordinate index
 		facing_side = (0 if ((abs(difference.x) > abs(difference.y)) and (abs(difference.x) > abs(difference.z))) else (1 if (abs(difference.y) > abs(difference.z)) else 2))
 		
-		# Set box colour
-		box_colour = box.colour[facing_side]
+		# Set box color
+		box_color = box.color[facing_side]
 		
 		# Find the "radius" of the box used to make sure box size is less likely
 		# to affect the amount of light cast
 		radius = [box.size.x, box.size.y, box.size.z][facing_side]
 		
-		# Find the new colour of the point based on how much light was added to
+		# Find the new color of the point based on how much light was added to
 		# the point and its intensity.
-		add_colour += box_colour.compose(old_colour) * findIntenstity(radius, distance) * box.glow * 0.01
+		add_color += box_color.compose(old_color) * findIntenstity(radius, distance) * box.glow * 0.01
 	
-	# Get the final colour by adding to base box colour
-	r, g, b = (old_colour.compose(ambient_light) + add_colour).asTuple()
+	# Get the final color by adding to base box color
+	r, g, b = (old_color.compose(ambient_light) + add_color).asTuple()
 	
 	return (r, g, b)
 
@@ -920,7 +920,7 @@ def doComputeLinearGradient(x, y, z, r, g, b, gradient):
 	pa = Vector3(gradient[0], gradient[1], gradient[2])
 	pb = Vector3(gradient[3], gradient[4], gradient[5])
 	
-	# Colour values of the gradient at each endpoint
+	# Color values of the gradient at each endpoint
 	ca = Vector3(gradient[6], gradient[7], gradient[8])
 	cb = Vector3(gradient[9], gradient[10], gradient[11])
 	
@@ -938,9 +938,9 @@ def doComputeLinearGradient(x, y, z, r, g, b, gradient):
 	
 	return (r, g, b)
 
-def doVertexColour(x, y, z, r, g, b, a, gc, normal, gradient):
+def doVertexColor(x, y, z, r, g, b, a, gc, normal, gradient):
 	"""
-	Do any final colour correction operations and per-vertex lighting.
+	Do any final color correction operations and per-vertex lighting.
 	"""
 	
 	if (gradient):
@@ -961,7 +961,7 @@ def meshPointBytes(x, y, z, u, v, r, g, b, a, gc, normal, gradient):
 	gc is the segment context that contains the box list for lighting
 	"""
 	
-	r, g, b, a = doVertexColour(x, y, z, r, g, b, a, gc, normal, gradient)
+	r, g, b, a = doVertexColor(x, y, z, r, g, b, a, gc, normal, gradient)
 	
 	c = bytearray()
 	

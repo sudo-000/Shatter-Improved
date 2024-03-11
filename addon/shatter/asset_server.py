@@ -326,23 +326,23 @@ class AdRequestHandler(BaseHTTPRequestHandler):
         self._queries = parse_url_qs(self._url.query)
         self._pv = self._get_pv()
 
-        match urljoin('/', self._url.path):
-            case '/level':
-                self._conditional_response(asset_reader.read_level(self._get_query('type'), self._pv, self._hostname), 'text/xml')
-            case '/room':
-                self._conditional_response(asset_reader.read_room(self._get_query('type'), self._pv, self._hostname), 'text/plain')
-            case '/segment':
-                if self._get_query('filetype') == '.xml':
-                    self._conditional_response(asset_reader.read_segment(self._get_query('type'), self._pv, self._hostname), 'text/xml')
-                elif self._get_query('filetype') == '.mesh':
-                    self._conditional_response(asset_reader.read_segment_mesh(self._get_query('type')), 'application/octet-stream')
-                else:
-                    self._send_response(HTTPResponse.not_found())
-            case '/obstacle':
-                self._conditional_response(asset_reader.read_obstacle(self._get_query('type')), 'text/plain')
-            case _:
+        matchvar = urljoin('/', self._url.path)
+        
+        if matchvar == '/level':
+            self._conditional_response(asset_reader.read_level(self._get_query('type'), self._pv, self._hostname), 'text/xml')
+        elif matchvar == '/room':
+            self._conditional_response(asset_reader.read_room(self._get_query('type'), self._pv, self._hostname), 'text/plain')
+        elif matchvar == '/segment':
+            if self._get_query('filetype') == '.xml':
+                self._conditional_response(asset_reader.read_segment(self._get_query('type'), self._pv, self._hostname), 'text/xml')
+            elif self._get_query('filetype') == '.mesh':
+                self._conditional_response(asset_reader.read_segment_mesh(self._get_query('type')), 'application/octet-stream')
+            else:
                 self._send_response(HTTPResponse.not_found())
-
+        elif matchvar == '/obstacle':
+            self._conditional_response(asset_reader.read_obstacle(self._get_query('type')), 'text/plain')
+        else:
+            self._send_response(HTTPResponse.not_found())
 
 
 def runAdServer(server_class, handler_class, asset_dir : str, default_level : Optional[str], do_obstacle_loading : bool):

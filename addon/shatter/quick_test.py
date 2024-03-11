@@ -58,7 +58,7 @@ def toCommaArray(string):
 
 def getSegmentOptions():
 	"""
-	Get the segment fog colour, music, particles, reverb strings
+	Get the segment fog color, music, particles, reverb strings
 	"""
 	
 	attrib = loadJsonFile(TEMPDIR + "/room.json")

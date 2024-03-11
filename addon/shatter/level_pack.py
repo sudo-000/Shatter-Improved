@@ -1,7 +1,6 @@
 import util
 import zipfile
 import json
-import os
 
 def make_file_list(assets, level):
 	"""

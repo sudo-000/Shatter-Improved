@@ -224,6 +224,50 @@ def _patch_v142_v143_arm64_dropballs(patcher, params):
 	# need to make a specific patch for the comparision.
 	patcher.patch(0x7162c, b"\xff\x02\x01\x6b")
 
+def _patch_v142_v143_arm64_checkpoints(patcher, params):
+	value = params[0] if len(params) > 0 else None
+	
+	if (not value):
+		return ["You didn't put in a value for how many checkpoints you want. Checkpoints won't be patched!"]
+	
+	value = int(value) + 1
+	
+	# This seems to be the number of rendered segments
+	d = struct.unpack(">I", patcher.peek(0x799e8, 4))[0]
+	patcher.patch(0x799e8, struct.pack(">I", _patch_const_mov_instruction_arm64(d, value)))
+	
+	# Don't exactly know what this is for, but I think it's pointers to the meshes
+	# by default it's 0x98 large (0x98 / 0x8 = 19) so it seems like there are 19 entries
+	# by default
+	d = struct.unpack(">I", patcher.peek(0x78700, 4))[0]
+	patcher.patch(0x78700, struct.pack(">I", _patch_const_mov_instruction_arm64(d, (value + 6) * 8)))
+	
+	# This is in an unused function but I will patch it anyways.
+	d = struct.unpack(">I", patcher.peek(0x58010, 4))[0]
+	patcher.patch(0x58010, struct.pack(">I", _patch_const_mov_instruction_arm64(d, value)))
+	
+	# Get the highscores even if the checkpoint is above cp12
+	patcher.patch(0x57c18, b"\x1f\x20\x03\xd5")
+	patcher.patch(0x57c44, b"\x1f\x20\x03\xd5")
+	
+	# In Player::reportCheckpoint(int index) we need to report regardless...
+	patcher.patch(0x57bb0, b"\x1f\x20\x03\xd5")
+	
+	# Force loading level if the level index isn't zero
+	patcher.patch(0x57c7c, b"\x20\x00\x00\x51")
+	patcher.patch(0x57c84, b"\x1f\x00\x00\x71")
+	patcher.patch(0x57c88, b"\x40\x03\x00\x54")
+
+def _patch_v142_v143_arm64_segmentrealpaths(f, value):
+	f.patch(0x2119f8, b"\x00")
+
+def _patch_v142_v143_arm64_obstaclerealpaths(f, value):
+	f.patch(0x211930, b"\x00")
+
+def _patch_v142_v143_arm64_realpaths(f, value):
+	f.patch(0x2118e8, b"\x00")
+	f.patch(0x1f48c0, b"\x00")
+
 def _patch_v142_v143_arm64_roomtime(patcher, params):
 	value = float(params[0]) if len(params) > 0 else None
 	
@@ -266,6 +310,10 @@ _LIBSMASHHIT_V142_V143_ARM64_PATCH_TABLE = {
 	"vertical": _patch_v142_v143_arm64_vertical,
 	"fov": _patch_v142_v143_arm64_fov,
 	"dropballs": _patch_v142_v143_arm64_dropballs,
+	"checkpoints": _patch_v142_v143_arm64_checkpoints,
+	"segmentrealpaths": _patch_v142_v143_arm64_segmentrealpaths,
+	"obstaclerealpaths": _patch_v142_v143_arm64_obstaclerealpaths,
+	"realpaths": _patch_v142_v143_arm64_realpaths,
 	"roomtime": _patch_v142_v143_arm64_roomtime,
 	"trainingballs": _patch_v142_v143_arm64_trainingballs,
 	"mglength": _patch_v142_v143_arm64_mglength,

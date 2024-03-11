@@ -1,5 +1,4 @@
 import common as common
-import util
 
 # For obstacle picker
 OBSTACLES = [
@@ -83,12 +82,13 @@ try:
 			
 			if (len(s) == 2 and not s[0].startswith("#")):
 				OBSTACLES.append((s[0], s[1], ""))
+				OBSTACLES_LIST.append(s[0])
+		print("Smash Hit Blender Tools: " + str(__name__) + ": Successfully loaded custom obstacles text file from: " + common.TOOLS_HOME_FOLDER + "/obstacles.txt")
 except FileNotFoundError:
-	util.log("Could not find text file for custom obstacles!")
-	try:
-		with open(common.TOOLS_HOME_FOLDER + "/obstacles.txt", "w") as f:
-			f.write("# Put custom obstacles here!\n\n")
-		
-		util.log("New empty custom obstacles file has been created.")
-	except:
-		pass
+	print("Smash Hit Blender Tools: " + str(__name__) + ": Could not find text file for custom obstacles!")
+	print("Smash Hit Blender Tools: " + str(__name__) + ": A new blank file will be created at: " + common.TOOLS_HOME_FOLDER + "/obstacles.txt")
+	with open(common.TOOLS_HOME_FOLDER + "/obstacles.txt", "w") as f:
+		f.write("# Add custom obstacles here:\n")
+		f.write("# \n")
+		f.write("# Format: [Obstacle File Name In Assets (do not include the .lua.mp3 extension)]=[Display Name]\n")
+		f.close()

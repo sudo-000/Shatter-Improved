@@ -37,11 +37,18 @@ def export_room(path):
 	pEnd = mgGetBool("end", true)
 	
 	mgMusic("{s.sh_music}")
-	mgFogColor({make_list(s.sh_fog_colour_bottom)}, {make_list(s.sh_fog_colour_top)})
+	mgFogColor({make_list(s.sh_fog_color_bottom)}, {make_list(s.sh_fog_color_top)})
 	mgGravity({s.sh_gravity})
 {func(s.sh_reverb, 'mgReverb', make_list_str(s.sh_reverb))}{func(s.sh_echo, 'mgEcho', make_list_str(s.sh_echo))}{func(s.sh_echo, 'mgSetRotation', make_list_str(s.sh_echo))}{func(s.sh_particles != 'None', 'mgParticles', f'"{s.sh_particles}"')}{func(s.sh_difficulty, 'mgSetDifficulty', s.sh_difficulty)}{s.sh_extra_code}\t
+	
+	confSegment("middle segment 1", 1)
+	confSegment("middle segment 2", 1)
+	confSegment("middle segment 3", 1)
+	
+	l = 0
+	
 	if pStart then
-		--l = l + mgSegment("put your start segment here!!", -l)
+		l = l + mgSegment("start segment", -l)	
 	end
 	
 	local targetLen = {s.sh_room_length} 
@@ -51,8 +58,10 @@ def export_room(path):
 	end
 	
 	if pEnd then 
-		--l = l + mgSegment("put your end segment here!!", -l)
+		l = l + mgSegment("end segment", -l)	
 	end
+	
+	mgLength(l)
 end
 
 function tick()
